@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+// (c) Eric Korff de Gidts
+// SPDX-License-Identifier: MIT
+// HidHideMSI.wxs
+-->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:dep="http://schemas.microsoft.com/wix/DependencyExtension" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  <Product Id="*" Language="1033" Codepage="1252" Manufacturer="$(var.BldCompanyName)" Name="$(var.BldCompanyName) $(var.BldProductName) ($(sys.BUILDARCH))" Version="$(var.BldProductVersion)" UpgradeCode="{8822CC70-E2A5-4CB7-8F14-E27101150A1D}">
+    <Package Id="*" Languages="1033" SummaryCodepage="1252" Description="$(var.BldCompanyName) $(var.BldProductName) ($(sys.BUILDARCH))" Comments="&#169; $(var.BldCopyright)" InstallerVersion="200" Compressed="yes" InstallScope="perMachine"/>
+    <SetProperty Id="ARPINSTALLLOCATION" Value="[id5C83A778378D4E51A2EDBF11ECFC27B1]" After="CostFinalize"/>
+    <MediaTemplate EmbedCab="yes"/>
+    <Property Id="REINSTALLMODE" Value="amus"/>
+    <MajorUpgrade AllowDowngrades="yes"/>
+    <!-- Define the MSI icon -->
+    <Property Id="ARPPRODUCTICON" Value="id91200836E0964D779477A573F45805E6.exe" />
+    <!-- Block MSI installation when the O/S version is incorrect -->
+    <Condition Message="This operating system isn't suited for running this application. Kernel Mode Driver Framework v1.13 support is required. Minimum O/S is Windows 8.1.">
+      <![CDATA[Installed OR (VersionNT >= 603)]]>
+    </Condition>
+    <!-- For consistency with the UI use font Tahoma size 8 in the license text -->
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.SolutionDir)LICENSE.rtf"/>
+    <WixVariable Id="WixUIBannerBmp" Value="$(var.SolutionDir)HidHide\HidHideMSIb.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="$(var.SolutionDir)HidHide\HidHideMSId.bmp" />
+    <UI>
+      <UIRef Id="WixUI_FeatureTree"/>
+      <UIRef Id="WixUI_ErrorProgressText"/>
+    </UI>
+    <Feature Id="PROD" Title="Product code" Description="Install the core functionality of this application." Display="expand" Level="1" InstallDefault="local"/>
+    <Feature Id="SYMB" Title="Symbol files" Description="Install the symbol files of all binaries deployed with this installer." Display="expand" Level="2" InstallDefault="local"/>
+    <!-- Define the actions to uninstall or install the device driver -->
+    <CustomAction Id="DrvInstallExe1"   BinaryKey="WixCA" DllEntry="WixQuietExec64" Execute="deferred" Impersonate="no"/>
+    <CustomAction Id="DrvInstallExe2"   BinaryKey="WixCA" DllEntry="WixQuietExec64" Execute="deferred" Impersonate="no" Return="ignore"/>
+    <CustomAction Id="DrvInstallExe3"   BinaryKey="WixCA" DllEntry="WixQuietExec64" Execute="deferred" Impersonate="no" Return="ignore"/>
+    <CustomAction Id="DrvInstallExe4"   BinaryKey="WixCA" DllEntry="WixQuietExec64" Execute="deferred" Impersonate="no" Return="ignore"/>
+    <CustomAction Id="DrvInstallCmd1"   Property="DrvInstallExe1" Value="&quot;[#id2F9AA9B2B5954CADA9E66D706B1B091E]&quot; install &quot;[id5C83A778378D4E51A2EDBF11ECFC27B1]HidHide.inf&quot; &quot;root\HidHide&quot;"/>
+    <CustomAction Id="DrvInstallCmd2"   Property="DrvInstallExe2" Value="&quot;[#id2F9AA9B2B5954CADA9E66D706B1B091E]&quot; classfilter HIDClass upper -HidHide"/>
+    <CustomAction Id="DrvInstallCmd3"   Property="DrvInstallExe3" Value="&quot;[#id2F9AA9B2B5954CADA9E66D706B1B091E]&quot; classfilter XnaComposite upper -HidHide"/>
+    <CustomAction Id="DrvInstallCmd4"   Property="DrvInstallExe4" Value="&quot;[#id2F9AA9B2B5954CADA9E66D706B1B091E]&quot; classfilter XboxComposite upper -HidHide"/>
+    <CustomAction Id="DrvUninstallExe1" BinaryKey="WixCA" DllEntry="WixQuietExec64" Execute="deferred" Impersonate="no" Return="ignore"/>
+    <CustomAction Id="DrvUninstallExe2" BinaryKey="WixCA" DllEntry="WixQuietExec64" Execute="deferred" Impersonate="no" Return="ignore"/>
+    <CustomAction Id="DrvUninstallExe3" BinaryKey="WixCA" DllEntry="WixQuietExec64" Execute="deferred" Impersonate="no" Return="ignore"/>
+    <CustomAction Id="DrvUninstallExe4" BinaryKey="WixCA" DllEntry="WixQuietExec64" Execute="deferred" Impersonate="no" Return="ignore"/>
+    <CustomAction Id="DrvUninstallCmd1" Property="DrvUninstallExe1" Value="&quot;[#id2F9AA9B2B5954CADA9E66D706B1B091E]&quot; classfilter XboxComposite upper !HidHide"/>
+    <CustomAction Id="DrvUninstallCmd2" Property="DrvUninstallExe2" Value="&quot;[#id2F9AA9B2B5954CADA9E66D706B1B091E]&quot; classfilter XnaComposite upper !HidHide"/>
+    <CustomAction Id="DrvUninstallCmd3" Property="DrvUninstallExe3" Value="&quot;[#id2F9AA9B2B5954CADA9E66D706B1B091E]&quot; classfilter HIDClass upper !HidHide"/>
+    <CustomAction Id="DrvUninstallCmd4" Property="DrvUninstallExe4" Value="&quot;[#id2F9AA9B2B5954CADA9E66D706B1B091E]&quot; remove &quot;root\HidHide&quot;"/>
+    <CustomAction Id="RebootText"       Property="WIXUI_EXITDIALOGOPTIONALTEXT" Value="Thank you for installing $(var.BldCompanyName) $(var.BldProductName).&#xD;&#xA;Be sure to RESTART in order to effectuate these changes."/>
+    <InstallUISequence>
+      <Custom Action="RebootText" After="FindRelatedProducts">NOT Installed</Custom>
+    </InstallUISequence>
+    <InstallExecuteSequence>
+      <!-- Install the device driver when the device driver is installed and there is no activity, or during installation -->
+      <Custom Action="DrvInstallCmd1"   Before="DrvInstallExe1"><![CDATA[((!PROD = 3) AND (&PROD = -1)) OR ((&PROD = 3))]]></Custom>
+      <Custom Action="DrvInstallExe1"   Before="DrvInstallCmd2"><![CDATA[((!PROD = 3) AND (&PROD = -1)) OR ((&PROD = 3))]]></Custom>
+      <Custom Action="DrvInstallCmd2"   Before="DrvInstallExe2"><![CDATA[((!PROD = 3) AND (&PROD = -1)) OR ((&PROD = 3))]]></Custom>
+      <Custom Action="DrvInstallExe2"   Before="DrvInstallCmd3"><![CDATA[((!PROD = 3) AND (&PROD = -1)) OR ((&PROD = 3))]]></Custom>
+      <Custom Action="DrvInstallCmd3"   Before="DrvInstallExe3"><![CDATA[((!PROD = 3) AND (&PROD = -1)) OR ((&PROD = 3))]]></Custom>
+      <Custom Action="DrvInstallExe3"   Before="DrvInstallCmd4"><![CDATA[((!PROD = 3) AND (&PROD = -1)) OR ((&PROD = 3))]]></Custom>
+      <Custom Action="DrvInstallCmd4"   Before="DrvInstallExe4"><![CDATA[((!PROD = 3) AND (&PROD = -1)) OR ((&PROD = 3))]]></Custom>
+      <Custom Action="DrvInstallExe4"   Before="InstallFinalize"><![CDATA[((!PROD = 3) AND (&PROD = -1)) OR ((&PROD = 3))]]></Custom>
+      <!-- When the device driver is installed, then uninstall it -->
+      <Custom Action="DrvUninstallCmd1" After="InstallInitialize"><![CDATA[(!PROD = 3)]]></Custom>
+      <Custom Action="DrvUninstallExe1" After="DrvUninstallCmd1"><![CDATA[(!PROD = 3)]]></Custom>
+      <Custom Action="DrvUninstallCmd2" After="DrvUninstallExe1"><![CDATA[(!PROD = 3)]]></Custom>
+      <Custom Action="DrvUninstallExe2" After="DrvUninstallCmd2"><![CDATA[(!PROD = 3)]]></Custom>
+      <Custom Action="DrvUninstallCmd3" After="DrvUninstallExe2"><![CDATA[(!PROD = 3)]]></Custom>
+      <Custom Action="DrvUninstallExe3" After="DrvUninstallCmd3"><![CDATA[(!PROD = 3)]]></Custom>
+      <Custom Action="DrvUninstallCmd4" After="DrvUninstallExe3"><![CDATA[(!PROD = 3)]]></Custom>
+      <Custom Action="DrvUninstallExe4" After="DrvUninstallCmd4"><![CDATA[(!PROD = 3)]]></Custom>
+    </InstallExecuteSequence>
+    <!-- Check the dependency on the Microsoft Visual C++ 2015-2019 (x64) Redistributable -->
+    <Property Id="VCREDIST">
+      <RegistrySearch Id="id86567BFDA3054C1486F28292246CA58C" Root="HKLM" Key="SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64" Name="Version" Type="raw" Win64="yes"/>
+    </Property>
+    <Condition Message="Microsoft Visual C++ 2015-2019 (x64) Redistributable is missing. Please install it first as this application depends on it. See https://visualstudio.microsoft.com/downloads/">
+      <![CDATA[Installed OR VCREDIST]]>
+    </Condition>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <!-- Register the package so that other packages can refer to it as a required dependency or have a version key to check against from within a detect condition -->
+        <Component Id="id51A45835BC2A4502A396CF292C74EF49" Guid="{51A45835-BC2A-4502-A396-CF292C74EF49}" Feature="PROD" Win64="no">
+          <dep:Provides Id="id6B650292971343538E7B2182912E4F66" Key="$(var.BldCompanyName).Drivers.HidHide.$(sys.BUILDARCH)"/>
+        </Component>
+      </Directory>
+      <!-- Deploy payload -->
+      <Directory Id="ProgramFiles64Folder">
+        <Directory Id="id801B755E54654715ABC20F2B55E075C8" Name="$(var.BldCompanyName)">
+          <Directory Id="id5C83A778378D4E51A2EDBF11ECFC27B1" Name="HidHide">
+            <Component Id="id6731FA83D4994E36A83DAA0EF21FD3CE" Guid="{6731FA83-D499-4E36-A83D-AA0EF21FD3CE}" Feature="PROD" Win64="yes">
+              <File Id="idEE926062DCA344CCA022E3937B8C541A" KeyPath="yes" Source="$(var.HidHide.TargetDir)HidHide\$(var.HidHide.TargetName).cat"/>
+            </Component>
+            <Component Id="id8F22E85576CD43B9AB179235C56B5A26" Guid="{8F22E855-76CD-43B9-AB17-9235C56B5A26}" Feature="PROD" Win64="yes">
+              <File Id="id2F9AA9B2B5954CADA9E66D706B1B091E" KeyPath="yes" Source="$(var.HidHide.TargetDir)DevCon.exe"/>
+            </Component>
+            <Component Id="idB898B838B8164B058C3061EC87BABA2D" Guid="{B898B838-B816-4B05-8C30-61EC87BABA2D}" Feature="PROD" Win64="yes">
+              <File Id="idF64ED1C42FA143F19562E79BE570DD8A" KeyPath="yes" Source="$(var.HidHide.TargetDir)HidHide\$(var.HidHide.TargetName).inf"/>
+            </Component>
+            <Component Id="id8FE532AA10C7403F869370F8FE4067E1" Guid="{8FE532AA-10C7-403F-8693-70F8FE4067E1}" Feature="PROD" Win64="yes">
+              <File Id="id1720A33E041B44CC87C6086D1F7C3045" Checksum="yes" KeyPath="yes" Source="$(var.HidHide.TargetDir)HidHide\$(var.HidHide.TargetFileName)"/>
+            </Component>
+            <Component Id="id6239F2841FD9424A84DCDBC7CDAF5C27" Guid="{6239F284-1FD9-424A-84DC-DBC7CDAF5C27}" Feature="PROD" Win64="yes">
+              <File Id="idD877CC39A8134621A7EBCE6DB4A5920C" KeyPath="yes" Source="$(var.HidHide.TargetDir)$(var.HidHide.TargetName).man">
+                <util:EventManifest MessageFile="[id5C83A778378D4E51A2EDBF11ECFC27B1]$(var.HidHide.TargetFileName)" ResourceFile="[id5C83A778378D4E51A2EDBF11ECFC27B1]$(var.HidHide.TargetFileName)"></util:EventManifest>
+              </File>
+            </Component>
+            <Component Id="idEDB6E353804F4344B9E74C505FB7A702" Guid="{EDB6E353-804F-4344-B9E7-4C505FB7A702}" Feature="PROD" Win64="yes">
+              <File Id="id9B4043D71FE444EF981485EC6DC2A0C4" KeyPath="yes" Source="$(var.HidHide.TargetDir)$(var.HidHide.TargetName).wprp"/>
+            </Component>
+          </Directory>
+          <Directory Id="id75DD4164523A4F11A87828CB38CD66DC" Name="HidHideClient">
+            <Component Id="id8334B23FC9694A779F1F125D7ED020A0" Guid="{8334B23F-C969-4A77-9F1F-125D7ED020A0}" Feature="PROD" Win64="yes">
+              <File Id="idB1A53D2A41EC4533BC473BAB8AAF31EC" Checksum="yes" KeyPath="yes" Source="$(var.HidHideClient.TargetPath)">
+                <Shortcut Id="id35AD28BA38834640BCD739DC839363B2" Advertise="yes" Name="$(var.BldProductName) Configuration Client" Description="Program for controlling and configuring $(var.BldProductName)" Directory="idD5964DC8DFA143A1A80358CE245935FB" WorkingDirectory="HidHideClientIcon.exe">
+                  <Icon Id="id91200836E0964D779477A573F45805E6.exe" SourceFile="$(var.HidHideClient.TargetPath)"/>
+                </Shortcut>
+              </File>
+            </Component>
+            <Component Id="idA047283CC870475685026CDCA59FCE26" Guid="{A047283C-C870-4756-8502-6CDCA59FCE26}" Feature="PROD" Win64="yes">
+              <File Id="idC5C0037FDE5940D595901DFEE74105AA" KeyPath="yes" Source="$(var.HidHideClient.TargetDir)$(var.HidHideClient.TargetName).man">
+                <util:EventManifest MessageFile="[id75DD4164523A4F11A87828CB38CD66DC]$(var.HidHideClient.TargetFileName)" ResourceFile="[id75DD4164523A4F11A87828CB38CD66DC]$(var.HidHideClient.TargetFileName)"></util:EventManifest>
+              </File>
+            </Component>
+            <Component Id="id614D752B575A4B04B018B64CD10EC588" Guid="{614D752B-575A-4B04-B018-B64CD10EC588}" Feature="PROD" Win64="yes">
+              <File Id="id8A15BA9FAE8042F7820CF26610F89D62" KeyPath="yes" Source="$(var.HidHideClient.TargetDir)$(var.HidHideClient.TargetName).wprp"/>
+            </Component>
+          </Directory>
+          <Directory Id="id6D21DF31CC734FCBAF2CFF070E23D249" Name="Symbols">
+            <Component Id="id3268EB95774740DEB9DEDAB383AC3C71" Guid="{3268EB95-7747-40DE-B9DE-DAB383AC3C71}" Feature="SYMB" Win64="yes">
+              <File Id="id6E251226B0934323985AFD80A56DC797" KeyPath="yes" Source="$(var.HidHide.TargetDir)$(var.HidHide.TargetName).pdb"/>
+            </Component>
+            <Component Id="idBDF799D93299497DA7D829EE40825A62" Guid="{BDF799D9-3299-497D-A7D8-29EE40825A62}" Feature="SYMB" Win64="yes">
+              <File Id="id138EE0C0B6E64499A88BA6479413B089" KeyPath="yes" Source="$(var.HidHideClient.TargetDir)$(var.HidHideClient.TargetName).pdb"/>
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+      <!-- Create anchor for menu shortcuts -->
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="id7846BFA3C337470AA11F6765B28F1AA7" Name="$(var.BldCompanyName)">
+          <Directory Id="idD5964DC8DFA143A1A80358CE245935FB" Name="$(var.BldCompanyName) $(var.BldProductName)">
+            <Component Id="id4A0ECD675ADA4A16A280536AFC5D33CF" Guid="{4A0ECD67-5ADA-4A16-A280-536AFC5D33CF}" Feature="PROD" Win64="yes">
+              <RemoveFolder Id="id01E7D86F8F5A4466B27D8899E4CDE9B8" Directory="id7846BFA3C337470AA11F6765B28F1AA7" On="uninstall"/>
+              <RemoveFolder Id="id3A92CD7DA656425385D8B5179575BF20" Directory="idD5964DC8DFA143A1A80358CE245935FB" On="uninstall"/>
+              <RegistryValue Id="id19F4C1A072C1474C8067B73FD873E691" KeyPath="yes" Root="HKCU" Key="SOFTWARE\$(var.BldCompanyName)\$(var.BldCompanyName) $(var.BldProductName)" Name="Path" Type="string" Value="[ARPINSTALLLOCATION]"/>
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+    </Directory>
+  </Product>
+</Wix>

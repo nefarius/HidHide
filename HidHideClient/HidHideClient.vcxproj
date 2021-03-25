@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{44CE58CD-7B06-4585-8F46-CC7564481912}</ProjectGuid>
+    <Keyword>MFCProj</Keyword>
+    <RootNamespace>HidHideClient</RootNamespace>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+    <BldCompanyName>Nefarius</BldCompanyName>
+    <BldProductName>Hid Hide</BldProductName>
+    <BldProductVersion>10.0.17763.0</BldProductVersion>
+    <BldCopyright>Eric Korff de Gidts</BldCopyright>
+    <BldProductVersionMajor>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[1].Value)</BldProductVersionMajor>
+    <BldProductVersionMinor>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[2].Value)</BldProductVersionMinor>
+    <BldProductVersionRevision>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[3].Value)</BldProductVersionRevision>
+    <BldProductVersionBuild>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[4].Value)</BldProductVersionBuild>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <SpectreMitigation>Spectre</SpectreMitigation>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)obj\$(MSBuildProjectName)\$(Configuration)\$(Platform)\</IntDir>
+    <CopyLocalDeploymentContent>true</CopyLocalDeploymentContent>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <BldParameters>/D BldCompanyName="$(BldCompanyName)" /D BldProductName="$(BldProductName)" /D BldProductVersion="$(BldProductVersion)" /D BldProductVersionMajor="$(BldProductVersionMajor)" /D BldProductVersionMinor="$(BldProductVersionMinor)" /D BldProductVersionRevision="$(BldProductVersionRevision)" /D BldProductVersionBuild="$(BldProductVersionBuild)" /D BldProductDescription="$(BldProductDescription)" /D BldCopyright="$(BldCopyright)" </BldParameters>
+      <ProjectDirLength>$([System.String]::Copy('$(ProjectDir)').Length)</ProjectDirLength>
+      <AdditionalOptions>%(BldParameters)%(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_WINDOWS;NDEBUG;ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);(SolutionDir)HidHide\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <ConformanceMode>true</ConformanceMode>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
+    </Link>
+    <ResourceCompile>
+      <BldParameters>/D TargetExt="$(TargetExt)" /D TargetFileName="$(TargetFileName)" /D TargetName="$(TargetName)" /D BldCompanyName="$(BldCompanyName)" /D BldProductName="$(BldProductName)" /D BldProductVersion="$(BldProductVersion)" /D BldProductVersionMajor="$(BldProductVersionMajor)" /D BldProductVersionMinor="$(BldProductVersionMinor)" /D BldProductVersionRevision="$(BldProductVersionRevision)" /D BldProductVersionBuild="$(BldProductVersionBuild)" /D BldProductDescription="$(BldProductDescription)" /D BldCopyright="$(BldCopyright)" </BldParameters>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(BldParameters)%(AdditionalOptions)</AdditionalOptions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="('$(ConfigurationType)' == 'DynamicLibrary')">_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="src\BlacklistDlg.h" />
+    <ClInclude Include="src\HidHideApi.h" />
+    <ClInclude Include="src\HidHideClient.h" />
+    <ClInclude Include="src\HidHideClientDlg.h" />
+    <ClInclude Include="src\Logging.h" />
+    <ClInclude Include="src\WhitelistDlg.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="HidHideClient.rc" />
+    <ResourceCompile Include="Version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\BlacklistDlg.cpp" />
+    <ClCompile Include="src\HidHideApi.cpp" />
+    <ClCompile Include="src\HidHideClient.cpp" />
+    <ClCompile Include="src\HidHideClientDlg.cpp" />
+    <ClCompile Include="src\Logging.cpp" />
+    <ClCompile Include="src\WhitelistDlg.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="src\Application.ico" />
+    <Image Include="src\LockBlank.ico" />
+    <Image Include="src\LockOff.ico" />
+    <Image Include="src\LockOn.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="HidHideClient.wprp">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="HidHideClient.man">
+      <FileType>Document</FileType>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compile event manifest file</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)%(Identity);$(IntDir)$(ProjectName)ETW.h;$(IntDir)$(ProjectName)ETW.rc;$(IntDir)$(ProjectName)ETW_MSG00001.bin;$(IntDir)$(ProjectName)ETWTEMP.BIN</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mc.exe -um -h "$(IntDir.TrimEnd('\'))" -r "$(IntDir.TrimEnd('\'))" -z "$(ProjectName)ETW" "%(Identity)"
+type "%(Identity)" | powershell -Command "$input | ForEach-Object { $_ -replace \"autoBackup\", \"autobackup\"  } | ForEach-Object { $_ -replace \"maxSize\", \"maxsize\"  } | ForEach-Object { $_ -replace \"fileMax\", \"filemax\"  } | ForEach-Object { $_ -replace \"clockType\", \"clocktype\"  }" &gt; "$(OutDir)%(Identity)"
+      </Command>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

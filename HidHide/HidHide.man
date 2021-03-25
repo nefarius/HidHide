@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+// (c) Eric Korff de Gidts
+// SPDX-License-Identifier: MIT
+// HidHide.man
+-->
+<instrumentationManifest
+  xmlns="http://schemas.microsoft.com/win/2004/08/events"
+  xmlns:win="http://manifests.microsoft.com/win/2004/08/windows/events"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <instrumentation>
+    <events>
+      <provider
+        symbol="EtwProviderLogging"
+        name="Nefarius Hid Hide"
+        guid="{6DA3FFA4-AB7D-40E2-B50C-C4B41BBA36E3}"
+        resourceFileName="%WinDir%\System32\drivers\HidHide.sys"
+        messageFileName="%WinDir%\System32\drivers\HidHide.sys">
+        <channels>
+          <importChannel symbol="EtwChannelLogging" chid="SYSTEM" name="System"/>
+        </channels>
+        <tasks>
+          <task symbol="EtwTaskGeneral" value="1" name="General" message="$(string.EtwTaskGeneral)"/>
+        </tasks>
+        <events>
+          <event value="49" task="General" symbol="EtwEventLogStarted"     channel="System" level="win:Informational" template="Arg5" message="$(string.EtwEventLogStarted)" opcode="win:Start"/>
+          <event value="50" task="General" symbol="EtwEventLogStopped"     channel="System" level="win:Informational" template="Arg5" message="$(string.EtwEventLogStopped)" opcode="win:Stop"/>
+          <event value="51" task="General" symbol="EtwEventLogException"   channel="System" level="win:Error"         template="Arg5" message="$(string.EtwEventLogException)"/>
+          <event value="52" task="General" symbol="EtwEventLogWhitelisted" channel="System" level="win:Informational" template="Arg5" message="$(string.EtwEventLogWhitelisted)"/>
+          <event value="53" task="General" symbol="EtwEventLogEnabled"     channel="System" level="win:Informational" template="Arg5" message="$(string.EtwEventLogEnabled)"  opcode="win:Start"/>
+          <event value="54" task="General" symbol="EtwEventLogDisabled"    channel="System" level="win:Informational" template="Arg5" message="$(string.EtwEventLogDisabled)" opcode="win:Stop"/>
+        </events>
+        <templates>
+          <template tid="Arg5">
+            <data name="FileName"     inType="win:AnsiString"    outType="xs:string"/>
+            <data name="LineNumber"   inType="win:UInt32"        outType="xs:unsignedInt"/>
+            <data name="FunctionName" inType="win:AnsiString"    outType="xs:string"/>
+            <data name="MessageW"     inType="win:UnicodeString" outType="xs:string"/>
+            <data name="MessageA"     inType="win:AnsiString"    outType="xs:string"/>
+          </template>
+        </templates>
+      </provider>
+      <provider
+        symbol="EtwProviderTracing"
+        name="Nefarius-Drivers-HidHide"
+        guid="{D9F22586-7514-4164-BB9B-5C67D5BD2BC7}"
+        resourceFileName="%WinDir%\System32\drivers\HidHide.sys"
+        messageFileName="%WinDir%\System32\drivers\HidHide.sys">
+        <channels>
+          <channel symbol="EtwChannelTracing" name="Nefarius-Drivers-HidHide/Diagnostic" type="Analytic" enabled="true">
+            <logging>
+              <autoBackup>true</autoBackup>
+            </logging>
+            <publishing>
+              <keywords>0x000000000001</keywords>
+              <fileMax>16</fileMax>
+              <latency>0</latency>
+              <clockType>QPC</clockType>
+              <sidType>None</sidType>
+            </publishing>
+          </channel>
+        </channels>
+        <keywords>
+          <keyword symbol="EtwKeywordAlways"      name="Always"      message="$(string.EtwKeywordAlways)"      mask="0x000000000001"/>
+          <keyword symbol="EtwKeywordDebugging"   name="Debugging"   message="$(string.EtwKeywordDebugging)"   mask="0x000000000002"/>
+          <keyword symbol="EtwKeywordPerformance" name="Performance" message="$(string.EtwKeywordPerformance)" mask="0x000000000004"/>
+          <keyword symbol="EtwKeywordDetailed"    name="Detailed"    message="$(string.EtwKeywordDetailed)"    mask="0x000000000008"/>
+        </keywords>
+        <tasks>
+          <task symbol="EtwTaskLog"   value="1" name="Log"   message="$(string.EtwTaskLog)"/>
+          <task symbol="EtwTaskTrace" value="2" name="Trace" message="$(string.EtwTaskTrace)"/>
+        </tasks>
+        <events>
+          <event value="1"  task="Trace" symbol="EtwEventTraceDetailed"    channel="Nefarius-Drivers-HidHide/Diagnostic" level="win:Informational" keywords="Detailed"    template="Arg5" message="$(string.EtwEventLogTrace)"/>
+          <event value="2"  task="Trace" symbol="EtwEventTracePerformance" channel="Nefarius-Drivers-HidHide/Diagnostic" level="win:Informational" keywords="Performance" template="Arg5" message="$(string.EtwEventLogTrace)"/>
+          <event value="3"  task="Trace" symbol="EtwEventTraceDebugging"   channel="Nefarius-Drivers-HidHide/Diagnostic" level="win:Informational" keywords="Debugging"   template="Arg5" message="$(string.EtwEventLogTrace)"/>
+          <event value="48" task="Trace" symbol="EtwEventTraceAlways"      channel="Nefarius-Drivers-HidHide/Diagnostic" level="win:Informational" keywords="Always"      template="Arg5" message="$(string.EtwEventLogTrace)"/>
+          <!-- Restate all Application events -->
+          <event value="49" task="Log" template="Arg5" message="$(string.EtwEventLogStarted)"/>
+          <event value="50" task="Log" template="Arg5" message="$(string.EtwEventLogStopped)"/>
+          <event value="51" task="Log" template="Arg5" message="$(string.EtwEventLogException)"/>
+          <event value="52" task="Log" template="Arg5" message="$(string.EtwEventLogWhitelisted)"/>
+          <event value="53" task="Log" template="Arg5" message="$(string.EtwEventLogEnabled)"/>
+          <event value="54" task="Log" template="Arg5" message="$(string.EtwEventLogDisabled)"/>
+        </events>
+        <templates>
+          <template tid="Arg5">
+            <data name="FileName"     inType="win:AnsiString"    outType="xs:string"/>
+            <data name="LineNumber"   inType="win:UInt32"        outType="xs:unsignedInt"/>
+            <data name="FunctionName" inType="win:AnsiString"    outType="xs:string"/>
+            <data name="MessageW"     inType="win:UnicodeString" outType="xs:string"/>
+            <data name="MessageA"     inType="win:AnsiString"    outType="xs:string"/>
+          </template>
+        </templates>
+      </provider>
+    </events>
+  </instrumentation>
+  <localization>
+    <resources culture="en-US">
+      <stringTable>
+        <string id="EtwTaskGeneral"         value="General"/>
+        <string id="EtwTaskLog"             value="Log"/>
+        <string id="EtwTaskTrace"           value="Trace"/>
+        <string id="EtwKeywordAlways"       value="Always"/>
+        <string id="EtwKeywordDetailed"     value="Detailed"/>
+        <string id="EtwKeywordPerformance"  value="Performance"/>
+        <string id="EtwKeywordDebugging"    value="Debugging"/>
+        <string id="EtwEventLogTrace"       value="%1&#009;%2&#009;%3&#009;%4%5"/>
+        <string id="EtwEventLogStarted"     value="Device Driver version %4%5 started"/>
+        <string id="EtwEventLogStopped"     value="Device Driver stopped %4%5"/>
+        <string id="EtwEventLogException"   value="Exception at &quot;%1&quot; line %2 %3 %4%5"/>
+        <string id="EtwEventLogWhitelisted" value="The process with PID %4%5 is running an application that is on the white-list. It will be granted access to hidden Human Interface Devices."/>
+        <string id="EtwEventLogEnabled"     value="The service is enabled and active."/>
+        <string id="EtwEventLogDisabled"    value="The service is disabled and inactive."/>
+      </stringTable>
+    </resources>
+  </localization>
+</instrumentationManifest>

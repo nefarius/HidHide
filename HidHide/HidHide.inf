@@ -1,0 +1,148 @@
+; (c) Eric Korff de Gidts
+; SPDX-License-Identifier: MIT
+; HidHide.inf
+
+; ==== Version Section ====
+
+[Version]
+Signature                              = "$Windows NT$"
+Class                                  = System
+ClassGUID                              = {4D36E97D-E325-11CE-BFC1-08002BE10318}
+Provider                               = %ManufacturerName%
+CatalogFile                            = HidHide.cat
+PnpLockdown                            = 1
+DriverVer                              =
+
+; ==== SourceDisksNames Section ====
+
+[SourceDisksNames]
+1                                      = %DiskName%,,,""
+
+; ==== SourceDisksFiles Section ====
+
+[SourceDisksFiles]
+HidHide.sys                            = 1,,
+
+; ==== DestinationDirs Section ====
+
+[DestinationDirs]
+HidHide_Device_CopyFiles               = 12 ; %windir%\System32\DRIVERS\
+
+; ==== Manufacturer Section ====
+
+[Manufacturer]
+%ManufacturerName%                     = Standard,NT$ARCH$
+
+; ==== Models Section ====
+
+[Standard.NT$ARCH$]
+%HidHideDeviceName%                    = HidHide_Device,root\HidHide
+
+; ==== DDInstall Section ====
+
+[HidHide_Device]
+CopyFiles                              = HidHide_Device_CopyFiles
+
+[HidHide_Device_CopyFiles]
+HidHide.sys,,,0x00004000 ; COPYFLG_IN_USE_RENAME
+
+; ==== DDInstall.Services Section ====
+
+[HidHide_Device.Services]
+AddService                             = HidHide,%AddServiceFlags%,HidHide_Device_Service_AddService
+
+[HidHide_Device_Service_AddService]
+DisplayName                            = %HidHideServiceDisplayName%
+ServiceType                            = %SERVICE_KERNEL_DRIVER%
+StartType                              = %SERVICE_DEMAND_START%
+ErrorControl                           = %SERVICE_ERROR_NORMAL%
+ServiceBinary                          = %12%\HidHide.sys
+AddReg                                 = HidHide_Device_Service_AddReg
+
+[HidHide_Device_Service_AddReg]
+HKR,"Parameters","WhitelistedFullImageNames",%AddRegMultiSzInitialOnly%,""      ; HKLM\SYSTEM\ControlSet001\Services\HidHide\Parameters\WhitelistedFullImageNames (set initially-only as we may want to preserve earlier user selections)
+HKR,"Parameters","BlacklistedDeviceInstancePaths",%AddRegMultiSzInitialOnly%,"" ; HKLM\SYSTEM\ControlSet001\Services\HidHide\Parameters\BlacklistedDeviceInstancePaths (set initially-only as we may want to preserve earlier user selections)
+HKR,"Parameters","Active",%FLG_ADDREG_TYPE_DWORD%,0                             ; HKLM\SYSTEM\ControlSet001\Services\HidHide\Parameters\Active (disable service after each install as we require the user to run the configuration utility first)
+
+[HidHide_Device_Service_AddReg.Security]
+"D:P(OD;CI;KA;;;BA)(OD;CI;KA;;;BU)"                                             ; HKLM\SYSTEM\ControlSet001\Services\HidHide\Parameters\ (prohibit build in adminstrators, and build in users of doing anything with the keys)
+
+; ==== DDInstall.Wdf Section ====
+
+[HidHide_Device.Wdf]
+KmdfService                            = HidHide,HidHide_Device_Wdf_KmdfService
+
+[HidHide_Device_Wdf_KmdfService]
+KmdfLibraryVersion                     = $KMDFVERSION$
+
+; ==== Strings Section ====
+
+[Strings]
+ManufacturerName                       = "Nefarius"
+DiskName                               = "Nefarius Hid Hide Installation Disk"
+HidHideDeviceName                      = "Nefarius Hid Hide Device"
+HidHideServiceDisplayName              = "Nefarius Hid Hide Service"
+AddServiceFlags                        = 0x000013FE ; SPSVCINST_NOCLOBBER_REQUIREDPRIVILEGES
+                                                    ; SPSVCINST_STOPSERVICE
+                                                    ; SPSVCINST_NOCLOBBER_DESCRIPTION
+                                                    ; SPSVCINST_NOCLOBBER_DEPENDENCIES
+                                                    ; SPSVCINST_NOCLOBBER_LOADORDERGROUP
+                                                    ; SPSVCINST_NOCLOBBER_ERRORCONTROL
+                                                    ; SPSVCINST_NOCLOBBER_STARTTYPE
+                                                    ; SPSVCINST_NOCLOBBER_DISPLAYNAME
+                                                    ; SPSVCINST_DELETEEVENTLOGENTRY
+                                                    ; SPSVCINST_ASSOCSERVICE
+AddRegMultiSzInitialOnly               = 0x00010002 ; FLG_ADDREG_TYPE_MULTI_SZ
+                                                    ; FLG_ADDREG_NOCLOBBER
+
+SPSVCINST_TAGTOFRONT                   = 0x00000001
+SPSVCINST_ASSOCSERVICE                 = 0x00000002
+SPSVCINST_DELETEEVENTLOGENTRY          = 0x00000004
+SPSVCINST_NOCLOBBER_DISPLAYNAME        = 0x00000008
+SPSVCINST_NOCLOBBER_STARTTYPE          = 0x00000010
+SPSVCINST_NOCLOBBER_ERRORCONTROL       = 0x00000020
+SPSVCINST_NOCLOBBER_LOADORDERGROUP     = 0x00000040
+SPSVCINST_NOCLOBBER_DEPENDENCIES       = 0x00000080
+SPSVCINST_NOCLOBBER_DESCRIPTION        = 0x00000100
+SPSVCINST_STOPSERVICE                  = 0x00000200
+SPSVCINST_CLOBBER_SECURITY             = 0x00000400
+SPSVCINST_STARTSERVICE                 = 0x00000800
+SPSVCINST_NOCLOBBER_REQUIREDPRIVILEGES = 0x00001000
+
+SERVICE_KERNEL_DRIVER                  = 0x00000001
+SERVICE_FILE_SYSTEM_DRIVER             = 0x00000002
+SERVICE_WIN32_OWN_PROCESS              = 0x00000010
+SERVICE_WIN32_SHARE_PROCESS            = 0x00000020
+SERVICE_INTERACTIVE_PROCESS            = 0x00000100
+
+SERVICE_BOOT_START                     = 0x0
+SERVICE_SYSTEM_START                   = 0x1
+SERVICE_AUTO_START                     = 0x2
+SERVICE_DEMAND_START                   = 0x3
+SERVICE_DISABLED                       = 0x4
+
+SERVICE_ERROR_IGNORE                   = 0x0
+SERVICE_ERROR_NORMAL                   = 0x1
+SERVICE_ERROR_SEVERE                   = 0x2
+SERVICE_ERROR_CRITICAL                 = 0x3
+
+DEVPROP_TYPE_STRING                    = 0x00000012
+DEVPROP_TYPE_STRING_LIST               = 0x00002012
+DEVPROP_TYPE_BINARY                    = 0x00001003
+DEVPROP_TYPE_BOOLEAN                   = 0x00000011
+DEVPROP_TYPE_UINT32                    = 0x00000007
+
+FLG_ADDREG_BINVALUETYPE                = 0x00000001
+FLG_ADDREG_NOCLOBBER                   = 0x00000002
+FLG_ADDREG_DELVAL                      = 0x00000004
+FLG_ADDREG_APPEND                      = 0x00000008
+FLG_ADDREG_KEYONLY                     = 0x00000010
+FLG_ADDREG_OVERWRITEONLY               = 0x00000020
+FLG_ADDREG_64BITKEY                    = 0x00001000
+FLG_ADDREG_KEYONLY_COMMON              = 0x00002000
+FLG_ADDREG_32BITKEY                    = 0x00004000
+FLG_ADDREG_TYPE_SZ                     = 0x00000000
+FLG_ADDREG_TYPE_MULTI_SZ               = 0x00010000
+FLG_ADDREG_TYPE_EXPAND_SZ              = 0x00020000
+FLG_ADDREG_TYPE_DWORD                  = 0x00010001
+FLG_ADDREG_TYPE_NONE                   = 0x00020001

@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{37AA280C-34D7-44BA-AC90-2D38F88ECB26}</ProjectGuid>
+    <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <Platform Condition="'$(Platform)' == ''">x64</Platform>
+    <RootNamespace>HidHide</RootNamespace>
+    <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
+    <BldCompanyName>Nefarius</BldCompanyName>
+    <BldProductName>Hid Hide</BldProductName>
+    <BldProductVersion>10.0.17763.0</BldProductVersion>
+    <BldCopyright>Eric Korff de Gidts</BldCopyright>
+    <BldProductVersionMajor>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[1].Value)</BldProductVersionMajor>
+    <BldProductVersionMinor>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[2].Value)</BldProductVersionMinor>
+    <BldProductVersionRevision>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[3].Value)</BldProductVersionRevision>
+    <BldProductVersionBuild>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[4].Value)</BldProductVersionBuild>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <TargetVersion>Windows10</TargetVersion>
+    <ConfigurationType>Driver</ConfigurationType>
+    <DriverType>KMDF</DriverType>
+    <PlatformToolset>WindowsKernelModeDriver10.0</PlatformToolset>
+    <KMDF_VERSION_MAJOR>1</KMDF_VERSION_MAJOR>
+    <KMDF_VERSION_MINOR>13</KMDF_VERSION_MINOR>
+    <Driver_SpectreMitigation>Spectre</Driver_SpectreMitigation>
+    <DriverTargetPlatform>Desktop</DriverTargetPlatform>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
+    <IntDir>$(SolutionDir)obj\$(MSBuildProjectName)\$(Configuration)\$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\</OutDir>
+    <CopyLocalDeploymentContent>true</CopyLocalDeploymentContent>
+    <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup>
+    <CustomBuildBeforeTargets>Inf2Cat</CustomBuildBeforeTargets>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <BldParameters>TargetExt="$(TargetExt)";TargetFileName="$(TargetFileName)";TargetName="$(TargetName)";BldCompanyName="$(BldCompanyName)";BldProductName="$(BldProductName)";BldProductVersion="$(BldProductVersion)";BldProductVersionMajor="$(BldProductVersionMajor)";BldProductVersionMinor="$(BldProductVersionMinor)";BldProductVersionRevision="$(BldProductVersionRevision)";BldProductVersionBuild="$(BldProductVersionBuild)";BldProductDescription="$(BldProductDescription)";BldCopyright="$(BldCopyright)";</BldParameters>
+      <ProjectDirLength>$([System.String]::Copy('$(ProjectDir)').Length)</ProjectDirLength>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;NDEBUG;%(BldParameters);ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(KMDF_LIB_PATH)$(KMDF_VER_PATH)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>wdmsec.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <ResourceCompile>
+      <BldParameters>/D TargetExt="$(TargetExt)" /D TargetFileName="$(TargetFileName)" /D TargetName="$(TargetName)" /D BldCompanyName="$(BldCompanyName)" /D BldProductName="$(BldProductName)" /D BldProductVersion="$(BldProductVersion)" /D BldProductVersionMajor="$(BldProductVersionMajor)" /D BldProductVersionMinor="$(BldProductVersionMinor)" /D BldProductVersionRevision="$(BldProductVersionRevision)" /D BldProductVersionBuild="$(BldProductVersionBuild)" /D BldProductDescription="$(BldProductDescription)" /D BldCopyright="$(BldCopyright)" </BldParameters>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(BldParameters)%(AdditionalOptions)</AdditionalOptions>
+      <PreprocessorDefinitions Condition="('$(ConfigurationType)' == 'DynamicLibrary')">_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Inf Include="HidHide.inf" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Config.c" />
+    <ClCompile Include="src\ControlDevice.c" />
+    <ClCompile Include="src\Device.c" />
+    <ClCompile Include="src\Driver.c" />
+    <ClCompile Include="src\Logging.c" />
+    <ClCompile Include="src\Logic.c" />
+  </ItemGroup>
+  <ItemDefinitionGroup>
+    <CustomBuildStep>
+      <Message>Patching event .man and .sys deployment</Message>
+      <!-- wevtutil.exe validates its input but uses other rules than the message compiler is generating. Also, suddenly, the .sys file is no longer copied to the folder used by inf2cat. Hopefully this step can be removed soon -->
+      <Command>type "$(TargetName).man" | powershell -Command "$input | ForEach-Object { $_ -replace \"autoBackup\", \"autobackup\"  } | ForEach-Object { $_ -replace \"maxSize\", \"maxsize\"  } | ForEach-Object { $_ -replace \"fileMax\", \"filemax\"  } | ForEach-Object { $_ -replace \"clockType\", \"clocktype\"  }" &gt; "$(OutDir)$(TargetName).man"
+      copy /Y "$(OutDir)$(TargetFileName)" "$(OutDir)$(TargetName)\$(TargetFileName)" &gt; NUL
+      </Command>
+      <Outputs>$(OutDir)$(TargetName).man;$(OutDir)$(TargetName)\$(TargetFileName)</Outputs>
+      <Inputs>$(TargetName).man;$(OutDir)$(TargetFileName)</Inputs>
+    </CustomBuildStep>
+    <ClCompile />
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="src\ControlDevice.h" />
+    <ClInclude Include="src\Config.h" />
+    <ClInclude Include="src\Device.h" />
+    <ClInclude Include="src\Driver.h" />
+    <ClInclude Include="src\Logging.h" />
+    <ClInclude Include="src\Logic.h" />
+    <ClInclude Include="stdafx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="$(IntDir)HidHideETW.rc" />
+    <ResourceCompile Include="Version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <MessageCompile Include="HidHide.man">
+      <GenerateKernelModeLoggingMacros Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</GenerateKernelModeLoggingMacros>
+      <GeneratedFilesBaseName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)ETW</GeneratedFilesBaseName>
+    </MessageCompile>
+    <None Include="HidHide.wprp">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+    <None Include="$(WDKContentRoot)Tools\x$(PlatformArchitecture)\devcon.exe">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+    <None Include="ReinstallDriver.cmd">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+    </None>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>
