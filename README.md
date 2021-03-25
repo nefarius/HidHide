@@ -1,4 +1,13 @@
+# HidHide
+
+---
+
+⚠️ **Compiling a signed BETA release is in the works, please be patient!** ⚠️
+
+---
+
 ## Introduction
+
 *Microsoft Windows* offers support for a wide range of human interface devices, like joysticks and game pads.
 Associating the buttons and axes of these devices with application specific behavior, such as *Fire*, *Roll*, or *Pitch*
 is however left to the individual application developers to realize.
@@ -34,7 +43,9 @@ with system privileges. A system reboot may be triggered after driver installati
 runs in the least privileged mode and doesn't require elevated rights.
 
 ## User guide
+
 The configuration utility allows you to:
+
 - Enable or disable the service
 - Specify which applications may look through the cloak
 - Specify the human interface devices that should be hidden from ordinary applications
@@ -73,24 +84,31 @@ These are residual entries in the caches of the operating system, and can be cle
 *denied* entries appear for hidden devices when the configuration utility itself is not whilelisted.
 
 ## Bugs & Features
+
 Found a bug and want it fixed? Feel free to open a detailed issue on the [GitHub issue tracker](../../issues)!
+
 Have an idea for a new feature? Let's have a chat about your request on [Discord](https://discord.vigem.org) or the [community forums](https://forums.vigem.org).
 
 *HidHide* provides both logging and tracing. Logging can be found the *Event Viewer* under *Windows Logs* and *System*.
 Tracing can be found under *Applications and Services Logs* and *Nefarius* after enabling *Show Analytic and Debug Logs*.
 Extended tracing is available but switched off per default for performance reasons. Tracing is controlled using the *wevtutil* utility
 which is an integral part of the operating system. To enable extended tracing, open a command shell, and enter the following;
-<p>C:\> wevtutil set-log Nefarius-Drivers-HidHide/Diagnostic /e:false</p>
-<p>C:\> wevtutil set-log Nefarius-Drivers-HidHide/Diagnostic /k:5</p>
-<p>C:\> wevtutil set-log Nefarius-Drivers-HidHide/Diagnostic /e:true</p>
+
+```cmd
+wevtutil set-log Nefarius-Drivers-HidHide/Diagnostic /e:false
+wevtutil set-log Nefarius-Drivers-HidHide/Diagnostic /k:5
+wevtutil set-log Nefarius-Drivers-HidHide/Diagnostic /e:true
+```
+
 Tracing adjustments remain in affect after a reboot. Restore tracing to its default level using the above sequence with /k:1 instead.
 Tracing to the debug console is enabled with /k:3 and /k:7 respectively.
 
 ## Questions & Support
-Please respect that the GitHub issue tracker isn't a help desk. We offer a [Discord server](https://discord.vigem.org) and [forums](https://forums.vigem.org), where you are
-welcome to check-out the latest news or to contribute to the discussions!
+
+Please respect that the GitHub issue tracker isn't a help desk. [Look at the community support resources](https://vigem.org/Community-Support/).
 
 ## Donations
+
 Creating a utility like this requires time and dedication. Should you like to express your gratitude, consider a pledge
 for a game I'm rather fond of; the biggest crowd funded game currently in development *Star Citizen*. Be sure to apply a
 referral code at account creation as it gives a bit more in-game currency and can't be applied later on. My referral code
