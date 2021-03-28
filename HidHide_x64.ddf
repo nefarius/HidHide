@@ -12,7 +12,7 @@
 ; x64
 .Set CabinetNameTemplate=HidHide_x64.cab
 .Set DestinationDir=HidHide_x64
-LICENSE
+LICENSE.rtf
 bin\Release\x64\HidHide.pdb
 bin\Release\x64\HidHide\HidHide.inf
 bin\Release\x64\HidHide\HidHide.sys
