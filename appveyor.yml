@@ -5,3 +5,16 @@ platform:
 - x64
 build:
   project: $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
+after_build:
+- cmd: makecab.exe /f HidHide_%PLATFORM%.ddf
+artifacts:
+- path: 'bin**\$(APPVEYOR_PROJECT_NAME)\*.inf'
+- path: 'bin**\$(APPVEYOR_PROJECT_NAME)\*.sys'
+- path: 'bin**\*.pdb'
+- path: 'disk1\*.cab'
+- path: 'bin**\*.msi'
+deploy:
+- provider: Environment
+  name: BUILDBOT
+  on:
+    appveyor_repo_tag: true

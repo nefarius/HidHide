@@ -1,0 +1,18 @@
+; HidHide cab file for attestation submission
+.OPTION EXPLICIT
+.Set CabinetFileCountThreshold=0
+.Set FolderFileCountThreshold=0
+.Set FolderSizeThreshold=0
+.Set MaxCabinetSize=0
+.Set MaxDiskFileCount=0
+.Set MaxDiskSize=0
+.Set CompressionType=MSZIP
+.Set Cabinet=on
+.Set Compress=on
+; x64
+.Set CabinetNameTemplate=HidHide_x64.cab
+.Set DestinationDir=HidHide_x64
+LICENSE
+bin\Release\x64\HidHide.pdb
+bin\Release\x64\HidHide\HidHide.inf
+bin\Release\x64\HidHide\HidHide.sys
