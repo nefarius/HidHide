@@ -6,15 +6,18 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <PropertyGroup>
+    <BldProductVersion>$(APPVEYOR_BUILD_VERSION)</BldProductVersion>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{44CE58CD-7B06-4585-8F46-CC7564481912}</ProjectGuid>
     <Keyword>MFCProj</Keyword>
     <RootNamespace>HidHideClient</RootNamespace>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
-    <BldCompanyName>Nefarius</BldCompanyName>
-    <BldProductName>Hid Hide</BldProductName>
-    <BldProductVersion>10.0.17763.0</BldProductVersion>
+    <BldCompanyName>Nefarius Software Solutions e.U.</BldCompanyName>
+    <BldProductName>HidHide</BldProductName>
+    <BldProductVersion Condition="'$(APPVEYOR_BUILD_VERSION)' == ''">1.0.0.0</BldProductVersion>
     <BldCopyright>Eric Korff de Gidts</BldCopyright>
     <BldProductVersionMajor>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[1].Value)</BldProductVersionMajor>
     <BldProductVersionMinor>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[2].Value)</BldProductVersionMinor>
