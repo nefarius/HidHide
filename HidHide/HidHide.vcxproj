@@ -6,6 +6,9 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <PropertyGroup>
+    <BldProductVersion>$(APPVEYOR_BUILD_VERSION)</BldProductVersion>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{37AA280C-34D7-44BA-AC90-2D38F88ECB26}</ProjectGuid>
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
@@ -15,8 +18,7 @@
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
     <BldCompanyName>Nefarius Software Solutions e.U.</BldCompanyName>
     <BldProductName>HidHide</BldProductName>
-    <BldProductVersion>$(APPVEYOR_BUILD_VERSION)</BldProductVersion>
-	<BldProductVersion Condition="'$(BldProductVersion)' == ''">1.0.0.0</BldProductVersion>
+	<BldProductVersion Condition="'$(APPVEYOR_BUILD_VERSION)' == ''">1.0.0.0</BldProductVersion>
     <BldCopyright>Eric Korff de Gidts</BldCopyright>
     <BldProductVersionMajor>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[1].Value)</BldProductVersionMajor>
     <BldProductVersionMinor>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[2].Value)</BldProductVersionMinor>
