@@ -15,7 +15,8 @@
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
     <BldCompanyName>Nefarius Software Solutions e.U.</BldCompanyName>
     <BldProductName>HidHide</BldProductName>
-    <BldProductVersion>1.0.10.0</BldProductVersion>
+    <BldProductVersion>$(APPVEYOR_BUILD_VERSION)</BldProductVersion>
+	<BldProductVersion Condition="'$(BldProductVersion)' == ''">1.0.0.0</BldProductVersion>
     <BldCopyright>Eric Korff de Gidts</BldCopyright>
     <BldProductVersionMajor>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[1].Value)</BldProductVersionMajor>
     <BldProductVersionMinor>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[2].Value)</BldProductVersionMinor>
@@ -32,7 +33,7 @@
     <KMDF_VERSION_MINOR>13</KMDF_VERSION_MINOR>
     <Driver_SpectreMitigation>Spectre</Driver_SpectreMitigation>
     <DriverTargetPlatform>Desktop</DriverTargetPlatform>
-	<SignMode>Off</SignMode>
+    <SignMode>Off</SignMode>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
@@ -94,6 +95,9 @@
       <Inputs>$(TargetName).man;$(OutDir)$(TargetFileName)</Inputs>
     </CustomBuildStep>
     <ClCompile />
+    <Inf>
+      <TimeStamp Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(BldProductVersion)</TimeStamp>
+    </Inf>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
