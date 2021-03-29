@@ -32,6 +32,7 @@
     <KMDF_VERSION_MINOR>13</KMDF_VERSION_MINOR>
     <Driver_SpectreMitigation>Spectre</Driver_SpectreMitigation>
     <DriverTargetPlatform>Desktop</DriverTargetPlatform>
+	<SignMode>Off</SignMode>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
