@@ -78,10 +78,10 @@ KmdfLibraryVersion                     = $KMDFVERSION$
 ; ==== Strings Section ====
 
 [Strings]
-ManufacturerName                       = "Nefarius"
-DiskName                               = "Nefarius Hid Hide Installation Disk"
-HidHideDeviceName                      = "Nefarius Hid Hide Device"
-HidHideServiceDisplayName              = "Nefarius Hid Hide Service"
+ManufacturerName                       = "Nefarius Software Solutions e.U."
+DiskName                               = "Nefarius HidHide Installation Disk"
+HidHideDeviceName                      = "Nefarius HidHide Device"
+HidHideServiceDisplayName              = "Nefarius HidHide Service"
 AddServiceFlags                        = 0x000013FE ; SPSVCINST_NOCLOBBER_REQUIREDPRIVILEGES
                                                     ; SPSVCINST_STOPSERVICE
                                                     ; SPSVCINST_NOCLOBBER_DESCRIPTION
