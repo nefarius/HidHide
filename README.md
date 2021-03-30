@@ -6,6 +6,8 @@
 
 ---
 
+[![Build status](https://ci.appveyor.com/api/projects/status/s3t4ffx5fnfw5g65/branch/master?svg=true)](https://ci.appveyor.com/project/nefarius/hidhide/branch/master)
+
 ## Introduction
 
 *Microsoft Windows* offers support for a wide range of human interface devices, like joysticks and game pads.
