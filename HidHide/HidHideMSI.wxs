@@ -79,7 +79,7 @@
       <Directory Id="ProgramFilesFolder">
         <!-- Register the package so that other packages can refer to it as a required dependency or have a version key to check against from within a detect condition -->
         <Component Id="id51A45835BC2A4502A396CF292C74EF49" Guid="{51A45835-BC2A-4502-A396-CF292C74EF49}" Feature="PROD" Win64="no">
-          <dep:Provides Id="id6B650292971343538E7B2182912E4F66" Key="$(var.BldCompanyName).Drivers.HidHide.$(sys.BUILDARCH)"/>
+          <dep:Provides Id="id6B650292971343538E7B2182912E4F66" Key="NSS.Drivers.HidHide.$(sys.BUILDARCH)"/>
         </Component>
       </Directory>
       <!-- Deploy payload -->

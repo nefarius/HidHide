@@ -8,9 +8,9 @@
     <SchemaVersion>2.0</SchemaVersion>
     <OutputName>HidHideMSI</OutputName>
     <OutputType>Package</OutputType>
-    <BldCompanyName>Nefarius</BldCompanyName>
-    <BldProductName>Hid Hide</BldProductName>
-    <BldProductVersion>10.0.17763.0</BldProductVersion>
+    <BldCompanyName>Nefarius Software Solutions e.U.</BldCompanyName>
+    <BldProductName>HidHide</BldProductName>
+    <BldProductVersion>1.0.18.0</BldProductVersion>
     <BldCopyright>Eric Korff de Gidts</BldCopyright>
     <BldProductVersionMajor>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[1].Value)</BldProductVersionMajor>
     <BldProductVersionMinor>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[2].Value)</BldProductVersionMinor>
