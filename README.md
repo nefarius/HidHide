@@ -1,12 +1,6 @@
 # HidHide
 
----
-
-⚠️ **Compiling a signed BETA release is in the works, please be patient!** ⚠️
-
----
-
-[![Build status](https://ci.appveyor.com/api/projects/status/s3t4ffx5fnfw5g65/branch/master?svg=true)](https://ci.appveyor.com/project/nefarius/hidhide/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/s3t4ffx5fnfw5g65/branch/master?svg=true)](https://ci.appveyor.com/project/nefarius/hidhide/branch/master) [![GitHub All Releases](https://img.shields.io/github/downloads/ViGEm/HidHide/total)](https://somsubhra.com/github-release-stats/?username=ViGEm&repository=HidHide)
 
 ## Introduction
 
