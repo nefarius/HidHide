@@ -18,7 +18,7 @@
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
     <BldCompanyName>Nefarius Software Solutions e.U.</BldCompanyName>
     <BldProductName>HidHide</BldProductName>
-    <BldProductVersion Condition="'$(APPVEYOR_BUILD_VERSION)' == ''">1.0.0.0</BldProductVersion>
+	<BldProductVersion Condition="'$(APPVEYOR_BUILD_VERSION)' == ''">1.0.0.0</BldProductVersion>
     <BldCopyright>Eric Korff de Gidts</BldCopyright>
     <BldProductVersionMajor>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[1].Value)</BldProductVersionMajor>
     <BldProductVersionMinor>$([System.Text.RegularExpressions.Regex]::Match($(BldProductVersion), "(\d{1,3}).(\d{1,3}).(\d{1,5}).(\d{1,3})").Groups[2].Value)</BldProductVersionMinor>
@@ -50,7 +50,6 @@
     <CopyLocalDeploymentContent>true</CopyLocalDeploymentContent>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <RunCodeAnalysis>true</RunCodeAnalysis>
-    <EnableInf2cat>false</EnableInf2cat>
   </PropertyGroup>
   <PropertyGroup>
     <CustomBuildBeforeTargets>Inf2Cat</CustomBuildBeforeTargets>
