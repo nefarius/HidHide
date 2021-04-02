@@ -204,7 +204,12 @@ namespace
         GUID        buffer{};
         ULONG       needed{ sizeof(buffer) };
         if (auto const result{ ::CM_Locate_DevNodeW(&devInst, const_cast<DEVINSTID_W>(deviceInstancePath.c_str()), CM_LOCATE_DEVNODE_PHANTOM) }; (CR_SUCCESS != result)) THROW_CONFIGRET(result);
-        if (auto const result{ ::CM_Get_DevNode_PropertyW(devInst, &DEVPKEY_Device_ContainerId, &devPropType, reinterpret_cast<PBYTE>(&buffer), &needed, 0) }; (CR_SUCCESS != result)) THROW_CONFIGRET(result);
+        if (auto const result{ ::CM_Get_DevNode_PropertyW(devInst, &DEVPKEY_Device_ContainerId, &devPropType, reinterpret_cast<PBYTE>(&buffer), &needed, 0) }; (CR_SUCCESS != result))
+        {
+            // Bail out when the container id property isn't present
+            if (CR_NO_SUCH_VALUE == result) return (GUID_NULL);
+            THROW_CONFIGRET(result);
+        }
         if (DEVPROP_TYPE_GUID != devPropType) THROW_WIN32(ERROR_INVALID_PARAMETER);
         return (buffer);
     }
@@ -358,19 +363,21 @@ namespace
         auto const deviceObject{ CloseHandlePtr(::CreateFileW(symbolicLink.c_str(), GENERIC_READ, (FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE), nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr), &::CloseHandle) };
         if (INVALID_HANDLE_VALUE == deviceObject.get())
         {
-            if (ERROR_ACCESS_DENIED == ::GetLastError())
+            switch (::GetLastError())
             {
+            case ERROR_ACCESS_DENIED:
+                // The device is opened exclusively and in use hence we can't interact with it
+            case ERROR_SHARING_VIOLATION:
                 // The device is (most-likely) cloaked by Hid Hide itself while its client application isn't on the white-list
                 result.usage = HidHide::StringTable(IDS_HID_ATTRIBUTE_DENIED);
                 return (result);
-            }
-            if (ERROR_FILE_NOT_FOUND == ::GetLastError())
-            {
+            case ERROR_FILE_NOT_FOUND:
                 // The device is currently not present hence we can't query its details
                 result.usage = HidHide::StringTable(IDS_HID_ATTRIBUTE_ABSENT);
                 return (result);
+            default:
+                THROW_WIN32_LAST_ERROR;
             }
-            THROW_WIN32_LAST_ERROR;
         }
 
         // Prepare for device interactions
