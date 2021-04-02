@@ -50,6 +50,7 @@
     <CopyLocalDeploymentContent>true</CopyLocalDeploymentContent>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <RunCodeAnalysis>true</RunCodeAnalysis>
+	<EnableInf2cat>true</EnableInf2cat>
   </PropertyGroup>
   <PropertyGroup>
     <CustomBuildBeforeTargets>Inf2Cat</CustomBuildBeforeTargets>
