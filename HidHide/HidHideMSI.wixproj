@@ -30,7 +30,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Production Release|x64' ">
     <BldParameters>BldCompanyName=$(BldCompanyName);BldProductName=$(BldProductName);BldProductVersion=$(BldProductVersion);BldProductVersionMajor=$(BldProductVersionMajor);BldProductVersionMinor=$(BldProductVersionMinor);BldProductVersionRevision=$(BldProductVersionRevision);BldProductVersionBuild=$(BldProductVersionBuild);BldProductDescription=$(BldProductDescription);BldCopyright=$(BldCopyright);</BldParameters>
-    <DefineConstants>Production=true;Debug;NuspecBasePath=$(NuspecBasePath);$(BldParameters)$(DefineConstants)</DefineConstants>
+    <DefineConstants>ProductionRelease=true;Debug;NuspecBasePath=$(NuspecBasePath);$(BldParameters)$(DefineConstants)</DefineConstants>
     <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     <RunWixToolsOutOfProc>true</RunWixToolsOutOfProc>
     <SuppressIces>ICE40;ICE61</SuppressIces>
