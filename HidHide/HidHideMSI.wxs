@@ -5,14 +5,6 @@
 // HidHideMSI.wxs
 -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:dep="http://schemas.microsoft.com/wix/DependencyExtension" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
-
-  <!-- change build flow if running under CI -->
-  <?if $(var.ProductionRelease) = true ?>
-  <?define IsCI = "no" ?>
-  <?else ?>
-  <?define IsCI = "yes" ?>
-  <?endif ?>
-
   <Product Id="*" Language="1033" Codepage="1252" Manufacturer="$(var.BldCompanyName)" Name="$(var.BldCompanyName) $(var.BldProductName) ($(sys.BUILDARCH))" Version="$(var.BldProductVersion)" UpgradeCode="{8822CC70-E2A5-4CB7-8F14-E27101150A1D}">
     <Package Id="*" Languages="1033" SummaryCodepage="1252" Description="$(var.BldCompanyName) $(var.BldProductName) ($(sys.BUILDARCH))" Comments="&#169; $(var.BldCopyright)" InstallerVersion="200" Compressed="yes" InstallScope="perMachine"/>
     <SetProperty Id="ARPINSTALLLOCATION" Value="[id5C83A778378D4E51A2EDBF11ECFC27B1]" After="CostFinalize"/>
@@ -95,7 +87,7 @@
         <Directory Id="id801B755E54654715ABC20F2B55E075C8" Name="$(var.BldCompanyName)">
           <Directory Id="id5C83A778378D4E51A2EDBF11ECFC27B1" Name="HidHide">
             <Component Id="id6731FA83D4994E36A83DAA0EF21FD3CE" Guid="{6731FA83-D499-4E36-A83D-AA0EF21FD3CE}" Feature="PROD" Win64="yes">
-              <?if $(var.IsCI) = "no" ?>
+              <?if  $(var.ProductionRelease) = "false" ?>
               <File Id="idEE926062DCA344CCA022E3937B8C541A" KeyPath="yes" Source="$(var.HidHide.TargetDir)HidHide\$(var.HidHide.TargetName).cat"/>
               <?else ?>
               <File Id="idEE926062DCA344CCA022E3937B8C541A" KeyPath="yes" Source="$(var.SolutionDir)drivers\$(sys.BUILDARCH)\HidHide\$(var.HidHide.TargetName).cat"/>
@@ -105,14 +97,14 @@
               <File Id="id2F9AA9B2B5954CADA9E66D706B1B091E" KeyPath="yes" Source="$(var.HidHide.TargetDir)DevCon.exe"/>
             </Component>
             <Component Id="idB898B838B8164B058C3061EC87BABA2D" Guid="{B898B838-B816-4B05-8C30-61EC87BABA2D}" Feature="PROD" Win64="yes">
-              <?if $(var.IsCI) = "no" ?>
+              <?if  $(var.ProductionRelease) = "false" ?>
               <File Id="idF64ED1C42FA143F19562E79BE570DD8A" KeyPath="yes" Source="$(var.HidHide.TargetDir)HidHide\$(var.HidHide.TargetName).inf"/>
               <?else ?>
               <File Id="idF64ED1C42FA143F19562E79BE570DD8A" KeyPath="yes" Source="$(var.SolutionDir)drivers\$(sys.BUILDARCH)\HidHide\$(var.HidHide.TargetName).inf"/>
               <?endif ?>
             </Component>
             <Component Id="id8FE532AA10C7403F869370F8FE4067E1" Guid="{8FE532AA-10C7-403F-8693-70F8FE4067E1}" Feature="PROD" Win64="yes">
-              <?if $(var.IsCI) = "no" ?>
+              <?if  $(var.ProductionRelease) = "false" ?>
               <File Id="id1720A33E041B44CC87C6086D1F7C3045" Checksum="yes" KeyPath="yes" Source="$(var.HidHide.TargetDir)HidHide\$(var.HidHide.TargetFileName)"/>
               <?else ?>
               <File Id="id1720A33E041B44CC87C6086D1F7C3045" Checksum="yes" KeyPath="yes" Source="$(var.SolutionDir)drivers\$(sys.BUILDARCH)\HidHide\$(var.HidHide.TargetFileName)"/>
