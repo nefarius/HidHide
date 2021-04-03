@@ -11,13 +11,21 @@ Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "HidHideMSI", "HidHide\HidHi
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Production Release|x64 = Production Release|x64
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{37AA280C-34D7-44BA-AC90-2D38F88ECB26}.Production Release|x64.ActiveCfg = Release|x64
+		{37AA280C-34D7-44BA-AC90-2D38F88ECB26}.Production Release|x64.Build.0 = Release|x64
+		{37AA280C-34D7-44BA-AC90-2D38F88ECB26}.Production Release|x64.Deploy.0 = Release|x64
 		{37AA280C-34D7-44BA-AC90-2D38F88ECB26}.Release|x64.ActiveCfg = Release|x64
 		{37AA280C-34D7-44BA-AC90-2D38F88ECB26}.Release|x64.Build.0 = Release|x64
+		{44CE58CD-7B06-4585-8F46-CC7564481912}.Production Release|x64.ActiveCfg = Release|x64
+		{44CE58CD-7B06-4585-8F46-CC7564481912}.Production Release|x64.Build.0 = Release|x64
 		{44CE58CD-7B06-4585-8F46-CC7564481912}.Release|x64.ActiveCfg = Release|x64
 		{44CE58CD-7B06-4585-8F46-CC7564481912}.Release|x64.Build.0 = Release|x64
+		{912E13E7-684B-4B88-8A79-F76288895389}.Production Release|x64.ActiveCfg = Release|x64
+		{912E13E7-684B-4B88-8A79-F76288895389}.Production Release|x64.Build.0 = Release|x64
 		{912E13E7-684B-4B88-8A79-F76288895389}.Release|x64.ActiveCfg = Release|x64
 		{912E13E7-684B-4B88-8A79-F76288895389}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
