@@ -7,7 +7,7 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:dep="http://schemas.microsoft.com/wix/DependencyExtension" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
   <!-- change build flow if running under CI -->
-  <?ifdef $(var.ProductionRelease) ?>
+  <?if $(var.ProductionRelease) = true ?>
   <?define IsCI = "no" ?>
   <?else ?>
   <?define IsCI = "yes" ?>
