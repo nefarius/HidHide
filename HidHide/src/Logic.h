@@ -95,6 +95,11 @@ _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS OnDeviceCreate(_In_ WDFDEVICE wdfDevice);
 
+// Hook called when a device I/O request is incoming
+_IRQL_requires_same_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS OnDeviceIoDefault(_In_ WDFDEVICE wdfDevice, _In_ WDFQUEUE wdfQueue, _In_ WDFREQUEST wdfRequest);
+
 // Hook called after having the control device created
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)

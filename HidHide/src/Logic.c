@@ -239,6 +239,23 @@ VOID OnDeviceFileCleanup(WDFFILEOBJECT wdfFileObject)
 }
 
 _Use_decl_annotations_
+NTSTATUS OnDeviceIoDefault(WDFDEVICE wdfDevice, WDFQUEUE wdfQueue, WDFREQUEST wdfRequest)
+{
+    TRACE_PERFORMANCE(L"");
+    UNREFERENCED_PARAMETER(wdfQueue);
+
+    WDF_REQUEST_SEND_OPTIONS wdfRequestSendOptions;
+
+    // Core functionality of an upper filter driver is to forward events to the next device on the device stack
+    // As we only act on the file create we shouldn't interfere with any other I/O requests
+    WdfRequestFormatRequestUsingCurrentType(wdfRequest);
+    WDF_REQUEST_SEND_OPTIONS_INIT(&wdfRequestSendOptions, WDF_REQUEST_SEND_OPTION_SEND_AND_FORGET);
+    if (FALSE == WdfRequestSend(wdfRequest, WdfDeviceGetIoTarget(wdfDevice), &wdfRequestSendOptions)) return (WdfRequestGetStatus(wdfRequest));
+
+    return (STATUS_SUCCESS);
+}
+
+_Use_decl_annotations_
 NTSTATUS OnControlDeviceCreate(WDFDEVICE wdfControlDevice)
 {
     TRACE_ALWAYS(L"");
