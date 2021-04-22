@@ -108,38 +108,84 @@ namespace
         return (result);
     }
 
-    // Get the DosDeviceName associated with a volume
-    std::filesystem::path DosDeviceName(_In_ std::vector<WCHAR> const& volumeGuid)
+    // Get the DosDeviceName associated with a volume name
+    std::filesystem::path DosDeviceNameForVolumeName(_In_ std::wstring const& volumeName)
     {
         TRACE_ALWAYS(L"");
-        // Cleanup the volume Guid, meaning strip the leading \\?\ prefix, and remove the trailing slash
-        std::wstring cleanedUpvolumeGuid{ &volumeGuid.at(4) };
-        cleanedUpvolumeGuid.pop_back();
         std::vector<WCHAR> buffer(UNICODE_STRING_MAX_CHARS);
-        if (0 == ::QueryDosDeviceW(cleanedUpvolumeGuid.c_str(), buffer.data(), static_cast<DWORD>(buffer.size()))) THROW_WIN32_LAST_ERROR;
+        // Strip the leading '\\?\' and trailing '\' and isolate the Volume{} part in the volume name
+        if (0 == ::QueryDosDeviceW(volumeName.substr(4, volumeName.size() - 5).c_str(), buffer.data(), static_cast<DWORD>(buffer.size()))) THROW_WIN32_LAST_ERROR;
         return (buffer.data());
     }
 
-    // Get the logical drives associated with a volume
-    std::set<std::filesystem::path> LogicalDrives(_In_ std::vector<WCHAR> const& volumeGuid)
+    // Get the mount points associated with a volume
+    std::set<std::filesystem::path> VolumeMountPoints(_In_ std::wstring const& volumeName)
     {
         TRACE_ALWAYS(L"");
         std::set<std::filesystem::path> result;
 
+        std::vector<WCHAR> buffer(UNICODE_STRING_MAX_CHARS);
         DWORD needed{};
-        std::vector<WCHAR> logicalDrives(UNICODE_STRING_MAX_CHARS);
-        if (FALSE == ::GetVolumePathNamesForVolumeNameW(volumeGuid.data(), logicalDrives.data(), static_cast<DWORD>(logicalDrives.size()), &needed))
+        if (FALSE == ::GetVolumePathNamesForVolumeNameW(volumeName.data(), buffer.data(), static_cast<DWORD>(buffer.size()), &needed))
         {
             if (ERROR_MORE_DATA != ::GetLastError()) THROW_WIN32_LAST_ERROR;
         }
         else
         {
             // Iterate all logical disks associated with this volume
-            auto const list{ MultiStringToStringList(logicalDrives) };
+            auto const list{ MultiStringToStringList(buffer) };
             for (auto it{ std::begin(list) }; (std::end(list) != it); it++) result.emplace(*it);
         }
 
         return (result);
+    }
+
+    // Find the volume mount point that could store the file specified
+    // Returns an empty path when no suitable volume was found
+    std::filesystem::path FindVolumeMountPointForFileStorage(_In_ std::filesystem::path const& logicalFileName)
+    {
+        // Prepare the volume iterator
+        std::vector<WCHAR> volumeName(UNICODE_STRING_MAX_CHARS);
+        auto const findVolumeClosePtr{ FindVolumeClosePtr(::FindFirstVolumeW(volumeName.data(), static_cast<DWORD>(volumeName.size())), &::FindVolumeClose) };
+        if (INVALID_HANDLE_VALUE == findVolumeClosePtr.get()) THROW_WIN32_LAST_ERROR;
+
+        // Keep iterating the volumes and find the most specific mount point that could store the file
+        std::wstring mostSpecificVolumeMountPoint;
+        while (true)
+        {
+            // Iterate all mount points for this volume
+            for (auto it : VolumeMountPoints(volumeName.data()))
+            {
+                auto const volumeMountPoint{ it.native() };
+                if (0 == volumeMountPoint.compare(0, std::wstring::npos, logicalFileName.native(), 0, volumeMountPoint.size()))
+                {
+                    if (volumeMountPoint.size() > mostSpecificVolumeMountPoint.size())
+                    {
+                        mostSpecificVolumeMountPoint = volumeMountPoint;
+                    }
+                }
+            }
+
+            // Move to the next volume
+            if (FALSE == ::FindNextVolumeW(findVolumeClosePtr.get(), volumeName.data(), static_cast<DWORD>(volumeName.size())))
+            {
+                if (ERROR_NO_MORE_FILES != ::GetLastError()) THROW_WIN32_LAST_ERROR;
+
+                // No more volumes to iterate
+                break;
+            }
+        }
+
+        return (mostSpecificVolumeMountPoint);
+    }
+
+    // Get the volume name associated with a volume mount point
+    std::wstring VolumeNameForVolumeMountPoint(_In_ std::filesystem::path const& volumeMountPoint)
+    {
+        TRACE_ALWAYS(L"");
+        std::vector<WCHAR> buffer(UNICODE_STRING_MAX_CHARS);
+        if (FALSE == ::GetVolumeNameForVolumeMountPointW(volumeMountPoint.native().c_str(), buffer.data(), static_cast<DWORD>(buffer.size()))) THROW_WIN32_LAST_ERROR;
+        return (buffer.data());
     }
 
     // Get the Device Instance Paths of all devices of a given class (present or not present)
@@ -546,39 +592,11 @@ namespace HidHide
     FullImageName FileNameToFullImageName(std::filesystem::path const& logicalFileName)
     {
         TRACE_ALWAYS(L"");
-
-        // Prepare the volume Guid iterator
-        std::vector<WCHAR> volumeGuid(UNICODE_STRING_MAX_CHARS);
-        auto const findVolumeClosePtr{ FindVolumeClosePtr(::FindFirstVolumeW(volumeGuid.data(), static_cast<DWORD>(volumeGuid.size())), &::FindVolumeClose) };
-        if (INVALID_HANDLE_VALUE == findVolumeClosePtr.get()) THROW_WIN32_LAST_ERROR;
-
-        // Keep iterating the volume Guids
-        while (true)
-        {
-            // Get the logical drives associated with the volume
-            auto const logicalDrives{ LogicalDrives(volumeGuid) };
-
-            // Iterate all logical drives and see if we have a match
-            for (auto it{ std::begin(logicalDrives) }; (std::end(logicalDrives) != it); it++)
-            {
-                // When we have a match return the full image name
-                if (it->root_name() == logicalFileName.root_name())
-                {
-                    return (DosDeviceName(volumeGuid) / logicalFileName.relative_path());
-                }
-            }
-
-            // Not found then move to the next volume
-            if (FALSE == ::FindNextVolumeW(findVolumeClosePtr.get(), volumeGuid.data(), static_cast<DWORD>(volumeGuid.size())))
-            {
-                if (ERROR_NO_MORE_FILES != ::GetLastError()) THROW_WIN32_LAST_ERROR;
-
-                // No more volumes to iterate
-                break;
-            }
-        }
-
-        return ("");
+        auto const volumeMountPoint{ FindVolumeMountPointForFileStorage(logicalFileName) };
+        if (volumeMountPoint.empty()) return (L"");
+        auto const dosDeviceNameForVolumeName{ DosDeviceNameForVolumeName(VolumeNameForVolumeMountPoint(volumeMountPoint)) };
+        auto const fileNameWithoutMountPoint{ std::filesystem::path(logicalFileName.native().substr(volumeMountPoint.native().size())) };
+        return (dosDeviceNameForVolumeName / fileNameWithoutMountPoint);
     }
 
     bool Present()
