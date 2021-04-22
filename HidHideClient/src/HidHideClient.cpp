@@ -69,6 +69,9 @@ BOOL CHidHideClientApp::InitInstance()
 {
     TRACE_ALWAYS(L"");
 
+    // Initialize OLE library
+    AfxOleInit();
+
     // Initialize the common controls .dll first
     INITCOMMONCONTROLSEX initCommonControlsEx;
     initCommonControlsEx.dwSize = sizeof(initCommonControlsEx);

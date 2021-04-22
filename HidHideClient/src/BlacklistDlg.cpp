@@ -3,7 +3,6 @@
 // BlacklistDlg.cpp
 #include "stdafx.h"
 #include "BlacklistDlg.h"
-#include "HidHideApi.h"
 #include "Logging.h"
 
 // Define user-message for processing device interface arrivals
@@ -48,6 +47,7 @@ END_MESSAGE_MAP()
 _Use_decl_annotations_
 CBlacklistDlg::CBlacklistDlg(CWnd* pParent)
     : CDialogEx(IDD_DIALOG_BLACKLIST, pParent)
+    , HidHide::IDropTarget()
     , m_BlacklistItemData{}
     , m_Blacklist{}
     , m_CmNotificationHandle{}

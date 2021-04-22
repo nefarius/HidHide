@@ -19,6 +19,7 @@ END_MESSAGE_MAP()
 _Use_decl_annotations_
 CHidHideClientDlg::CHidHideClientDlg(CWnd* pParent)
     : CDialogEx(IDD_DIALOG_APPLICATION, pParent)
+    , m_DropTarget{}
     , m_hIcon{}
     , m_TabApplication{}
     , m_BlacklistDlg(nullptr)
@@ -40,6 +41,9 @@ BOOL CHidHideClientDlg::OnInitDialog()
 {
     TRACE_ALWAYS(L"");
     CDialogEx::OnInitDialog();
+
+    // Register this window as a drop target
+    m_DropTarget.Register(this);
 
     // Set the dialog title and include the version number, as defined via a define from the build environment
     std::wostringstream title;
@@ -114,10 +118,12 @@ void CHidHideClientDlg::ResyncTabDialogVisibilityState()
     case 0: // Applications
         m_BlacklistDlg.ShowWindow(SW_HIDE);
         m_WhitelistDlg.ShowWindow(SW_SHOW);
+        m_DropTarget.SetRedirectionTarget(m_WhitelistDlg);
         break;
     case 1: // Devices
         m_BlacklistDlg.ShowWindow(SW_SHOW);
         m_WhitelistDlg.ShowWindow(SW_HIDE);
+        m_DropTarget.SetRedirectionTarget(m_BlacklistDlg);
         break;
     }
 }
