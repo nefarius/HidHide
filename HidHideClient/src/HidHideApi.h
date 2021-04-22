@@ -34,7 +34,8 @@ namespace HidHide
     // Create a hierarchical tree of human interface devices starting at the base container id level
     DescriptionToHidDeviceInstancePathsWithModelInfo GetDescriptionToHidDeviceInstancePathsWithModelInfo();
 
-    // Method converting a logical file name into a full image name
+    // Determine the full image name for storage of the file specified while considering mounted folder structures
+    // Return an empty path when the specified file name can't be stored on any of the volumes present
     FullImageName FileNameToFullImageName(_In_ std::filesystem::path const& logicalFileName);
 
     // Get the control device state; returns true when the control device is present (installed and enabled)
