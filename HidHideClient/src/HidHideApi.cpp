@@ -13,6 +13,7 @@ typedef std::unique_ptr<std::remove_pointer<HDEVINFO>::type, decltype(&::SetupDi
 typedef std::unique_ptr<std::remove_pointer<HANDLE>::type, decltype(&::FindVolumeClose)> FindVolumeClosePtr;
 typedef std::unique_ptr<std::remove_pointer<HANDLE>::type, decltype(&::CloseHandle)> CloseHandlePtr;
 typedef std::unique_ptr<std::remove_pointer<PHIDP_PREPARSED_DATA>::type, decltype(&::HidD_FreePreparsedData)> HidD_FreePreparsedDataPtr;
+typedef std::unique_ptr<std::remove_pointer<HGLOBAL>::type, decltype(&::GlobalUnlock)> GlobalUnlockPtr;
 typedef std::stack<size_t> PortNumberStack;
 typedef std::tuple<std::filesystem::path, GUID, CM_POWER_DATA> DeviceInstancePathAndClassGuidAndPowerState;
 
@@ -154,7 +155,7 @@ namespace
         while (true)
         {
             // Iterate all mount points for this volume
-            for (auto it : VolumeMountPoints(volumeName.data()))
+            for (auto const& it : VolumeMountPoints(volumeName.data()))
             {
                 auto const volumeMountPoint{ it.native() };
                 if (0 == volumeMountPoint.compare(0, std::wstring::npos, logicalFileName.native(), 0, volumeMountPoint.size()))
@@ -448,21 +449,21 @@ namespace
         return (result);
     }
 
-    // Convert path list to string list
-    std::vector<std::wstring> PathListToStringList(_In_ std::vector<std::filesystem::path> const& paths)
+    // Convert path set to string list
+    std::vector<std::wstring> PathSetToStringList(_In_ std::set<std::filesystem::path> const& paths)
     {
         TRACE_ALWAYS(L"");
         std::vector<std::wstring> result;
-        for (auto& path : paths) result.emplace_back(path);
+        for (auto const& path : paths) result.emplace_back(path);
         return (result);
     }
 
-    // Convert string list to path list
-    std::vector<std::filesystem::path> StringListToPathList(_In_ std::vector<std::wstring> const& strings)
+    // Convert string list to path set
+    std::set<std::filesystem::path> StringListToPathSet(_In_ std::vector<std::wstring> const& strings)
     {
         TRACE_ALWAYS(L"");
-        std::vector<std::filesystem::path> result;
-        for (auto& string : strings) result.emplace_back(string);
+        std::set<std::filesystem::path> result;
+        for (auto const& string : strings) result.emplace(string);
         return (result);
     }
 
@@ -482,7 +483,7 @@ namespace
         TRACE_ALWAYS(L"");
 
         // Iterate all parts of the string offered
-        for (auto& part : SplitStringAtWhitespaces(append))
+        for (auto const& part : SplitStringAtWhitespaces(append))
         {
             // Add the part when its unique
             if (std::end(model) == std::find_if(std::begin(model), std::end(model), [part](std::wstring const& value) { return (0 == ::StrCmpLogicalW(value.c_str(), part.c_str())); }))
@@ -530,6 +531,44 @@ namespace HidHide
         return (buffer.data());
     }
 
+    std::filesystem::path ModuleFileName()
+    {
+        TRACE_ALWAYS(L"");
+        std::vector<WCHAR> buffer(UNICODE_STRING_MAX_CHARS);
+        if (FALSE == ::GetModuleFileNameW(nullptr, buffer.data(), static_cast<DWORD>(buffer.size()))) THROW_WIN32_LAST_ERROR;
+        return (buffer.data());
+    }
+
+    _Use_decl_annotations_
+    bool FileNameIsAnApplication(std::filesystem::path const& logicalFileName)
+    {
+        auto const extension{ logicalFileName.extension() };
+        return ((L".exe" == extension) || (L".com" == extension) || (L".bin" == extension));
+    }
+
+    _Use_decl_annotations_
+    std::set<std::filesystem::path> DragTargetFileNames(COleDataObject* pDataObject)
+    {
+        std::set<std::filesystem::path> result;
+
+        if (auto const hGlobal{ (nullptr == pDataObject) ? nullptr : pDataObject->GetGlobalData(CF_HDROP) }; (nullptr != hGlobal))
+        {
+            if (auto const hDrop{ GlobalUnlockPtr(::GlobalLock(hGlobal), &::GlobalUnlock) }; (nullptr != hDrop.get()))
+            {
+                for (UINT index{}, size{ ::DragQueryFileW(static_cast<HDROP>(hDrop.get()), 0xFFFFFFFF, nullptr, 0) }; (index < size); index++)
+                {
+                    std::vector<WCHAR> buffer(UNICODE_STRING_MAX_CHARS);
+                    if (0 != ::DragQueryFileW(static_cast<HDROP>(hDrop.get()), index, buffer.data(), static_cast<UINT>(buffer.size())))
+                    {
+                        result.emplace(buffer.data());
+                    }
+                }
+            }
+        }
+
+        return (result);
+    }
+
     DescriptionToHidDeviceInstancePathsWithModelInfo GetDescriptionToHidDeviceInstancePathsWithModelInfo()
     {
         TRACE_ALWAYS(L"");
@@ -573,7 +612,7 @@ namespace HidHide
 
             // Combine the information into a top-level description
             std::wstring description;
-            for (auto& part : model)
+            for (auto const& part : model)
             {
                 description = (description.empty() ? part : description + L" " + part);
             }
@@ -597,6 +636,17 @@ namespace HidHide
         auto const dosDeviceNameForVolumeName{ DosDeviceNameForVolumeName(VolumeNameForVolumeMountPoint(volumeMountPoint)) };
         auto const fileNameWithoutMountPoint{ std::filesystem::path(logicalFileName.native().substr(volumeMountPoint.native().size())) };
         return (dosDeviceNameForVolumeName / fileNameWithoutMountPoint);
+    }
+
+    _Use_decl_annotations_
+    void AddApplicationToWhitelist(std::filesystem::path const& logicalFileName)
+    {
+        TRACE_ALWAYS(L"");
+        if (auto whitelist{ GetWhitelist() }; whitelist.emplace(FileNameToFullImageName(logicalFileName)).second)
+        {
+            // The program wasn't yet on the list so update the white list
+            SetWhitelist(whitelist);
+        }
     }
 
     bool Present()
@@ -631,7 +681,7 @@ namespace HidHide
         if (FALSE == ::DeviceIoControl(DeviceHandle().get(), IOCTL_GET_WHITELIST, nullptr, 0, nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
         auto buffer{ std::vector<WCHAR>(needed) };
         if (FALSE == ::DeviceIoControl(DeviceHandle().get(), IOCTL_GET_WHITELIST, nullptr, 0, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(WCHAR)), &needed, nullptr)) THROW_WIN32_LAST_ERROR;
-        return (StringListToPathList(MultiStringToStringList(buffer)));
+        return (StringListToPathSet(MultiStringToStringList(buffer)));
     }
 
     _Use_decl_annotations_
@@ -639,7 +689,7 @@ namespace HidHide
     {
         TRACE_ALWAYS(L"");
         DWORD needed;
-        auto buffer{ StringListToMultiString(PathListToStringList(applicationsOnWhitelist)) };
+        auto buffer{ StringListToMultiString(PathSetToStringList(applicationsOnWhitelist)) };
         if (FALSE == ::DeviceIoControl(DeviceHandle().get(), IOCTL_SET_WHITELIST, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(WCHAR)), nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
     }
 

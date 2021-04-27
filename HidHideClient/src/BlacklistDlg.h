@@ -4,7 +4,7 @@
 #pragma once
 #include "HidHideApi.h"
 
-class CBlacklistDlg : public CDialogEx
+class CBlacklistDlg : public CDialogEx, public HidHide::IDropTarget
 {
     DECLARE_DYNAMIC(CBlacklistDlg)
 
