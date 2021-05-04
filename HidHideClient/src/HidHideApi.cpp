@@ -468,12 +468,11 @@ namespace
     }
 
     // Get a file handle to the device driver
-    // The flag allowFileNotFound is applied when the device couldn't be found and controls whether or not an exception is thrown on failure
-    CloseHandlePtr DeviceHandle(_In_ bool allowFileNotFound = false)
+    CloseHandlePtr DeviceHandle()
     {
         TRACE_ALWAYS(L"");
         auto handle{ CloseHandlePtr(::CreateFileW(HidHide::StringTable(IDS_CONTROL_SERVICE_PATH).c_str(), GENERIC_READ, (FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE), nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr), &::CloseHandle) };
-        if ((INVALID_HANDLE_VALUE == handle.get()) && ((ERROR_FILE_NOT_FOUND != ::GetLastError()) || (!allowFileNotFound))) THROW_WIN32_LAST_ERROR;
+        if (INVALID_HANDLE_VALUE == handle.get()) THROW_WIN32_LAST_ERROR;
         return (handle);
     }
 
@@ -649,10 +648,12 @@ namespace HidHide
         }
     }
 
-    bool Present()
+    DWORD DeviceStatus()
     {
         TRACE_ALWAYS(L"");
-        return (INVALID_HANDLE_VALUE != DeviceHandle(true).get());
+        auto const handle{ CloseHandlePtr(::CreateFileW(HidHide::StringTable(IDS_CONTROL_SERVICE_PATH).c_str(), GENERIC_READ, (FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE), nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr), &::CloseHandle) };
+        if ((INVALID_HANDLE_VALUE == handle.get()) && (ERROR_ACCESS_DENIED != ::GetLastError()) && (ERROR_FILE_NOT_FOUND != ::GetLastError())) THROW_WIN32_LAST_ERROR;
+        return ((INVALID_HANDLE_VALUE == handle.get()) ? ::GetLastError() : ERROR_SUCCESS);
     }
 
     HidDeviceInstancePaths GetBlacklist()

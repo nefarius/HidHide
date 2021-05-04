@@ -93,19 +93,27 @@ BOOL CHidHideClientApp::InitInstance()
     // We can't do anything when the control device isn't present so allow for a retry on failure
     CHidHideClientDlg dlg(nullptr);
     m_pMainWnd = &dlg;
-    while (!HidHide::Present())
-    {
-        TRACE_ALWAYS(L"");
-        if (IDRETRY != LocalizedMessageBox(IDS_STATIC_MESSAGEBOX_PRESENT, (MB_RETRYCANCEL | MB_ICONEXCLAMATION)))
-        {
-            return (FALSE);
-        }
-    }
 
     // We use exception handling so catch it at top-level and bail out
     try
     {
-        if (-1 == dlg.DoModal()) THROW_WIN32_LAST_ERROR;
+        // Keep retrying when the device is unavailable
+        while (true)
+        {
+            if (auto const deviceStatus{ HidHide::DeviceStatus() }; (ERROR_SUCCESS == deviceStatus))
+            {
+                if (-1 == dlg.DoModal()) THROW_WIN32_LAST_ERROR;
+                break;
+            }
+            else
+            {
+                TRACE_ALWAYS(L"");
+                if (IDRETRY != LocalizedMessageBox(((ERROR_ACCESS_DENIED == deviceStatus) ? IDS_STATIC_MESSAGEBOX_IN_USE : IDS_STATIC_MESSAGEBOX_PRESENT), (MB_RETRYCANCEL | MB_ICONEXCLAMATION)))
+                {
+                    break;
+                }
+            }
+        }
     }
     catch (...)
     {

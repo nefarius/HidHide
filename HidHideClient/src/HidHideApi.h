@@ -96,8 +96,11 @@ namespace HidHide
     // For larger whitelist manipulations be sure to use SetWhitelist instead
     void AddApplicationToWhitelist(_In_ std::filesystem::path const& logicalFileName);
 
-    // Get the control device state; returns true when the control device is present (installed and enabled)
-    bool Present();
+    // Get the control device state
+    // Returns ERROR_SUCCESS when available for use
+    // Returns FILE_NOT_FOUND when the device is disabled (assuming it is installed)
+    // Returns ACCESS_DENIED when in use (assuming it is not an ACL issue)
+    DWORD DeviceStatus();
 
     // Get the device Instance Paths of the Human Interface Devices that are on the black-list (may reference not present devices)
     HidDeviceInstancePaths GetBlacklist();
