@@ -23,6 +23,9 @@ namespace HidHide
     // Convert a guid into a string
     std::wstring GuidToString(_In_ GUID const& guid);
 
+    // Determine if the file is an application (.exe, .com, or .bin)
+    bool FileIsAnApplication(_In_ std::filesystem::path const& fullyQualifiedFileName);
+
     // Split the string at the white-spaces
     std::vector<std::wstring> SplitStringAtWhitespaces(_In_ std::wstring const& value);
 
@@ -46,4 +49,14 @@ namespace HidHide
 
     // Convert a set of strings into a multi-string
     std::vector<WCHAR> StringListToMultiString(_In_ std::vector<std::wstring> const& strings);
+
+    // Get the logical file name that is being dragged
+    // Returns an empty set when the data dragged isn't a list of files
+    std::set<std::filesystem::path> DragTargetFileNames(_In_ COleDataObject* pDataObject);
+
+    // Determine if the key state matches that of a copy operation (left mouse button + with or without control)
+    constexpr bool DragTargetCopyOperation(_In_ DWORD keyState) noexcept
+    {
+        return ((0 != (MK_LBUTTON & keyState)) && (0 == (MK_MBUTTON & keyState)) && (0 == (MK_RBUTTON & keyState)) && (0 == (MK_SHIFT & keyState)) && (0 == (MK_ALT & keyState)));
+    }
 }

@@ -78,17 +78,17 @@ namespace HidHide
 
     // Find the volume mount point that could store the file specified
     // Returns an empty path when no suitable volume was found
-    std::filesystem::path FindVolumeMountPointForLogicalFileName(_In_ std::filesystem::path const& logicalFileName)
+    std::filesystem::path FindVolumeMountPointForFullyQualifiedFileName(_In_ std::filesystem::path const& fullyQualifiedFileName)
     {
         TRACE_ALWAYS(L"");
 
-        auto const logicalFileNameNative{ logicalFileName.native() };
+        auto const fullyQualifiedFileNameNative{ fullyQualifiedFileName.native() };
         std::wstring result;
-        IterateAllVolumeMountPointsForFileStorage([&logicalFileNameNative, &result](_In_ std::wstring const& volumeName, _In_ std::filesystem::path const& volumeMountPoint)
+        IterateAllVolumeMountPointsForFileStorage([&fullyQualifiedFileNameNative, &result](_In_ std::wstring const& volumeName, _In_ std::filesystem::path const& volumeMountPoint)
         {
             UNREFERENCED_PARAMETER(volumeName);
             auto const volumeMountPointNative{ volumeMountPoint.native() };
-            if (0 == volumeMountPointNative.compare(0, std::wstring::npos, logicalFileNameNative, 0, volumeMountPointNative.size()))
+            if (0 == volumeMountPointNative.compare(0, std::wstring::npos, fullyQualifiedFileNameNative, 0, volumeMountPointNative.size()))
             {
                 // Keep track of the best, most specialized (hence longest) path while iterating
                 if (volumeMountPointNative.size() > result.size()) result = volumeMountPoint;
@@ -139,13 +139,13 @@ namespace HidHide
 namespace HidHide
 {
     _Use_decl_annotations_
-    FullImageName FileNameToFullImageName(std::filesystem::path const& logicalFileName)
+    FullImageName FileNameToFullImageName(std::filesystem::path const& fullyQualifiedFileName)
     {
         TRACE_ALWAYS(L"");
-        auto const volumeMountPoint{ FindVolumeMountPointForLogicalFileName(logicalFileName) };
+        auto const volumeMountPoint{ FindVolumeMountPointForFullyQualifiedFileName(fullyQualifiedFileName) };
         if (volumeMountPoint.empty()) return (FullImageName{});
         auto const dosDeviceName{ DosDeviceNameForVolumeName(VolumeNameForVolumeMountPoint(volumeMountPoint)) };
-        auto const fileNameWithoutMountPoint{ std::filesystem::path(logicalFileName.native().substr(volumeMountPoint.native().size())) };
+        auto const fileNameWithoutMountPoint{ std::filesystem::path(fullyQualifiedFileName.native().substr(volumeMountPoint.native().size())) };
         return (dosDeviceName / fileNameWithoutMountPoint);
     }
 

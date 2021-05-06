@@ -10,7 +10,7 @@ namespace HidHide
 
     // Determine the full image name for storage of the file specified while considering mounted folder structures
     // Return an empty path when the specified file name can't be stored on any of the volumes present
-    FullImageName FileNameToFullImageName(_In_ std::filesystem::path const& logicalFileName);
+    FullImageName FileNameToFullImageName(_In_ std::filesystem::path const& fullyQualifiedFileName);
 
     // Determine the file name associated with a full image name
     // Return an empty path when the logical file name couldn't be located on any of the volumes present

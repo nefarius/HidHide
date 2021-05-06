@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 // HidHideClientDlg.h
 #pragma once
-#include "HidHideApi.h"
+#include "IDropTarget.h"
 #include "BlacklistDlg.h"
 #include "WhitelistDlg.h"
 
@@ -18,6 +18,9 @@ public:
 
     explicit CHidHideClientDlg(_In_opt_ CWnd* pParent);
     virtual ~CHidHideClientDlg() = default;
+
+    // Allow child dialogs access to the shared filter driver proxy
+    HidHide::FilterDriverProxy& FilterDriverProxy() noexcept;
 
 private:
 
@@ -74,6 +77,9 @@ private:
     BOOL OnInitDialog() override;
 
     DECLARE_MESSAGE_MAP()
+
+    // Acquire exclusive access to the filter driver
+    std::unique_ptr<HidHide::FilterDriverProxy> m_FilterDriverProxy;
 
     // Drop file support
     CDropTarget m_DropTarget;

@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "FilterDriverProxy.h"
 #include "Utils.h"
+#include "Volume.h"
 #include "Logging.h"
 
 namespace
@@ -59,7 +60,7 @@ namespace
     }
 
     // Get the device Instance Paths of the Human Interface Devices that are on the black-list (may reference not present devices)
-    HidHide::FilterDriverProxy::DeviceInstancePaths GetBlacklist(_In_ HANDLE device)
+    HidHide::DeviceInstancePaths GetBlacklist(_In_ HANDLE device)
     {
         TRACE_ALWAYS(L"");
         DWORD needed{};
@@ -70,7 +71,7 @@ namespace
     }
 
     // Set the device Instance Paths of the Human Interface Devices that are on the black-list
-    void SetBlacklist(_In_ HANDLE device, _In_ HidHide::FilterDriverProxy::DeviceInstancePaths const& deviceInstancePaths)
+    void SetBlacklist(_In_ HANDLE device, _In_ HidHide::DeviceInstancePaths const& deviceInstancePaths)
     {
         TRACE_ALWAYS(L"");
         DWORD needed{};
@@ -79,7 +80,7 @@ namespace
     }
 
     // Get the applications on the white-list
-    HidHide::FilterDriverProxy::FullImageNames GetWhitelist(_In_ HANDLE device)
+    HidHide::FullImageNames GetWhitelist(_In_ HANDLE device)
     {
         TRACE_ALWAYS(L"");
         DWORD needed{};
@@ -90,7 +91,7 @@ namespace
     }
 
     // Set the applications on the white-list
-    void SetWhitelist(_In_ HANDLE device, _In_ HidHide::FilterDriverProxy::FullImageNames const& fullImageNames)
+    void SetWhitelist(_In_ HANDLE device, _In_ HidHide::FullImageNames const& fullImageNames)
     {
         TRACE_ALWAYS(L"");
         DWORD needed{};
@@ -102,38 +103,37 @@ namespace
 namespace HidHide
 {
     _Use_decl_annotations_
-    FilterDriverProxy::FilterDriverProxy(std::filesystem::path const& deviceName)
-        : m_Device{ Device(deviceName) }
+    FilterDriverProxy::FilterDriverProxy(bool writeThrough)
+        : m_WriteThrough{ writeThrough }
+        , m_Device{ ::Device(HidHide::StringTable(IDS_CONTROL_DEVICE_NAME)) }
         , m_Active{ ::GetActive(m_Device.get()) }
         , m_Blacklist{ ::GetBlacklist(m_Device.get()) }
         , m_Whitelist{ ::GetWhitelist(m_Device.get()) }
     {
         TRACE_ALWAYS(L"");
+
+        // Ensure the application itself is always on the whitelist and apply the change immediately
+        if (auto const fullImageName{ HidHide::FileNameToFullImageName(HidHide::ModuleFileName()) }; (!fullImageName.empty()) && (m_Whitelist.emplace(fullImageName).second))
+        {
+            ::SetWhitelist(m_Device.get(), m_Whitelist);
+        }
     }
 
-    _Use_decl_annotations_
-    void FilterDriverProxy::WhitelistAddEntry(std::filesystem::path const& deviceName, FullImageName const& fullImageName)
+    DWORD FilterDriverProxy::DeviceStatus()
     {
         TRACE_ALWAYS(L"");
-        auto const device{ Device(deviceName) };
-        if (auto whitelist{ ::GetWhitelist(device.get()) }; whitelist.emplace(fullImageName).second)
-        {
-            ::SetWhitelist(device.get(), whitelist);
-        }
+        auto const handle{ CloseHandlePtr(::CreateFileW(HidHide::StringTable(IDS_CONTROL_DEVICE_NAME).c_str(), GENERIC_READ, (FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE), nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr), &::CloseHandle) };
+        if ((INVALID_HANDLE_VALUE == handle.get()) && (ERROR_ACCESS_DENIED != ::GetLastError()) && (ERROR_FILE_NOT_FOUND != ::GetLastError())) THROW_WIN32_LAST_ERROR;
+        return ((INVALID_HANDLE_VALUE == handle.get()) ? ::GetLastError() : ERROR_SUCCESS);
     }
 
     void FilterDriverProxy::ApplyConfigurationChanges()
     {
         TRACE_ALWAYS(L"");
+        if (m_WriteThrough) THROW_WIN32(ERROR_INVALID_PARAMETER);
         if (::GetWhitelist(m_Device.get()) != m_Whitelist) ::SetWhitelist(m_Device.get(), m_Whitelist);
         if (::GetBlacklist(m_Device.get()) != m_Blacklist) ::SetBlacklist(m_Device.get(), m_Blacklist);
         if (::GetActive(m_Device.get()) != m_Active) ::SetActive(m_Device.get(), m_Active);
-    }
-
-    bool FilterDriverProxy::Present() const
-    {
-        TRACE_ALWAYS(L"");
-        return (INVALID_HANDLE_VALUE != m_Device.get());
     }
 
     bool FilterDriverProxy::GetActive() const
@@ -146,60 +146,86 @@ namespace HidHide
     void FilterDriverProxy::SetActive(bool active)
     {
         TRACE_ALWAYS(L"");
-        m_Active = active;
+        if (m_Active != active)
+        {
+            m_Active = active;
+            if (m_WriteThrough) ::SetActive(m_Device.get(), m_Active);
+        }
     }
 
-    FilterDriverProxy::DeviceInstancePaths FilterDriverProxy::GetBlacklist() const
+    DeviceInstancePaths FilterDriverProxy::GetBlacklist() const
     {
         TRACE_ALWAYS(L"");
         return (m_Blacklist);
     }
 
     _Use_decl_annotations_
-    void FilterDriverProxy::SetBlacklist(FilterDriverProxy::DeviceInstancePaths const& deviceInstancePaths)
+    void FilterDriverProxy::SetBlacklist(DeviceInstancePaths const& deviceInstancePaths)
     {
         TRACE_ALWAYS(L"");
-        m_Blacklist = deviceInstancePaths;
+        if (m_Blacklist != deviceInstancePaths)
+        {
+            m_Blacklist = deviceInstancePaths;
+            if (m_WriteThrough) ::SetBlacklist(m_Device.get(), m_Blacklist);
+        }
     }
 
     _Use_decl_annotations_
-    void FilterDriverProxy::BlacklistAddEntry(FilterDriverProxy::DeviceInstancePath const& deviceInstancePath)
+    void FilterDriverProxy::BlacklistAddEntry(DeviceInstancePath const& deviceInstancePath)
     {
         TRACE_ALWAYS(L"");
-        m_Blacklist.emplace(deviceInstancePath);
+        if (m_Blacklist.emplace(deviceInstancePath).second)
+        {
+            if (m_WriteThrough) ::SetBlacklist(m_Device.get(), m_Blacklist);
+        }
     }
 
     _Use_decl_annotations_
-    void FilterDriverProxy::BlacklistDelEntry(FilterDriverProxy::DeviceInstancePath const& deviceInstancePath)
+    void FilterDriverProxy::BlacklistDelEntry(DeviceInstancePath const& deviceInstancePath)
     {
         TRACE_ALWAYS(L"");
-        m_Blacklist.erase(deviceInstancePath);
+        if (auto const it{ m_Blacklist.find(deviceInstancePath) }; std::end(m_Blacklist) != it)
+        {
+            m_Blacklist.erase(it);
+            if (m_WriteThrough) ::SetBlacklist(m_Device.get(), m_Blacklist);
+        }
     }
 
-    FilterDriverProxy::FullImageNames FilterDriverProxy::GetWhitelist() const
+    FullImageNames FilterDriverProxy::GetWhitelist() const
     {
         TRACE_ALWAYS(L"");
         return (m_Whitelist);
     }
 
     _Use_decl_annotations_
-    void FilterDriverProxy::SetWhitelist(FilterDriverProxy::FullImageNames const& fullImageNames)
+    void FilterDriverProxy::SetWhitelist(FullImageNames const& fullImageNames)
     {
         TRACE_ALWAYS(L"");
-        m_Whitelist = fullImageNames;
+        if (m_Whitelist != fullImageNames)
+        {
+            m_Whitelist = fullImageNames;
+            if (m_WriteThrough) ::SetWhitelist(m_Device.get(), m_Whitelist);
+        }
     }
 
     _Use_decl_annotations_
-    void FilterDriverProxy::WhitelistAddEntry(FilterDriverProxy::FullImageName const& fullImageName)
+    void FilterDriverProxy::WhitelistAddEntry(FullImageName const& fullImageName)
     {
         TRACE_ALWAYS(L"");
-        m_Whitelist.emplace(fullImageName);
+        if (m_Whitelist.emplace(fullImageName).second)
+        {
+            if (m_WriteThrough) ::SetWhitelist(m_Device.get(), m_Whitelist);
+        }
     }
 
     _Use_decl_annotations_
-    void FilterDriverProxy::WhitelistDelEntry(FilterDriverProxy::FullImageName const& fullImageName)
+    void FilterDriverProxy::WhitelistDelEntry(FullImageName const& fullImageName)
     {
         TRACE_ALWAYS(L"");
-        m_Whitelist.erase(fullImageName);
+        if (auto const it{ m_Whitelist.find(fullImageName) }; std::end(m_Whitelist) != it)
+        {
+            m_Whitelist.erase(it);
+            if (m_WriteThrough) ::SetWhitelist(m_Device.get(), m_Whitelist);
+        }
     }
 }

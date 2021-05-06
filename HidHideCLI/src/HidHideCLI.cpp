@@ -4,7 +4,6 @@
 #include "stdafx.h"
 #include "CommandInterpreter.h"
 #include "Utils.h"
-#include "Volume.h"
 #include "Logging.h"
 
 namespace
@@ -16,13 +15,7 @@ namespace
         try
         {
             TRACE_ALWAYS(L"");
-
-            // Ensure this application is on the whitelist before loading the filter driver proxy
-            auto const deviceName{ HidHide::StringTable(IDS_CONTROL_DEVICE_NAME) };
-            auto const fullImageName{ HidHide::FileNameToFullImageName(HidHide::ModuleFileName()) };
-            if (!fullImageName.empty()) HidHide::FilterDriverProxy::WhitelistAddEntry(deviceName, fullImageName);
-
-            HidHide::CommandInterpreter(deviceName).Start(HidHide::CommandLineArguments());
+            HidHide::CommandInterpreter(false).Start(HidHide::CommandLineArguments());
             return (ERROR_SUCCESS);
         }
         catch (std::exception const& exc)
@@ -38,6 +31,40 @@ namespace
     }
 }
 
+// Register the ETW logging and tracing providers
+NTSTATUS WINAPI LogRegisterProviders() noexcept
+{
+    try
+    {
+        EventRegisterNefarius_Hid_Hide_CLI();
+        EventRegisterNefarius_Drivers_HidHideCLI();
+
+        // The define for BldProductVersion is passed from the project file to the source code via a define
+        ::LogEvent(ETW(Started), L"%s", _L(BldProductVersion));
+        return (STATUS_SUCCESS);
+    }
+    catch (...)
+    {
+        DBG_AND_RETURN_NTSTATUS("LogRegisterProviders", STATUS_UNHANDLED_EXCEPTION);
+    }
+}
+
+// Unregister the ETW logging and tracing providers
+NTSTATUS WINAPI LogUnregisterProviders() noexcept
+{
+    try
+    {
+        ::LogEvent(ETW(Stopped), L"");
+        EventUnregisterNefarius_Drivers_HidHideCLI();
+        EventUnregisterNefarius_Hid_Hide_CLI();
+        return (STATUS_SUCCESS);
+    }
+    catch (...)
+    {
+        DBG_AND_RETURN_NTSTATUS("LogUnregisterProviders", STATUS_UNHANDLED_EXCEPTION);
+    }
+}
+
 _Success_(return == ERROR_SUCCESS)
 int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
 {
@@ -45,8 +72,8 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     UNREFERENCED_PARAMETER(argv);
     UNREFERENCED_PARAMETER(envp);
 
-    LogRegisterProviders();
+    ::LogRegisterProviders();
     auto const result{ MainApplication() };
-    LogUnregisterProviders();
+    ::LogUnregisterProviders();
     return (static_cast<int>(result));
 }

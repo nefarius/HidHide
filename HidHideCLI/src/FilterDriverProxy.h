@@ -5,14 +5,14 @@
 
 namespace HidHide
 {
+    typedef std::wstring DeviceInstancePath;
+    typedef std::set<DeviceInstancePath> DeviceInstancePaths;
+    typedef std::filesystem::path FullImageName;
+    typedef std::set<FullImageName> FullImageNames;
+
     class FilterDriverProxy
     {
     public:
-
-        typedef std::wstring DeviceInstancePath;
-        typedef std::set<DeviceInstancePath> DeviceInstancePaths;
-        typedef std::filesystem::path FullImageName;
-        typedef std::set<FullImageName> FullImageNames;
 
         FilterDriverProxy() noexcept = delete;
         FilterDriverProxy(_In_ FilterDriverProxy const& rhs) = delete;
@@ -20,17 +20,19 @@ namespace HidHide
         FilterDriverProxy& operator=(_In_ FilterDriverProxy const& rhs) = delete;
         FilterDriverProxy& operator=(_In_ FilterDriverProxy&& rhs) = delete;
 
-        explicit FilterDriverProxy(_In_ std::filesystem::path const& deviceName);
+        // Exclusively lock the device driver, fill the cache layer, and ensure the module file name is always on the whitelist
+        explicit FilterDriverProxy(_In_ bool writeThrough);
         ~FilterDriverProxy() = default;
 
-        // Add an entry to the whitelist and immediately apply the change
-        static void WhitelistAddEntry(_In_ std::filesystem::path const& deviceName, _In_ FullImageName const& fullImageName);
+        // Get the control device state
+        // Returns ERROR_SUCCESS when available for use
+        // Returns FILE_NOT_FOUND when the device is disabled (assuming it is installed)
+        // Returns ACCESS_DENIED when in use (assuming it is not an ACL issue)
+        static DWORD DeviceStatus();
 
         // Apply the configuration changes (if any)
+        // Throws when the class is using write-through
         void ApplyConfigurationChanges();
-
-        // Get the control device state; returns true when the control device is present (installed and enabled)
-        bool Present() const;
 
         // Get the device Instance Paths of the Human Interface Devices that are on the black-list (may reference not present devices)
         DeviceInstancePaths GetBlacklist() const;
@@ -66,9 +68,10 @@ namespace HidHide
 
         typedef std::unique_ptr<std::remove_pointer<HANDLE>::type, decltype(&::CloseHandle)> CloseHandlePtr;
 
-        CloseHandlePtr const m_Device;    // The handle to the filter driver
-        bool                 m_Active;    // Indicates if the filter driver is hiding devices or not
-        DeviceInstancePaths  m_Blacklist; // The device instance paths of the blacklisted HID devices
-        FullImageNames       m_Whitelist; // The full image names of the whitelisted applications
+        bool const           m_WriteThrough; // Flag indicating that changes should be applied instantly
+        CloseHandlePtr const m_Device;       // The handle to the filter driver
+        bool                 m_Active;       // Indicates if the filter driver is hiding devices or not
+        DeviceInstancePaths  m_Blacklist;    // The device instance paths of the blacklisted HID devices
+        FullImageNames       m_Whitelist;    // The full image names of the whitelisted applications
     };
 }

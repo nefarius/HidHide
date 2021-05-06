@@ -33,13 +33,25 @@
     <ClInclude Include="src\WhitelistDlg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\HidHideApi.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Logging.h">
+    <ClInclude Include="..\HidHideCLI\src\HID.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\HidHideCLI\src\Utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\HidHideCLI\src\Volume.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IDropTarget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\HidHideCLI\src\Logging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\HidHideCLI\src\FilterDriverProxy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -67,10 +79,19 @@
     <ClCompile Include="src\WhitelistDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\HidHideApi.cpp">
+    <ClCompile Include="..\HidHideCLI\src\Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Logging.cpp">
+    <ClCompile Include="..\HidHideCLI\src\Volume.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\HidHideCLI\src\HID.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\HidHideCLI\src\Logging.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\HidHideCLI\src\FilterDriverProxy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

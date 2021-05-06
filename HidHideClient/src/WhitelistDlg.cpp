@@ -3,6 +3,9 @@
 // WhitelistDlg.cpp
 #include "stdafx.h"
 #include "WhitelistDlg.h"
+#include "HidHideClientDlg.h"
+#include "Utils.h"
+#include "Volume.h"
 #include "Logging.h"
 
 // Define user-message for processing device interface arrivals
@@ -40,9 +43,10 @@ END_MESSAGE_MAP()
 #pragma warning(pop)
 
 _Use_decl_annotations_
-CWhitelistDlg::CWhitelistDlg(CWnd* pParent)
+CWhitelistDlg::CWhitelistDlg(CHidHideClientDlg& hidHideClientDlg, CWnd* pParent)
     : CDialogEx(IDD_DIALOG_WHITELIST, pParent)
     , HidHide::IDropTarget()
+    , m_HidHideClientDlg{ hidHideClientDlg }
     , m_DropTargetFullImageNames{}
     , m_Whitelist{}
     , m_Guidance{}
@@ -57,6 +61,11 @@ CWhitelistDlg::~CWhitelistDlg()
     TRACE_ALWAYS(L"");
 }
 
+HidHide::FilterDriverProxy& CWhitelistDlg::FilterDriverProxy() noexcept
+{
+    return (m_HidHideClientDlg.FilterDriverProxy());
+}
+
 _Use_decl_annotations_
 DROPEFFECT CWhitelistDlg::OnDragEnter(CWnd* pWnd, COleDataObject* pDataObject, DWORD dwKeyState, CPoint point)
 {
@@ -68,11 +77,11 @@ DROPEFFECT CWhitelistDlg::OnDragEnter(CWnd* pWnd, COleDataObject* pDataObject, D
     m_DropTargetFullImageNames.clear();
 
     // Only accept one or more application files (.exe, .com, .bin) located on a volume
-    for (auto const& logicalFileName : HidHide::DragTargetFileNames(pDataObject))
+    for (auto const& fullyQualifiedFileName : HidHide::DragTargetFileNames(pDataObject))
     {
-        if (HidHide::FileNameIsAnApplication(logicalFileName))
+        if (HidHide::FileIsAnApplication(fullyQualifiedFileName))
         {
-            if (auto const fullImageName{ HidHide::FileNameToFullImageName(logicalFileName) }; !fullImageName.empty())
+            if (auto const fullImageName{ HidHide::FileNameToFullImageName(fullyQualifiedFileName) }; !fullImageName.empty())
             {
                 // Criteria met proceed to next one
                 m_DropTargetFullImageNames.emplace(fullImageName);
@@ -114,7 +123,7 @@ DROPEFFECT CWhitelistDlg::OnDropEx(CWnd* pWnd, COleDataObject* pDataObject, DROP
 
     // Process all dropped file names and keep track if they are new to the white list
     auto dirty{ false };
-    auto whitelist{ HidHide::GetWhitelist() };
+    auto whitelist{ FilterDriverProxy().GetWhitelist() };
     for (auto const& fullImageName : m_DropTargetFullImageNames)
     {
         if (whitelist.emplace(fullImageName).second) dirty = true;
@@ -123,7 +132,7 @@ DROPEFFECT CWhitelistDlg::OnDropEx(CWnd* pWnd, COleDataObject* pDataObject, DROP
     // When there are new entries then update the whitelist accordingly and refresh the screen
     if (dirty)
     {
-        HidHide::SetWhitelist(whitelist);
+        FilterDriverProxy().SetWhitelist(whitelist);
         Refresh();
     }
 
@@ -156,9 +165,6 @@ BOOL CWhitelistDlg::OnInitDialog()
     TRACE_ALWAYS(L"");
     CDialogEx::OnInitDialog();
 
-    // Be sure the application itself is on the whitelist
-    HidHide::AddApplicationToWhitelist(HidHide::ModuleFileName());
-
     // Apply the labels from the string table
     m_Guidance.SetWindowTextW(HidHide::StringTable(IDS_STATIC_WHITELIST_GUIDANCE).c_str());
     m_Insert.SetWindowTextW(HidHide::StringTable(IDS_BUTTON_WHITELIST_INSERT).c_str());
@@ -190,11 +196,16 @@ LRESULT CWhitelistDlg::OnUserMessageRefresh(WPARAM wParam, LPARAM lParam)
 
     m_Whitelist.UpdateData(FALSE);
     m_Whitelist.ResetContent();
-    for (auto const& fullImageName : HidHide::GetWhitelist())
-    {
-        if (auto const result{ m_Whitelist.AddString(fullImageName.c_str()) }; (LB_ERR == result) || (LB_ERRSPACE == result)) THROW_WIN32(ERROR_INVALID_PARAMETER);
-    }
     m_Whitelist.SetSel(-1, FALSE);
+    for (auto const& fullImageName : FilterDriverProxy().GetWhitelist())
+    {
+        auto const index{ m_Whitelist.AddString(fullImageName.c_str()) };
+        if ((LB_ERR == index) || (LB_ERRSPACE == index)) THROW_WIN32(ERROR_INVALID_PARAMETER);
+
+        // Mask the entry in the list when the file doesn't exist anymore
+        auto const exists{ std::filesystem::exists(HidHide::FullImageNameToFileName(fullImageName)) };
+        if (!exists) m_Whitelist.SetSel(index, TRUE);
+    }
     m_Whitelist.SetFocus();
     m_Whitelist.UpdateData(TRUE);
     return (0);
@@ -227,7 +238,7 @@ void CWhitelistDlg::OnBnClickedButtonWhitelistInsert()
         // No duplicates so add it
         if (auto const result{ m_Whitelist.AddString(fullImageName) }; (LB_ERR == result) || (LB_ERRSPACE == result)) THROW_WIN32(ERROR_INVALID_PARAMETER);
 
-        HidHide::SetWhitelist(ListBoxToPathSet(m_Whitelist));
+        FilterDriverProxy().SetWhitelist(ListBoxToPathSet(m_Whitelist));
         Refresh();
     }
 }
@@ -250,6 +261,6 @@ void CWhitelistDlg::OnBnClickedButtonWhitelistDelete()
         if (LB_ERR == m_Whitelist.DeleteString(itemsSelected[index])) THROW_WIN32(ERROR_INVALID_PARAMETER);
     }
 
-    HidHide::SetWhitelist(ListBoxToPathSet(m_Whitelist));
+    FilterDriverProxy().SetWhitelist(ListBoxToPathSet(m_Whitelist));
     Refresh();
 }

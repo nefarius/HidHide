@@ -18,23 +18,24 @@
 #define IDS_CLI_SYNTAX_APP_PATH         140
 #define IDS_CLI_SYNTAX_DEV_INST_PATH    141
 #define IDS_CLI_SYNTAX_NO_ARGUMENTS     142
-#define IDS_CLI_APP_LIST                143
-#define IDS_CLI_APP_REG                 144
-#define IDS_CLI_APP_UNREG               145
-#define IDS_CLI_CANCEL                  146
-#define IDS_CLI_CLOAK_OFF               147
-#define IDS_CLI_CLOAK_ON                148
-#define IDS_CLI_CLOAK_STATE             149
-#define IDS_CLI_CLOAK_TOGGLE            150
-#define IDS_CLI_DEV_ALL                 151
-#define IDS_CLI_DEV_GAMING              152
-#define IDS_CLI_DEV_HIDE                153
-#define IDS_CLI_DEV_LIST                154
-#define IDS_CLI_DEV_UNHIDE              155
-#define IDS_CLI_HELP                    156
-#define IDS_CLI_VERSION                 157
-#define IDS_HID_ATTRIBUTE_DENIED        158
-#define IDS_HID_ATTRIBUTE_ABSENT        159
+#define IDS_CLI_APP_CLEAN               143
+#define IDS_CLI_APP_LIST                144
+#define IDS_CLI_APP_REG                 145
+#define IDS_CLI_APP_UNREG               146
+#define IDS_CLI_CANCEL                  147
+#define IDS_CLI_CLOAK_OFF               148
+#define IDS_CLI_CLOAK_ON                149
+#define IDS_CLI_CLOAK_STATE             150
+#define IDS_CLI_CLOAK_TOGGLE            151
+#define IDS_CLI_DEV_ALL                 152
+#define IDS_CLI_DEV_GAMING              153
+#define IDS_CLI_DEV_HIDE                154
+#define IDS_CLI_DEV_LIST                155
+#define IDS_CLI_DEV_UNHIDE              156
+#define IDS_CLI_HELP                    157
+#define IDS_CLI_VERSION                 158
+#define IDS_HID_ATTRIBUTE_DENIED        159
+#define IDS_HID_ATTRIBUTE_ABSENT        160
 #define IDS_PAGE_01                     0x1001
 #define IDS_PAGE_02                     0x1002
 #define IDS_PAGE_03                     0x1003
@@ -110,7 +111,7 @@
 // Next default values for new objects
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        160
+#define _APS_NEXT_RESOURCE_VALUE        161
 #define _APS_NEXT_COMMAND_VALUE         32771
 #define _APS_NEXT_CONTROL_VALUE         1010
 #define _APS_NEXT_SYMED_VALUE           102

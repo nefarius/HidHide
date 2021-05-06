@@ -16,7 +16,8 @@ namespace HidHide
         CommandInterpreter& operator=(_In_ CommandInterpreter const& rhs) = delete;
         CommandInterpreter& operator=(_In_ CommandInterpreter&& rhs) = delete;
 
-        explicit CommandInterpreter(_In_ std::filesystem::path const& deviceName);
+        // Exclusively lock the device driver and ensure the module file name is on the whitelist
+        explicit CommandInterpreter(_In_ bool writeThrough);
         ~CommandInterpreter();
 
         // Start the command interpreter using stdin, stdout, and stderr
@@ -95,6 +96,9 @@ namespace HidHide
 
         // Revokes ability to see hidden devices
         void AppUnreg(_In_ Args const& args);
+
+        // Remove absent registered applications
+        void AppClean(Args const&);
 
         // Lists the registered applications
         void AppList(_In_ Args const& args) const;

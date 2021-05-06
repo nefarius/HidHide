@@ -61,7 +61,7 @@ namespace
 namespace HidHide
 {
     _Use_decl_annotations_
-    CommandInterpreter::CommandInterpreter(std::filesystem::path const& deviceName)
+    CommandInterpreter::CommandInterpreter(bool writeThrough)
         : m_ScriptMode{ StandardInputRedirected() }
         , m_InteractiveMode{ (!m_ScriptMode) && (HidHide::CommandLineArguments().empty()) }
         , m_RegisteredCommands
@@ -69,6 +69,7 @@ namespace HidHide
             { L"app-list",     { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_APP_LIST),     std::bind(&CommandInterpreter::AppList,     this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
             { L"app-reg",      { StringTable(IDS_CLI_SYNTAX_APP_PATH),      StringTable(IDS_CLI_APP_REG),      std::bind(&CommandInterpreter::AppReg,      this, std::placeholders::_1), std::bind(&CommandInterpreter::ValOneFullyQualifiedExecutablePath, this, std::placeholders::_1) } },
             { L"app-unreg",    { StringTable(IDS_CLI_SYNTAX_APP_PATH),      StringTable(IDS_CLI_APP_UNREG),    std::bind(&CommandInterpreter::AppUnreg,    this, std::placeholders::_1), std::bind(&CommandInterpreter::ValOneFullyQualifiedExecutablePath, this, std::placeholders::_1) } },
+            { L"app-clean",    { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_APP_CLEAN),    std::bind(&CommandInterpreter::AppClean,    this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
             { L"cancel",       { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_CANCEL),       std::bind(&CommandInterpreter::Cancel,      this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
             { L"cloak-off",    { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_CLOAK_OFF),    std::bind(&CommandInterpreter::CloakOff,    this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
             { L"cloak-on",     { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_CLOAK_ON),     std::bind(&CommandInterpreter::CloakOn,     this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
@@ -82,7 +83,7 @@ namespace HidHide
             { L"help",         { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_HELP),         std::bind(&CommandInterpreter::Help,        this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
             { L"version",      { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_VERSION),      std::bind(&CommandInterpreter::Version,     this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } }
           }
-        , m_FilterDriverProxy(deviceName)
+        , m_FilterDriverProxy(writeThrough)
         , m_Cancel{}
     {
         TRACE_ALWAYS(L"");
@@ -109,10 +110,10 @@ namespace HidHide
     {
         TRACE_ALWAYS(L"");
         if (2 != args.size()) return (HidHide::StringTable(IDS_WRONG_NUMBER_OF_ARGUMENTS));
-        auto const path{ std::filesystem::path(args.at(1)) };
-        if (path.is_relative()) return (HidHide::StringTable(IDS_NOT_A_FULLY_QUALIFIED_PATH));
-        if ((L".exe" != path.extension()) && (L".com" != path.extension()) && (L".bin" != path.extension())) return (HidHide::StringTable(IDS_NOT_AN_EXECUTABLE));
-        auto const fullImageName{ HidHide::FileNameToFullImageName(path) };
+        auto const fullyQualifiedFileName{ std::filesystem::path(args.at(1)) };
+        if (fullyQualifiedFileName.is_relative()) return (HidHide::StringTable(IDS_NOT_A_FULLY_QUALIFIED_PATH));
+        if (!HidHide::FileIsAnApplication(fullyQualifiedFileName)) return (HidHide::StringTable(IDS_NOT_AN_EXECUTABLE));
+        auto const fullImageName{ HidHide::FileNameToFullImageName(fullyQualifiedFileName) };
         if (fullImageName.empty()) return (HidHide::StringTable(IDS_NOT_ON_A_VOLUME));
         return (std::wstring{});
     }
@@ -157,6 +158,18 @@ namespace HidHide
         m_Cancel = true;
     }
 
+    void CommandInterpreter::AppClean(Args const&)
+    {
+        TRACE_ALWAYS(L"");
+        for (auto const& fullImageName : m_FilterDriverProxy.GetWhitelist())
+        {
+            if (!std::filesystem::exists(HidHide::FullImageNameToFileName(fullImageName)))
+            {
+                m_FilterDriverProxy.WhitelistDelEntry(fullImageName);
+            }
+        }
+    }
+
     _Use_decl_annotations_
     void CommandInterpreter::AppReg(Args const& args)
     {
@@ -175,9 +188,9 @@ namespace HidHide
     void CommandInterpreter::AppList(Args const&) const
     {
         TRACE_ALWAYS(L"");
-        for (auto const& application : m_FilterDriverProxy.GetWhitelist())
+        for (auto const& fullImageName : m_FilterDriverProxy.GetWhitelist())
         {
-            std::wcout << L"--app-reg \"" << HidHide::FullImageNameToFileName(application).native() << L"\"" << std::endl;
+            std::wcout << L"--app-reg \"" << HidHide::FullImageNameToFileName(fullImageName).native() << L"\"" << std::endl;
         }
     }
 

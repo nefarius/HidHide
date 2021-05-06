@@ -7,6 +7,8 @@
 
 namespace HidHide
 {
+    typedef std::unique_ptr<std::remove_pointer<HGLOBAL>::type, decltype(&::GlobalUnlock)> GlobalUnlockPtr;
+
     std::filesystem::path ModuleFileName()
     {
         TRACE_ALWAYS(L"");
@@ -31,7 +33,7 @@ namespace HidHide
     }
 
     _Use_decl_annotations_
-    std::wstring ErrorMessage(_In_ DWORD errorCode)
+    std::wstring ErrorMessage(DWORD errorCode)
     {
         TRACE_ALWAYS(L"");
         std::vector<WCHAR> buffer(UNICODE_STRING_MAX_CHARS);
@@ -62,7 +64,7 @@ namespace HidHide
     }
 
     _Use_decl_annotations_
-    std::wstring GuidToString(_In_ GUID const& guid)
+    std::wstring GuidToString(GUID const& guid)
     {
         TRACE_ALWAYS(L"");
         std::vector<WCHAR> buffer(39);
@@ -71,7 +73,14 @@ namespace HidHide
     }
 
     _Use_decl_annotations_
-    std::vector<std::wstring> SplitStringAtWhitespaces(_In_ std::wstring const& value)
+    bool FileIsAnApplication(std::filesystem::path const& fullyQualifiedFileName)
+    {
+        auto const extension{ fullyQualifiedFileName.extension() };
+        return ((L".exe" == extension) || (L".com" == extension) || (L".bin" == extension));
+    }
+
+    _Use_decl_annotations_
+    std::vector<std::wstring> SplitStringAtWhitespaces(std::wstring const& value)
     {
         TRACE_ALWAYS(L"");
         std::vector<std::wstring> result;
@@ -101,7 +110,7 @@ namespace HidHide
     }
 
     _Use_decl_annotations_
-    std::set<std::wstring> StringListToStringSet(_In_ std::vector<std::wstring> const& strings)
+    std::set<std::wstring> StringListToStringSet(std::vector<std::wstring> const& strings)
     {
         TRACE_ALWAYS(L"");
         std::set<std::wstring> result;
@@ -113,7 +122,7 @@ namespace HidHide
     }
 
     _Use_decl_annotations_
-    std::set<std::filesystem::path> StringListToPathSet(_In_ std::vector<std::wstring> const& paths)
+    std::set<std::filesystem::path> StringListToPathSet(std::vector<std::wstring> const& paths)
     {
         TRACE_ALWAYS(L"");
         std::set<std::filesystem::path> result;
@@ -125,7 +134,7 @@ namespace HidHide
     }
 
     _Use_decl_annotations_
-    std::vector<std::wstring> StringSetToStringList(_In_ std::set<std::wstring> const& strings)
+    std::vector<std::wstring> StringSetToStringList(std::set<std::wstring> const& strings)
     {
         TRACE_ALWAYS(L"");
         std::vector<std::wstring> result;
@@ -137,7 +146,7 @@ namespace HidHide
     }
 
     _Use_decl_annotations_
-    std::vector<std::wstring> PathSetToStringList(_In_ std::set<std::filesystem::path> const& paths)
+    std::vector<std::wstring> PathSetToStringList(std::set<std::filesystem::path> const& paths)
     {
         TRACE_ALWAYS(L"");
         std::vector<std::wstring> result;
@@ -149,7 +158,7 @@ namespace HidHide
     }
 
     _Use_decl_annotations_
-    std::vector<std::wstring> MultiStringToStringList(_In_ std::vector<WCHAR> const& multiString)
+    std::vector<std::wstring> MultiStringToStringList(std::vector<WCHAR> const& multiString)
     {
         TRACE_ALWAYS(L"");
         std::vector<std::wstring> result;
@@ -167,7 +176,7 @@ namespace HidHide
     }
 
     _Use_decl_annotations_
-    std::vector<WCHAR> StringListToMultiString(_In_ std::vector<std::wstring> const& strings)
+    std::vector<WCHAR> StringListToMultiString(std::vector<std::wstring> const& strings)
     {
         TRACE_ALWAYS(L"");
         std::vector<WCHAR> result;
@@ -179,6 +188,29 @@ namespace HidHide
             if (0 != ::wcsncpy_s(&result.at(oldSize), appendSize, string.c_str(), appendSize)) THROW_WIN32(ERROR_INVALID_PARAMETER);
         }
         result.push_back(L'\0');
+        return (result);
+    }
+
+    _Use_decl_annotations_
+    std::set<std::filesystem::path> DragTargetFileNames(COleDataObject* pDataObject)
+    {
+        std::set<std::filesystem::path> result;
+
+        if (auto const hGlobal{ (nullptr == pDataObject) ? nullptr : pDataObject->GetGlobalData(CF_HDROP) }; (nullptr != hGlobal))
+        {
+            if (auto const hDrop{ GlobalUnlockPtr(::GlobalLock(hGlobal), &::GlobalUnlock) }; (nullptr != hDrop.get()))
+            {
+                for (UINT index{}, size{ ::DragQueryFileW(static_cast<HDROP>(hDrop.get()), 0xFFFFFFFF, nullptr, 0) }; (index < size); index++)
+                {
+                    std::vector<WCHAR> buffer(UNICODE_STRING_MAX_CHARS);
+                    if (0 != ::DragQueryFileW(static_cast<HDROP>(hDrop.get()), index, buffer.data(), static_cast<UINT>(buffer.size())))
+                    {
+                        result.emplace(buffer.data());
+                    }
+                }
+            }
+        }
+
         return (result);
     }
 }

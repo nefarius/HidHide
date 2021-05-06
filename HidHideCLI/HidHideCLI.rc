@@ -93,6 +93,7 @@ BEGIN
     IDS_CLI_SYNTAX_NO_ARGUMENTS     ""
     IDS_CLI_SYNTAX_APP_PATH         "\x22<fully qualified path>\x22"
     IDS_CLI_SYNTAX_DEV_INST_PATH    "\x22<device instance path>\x22"
+    IDS_CLI_APP_CLEAN               "Remove absent registered applications"
     IDS_CLI_APP_LIST                "Lists the registered applications"
     IDS_CLI_APP_REG                 "Grants ability to see hidden devices"
     IDS_CLI_APP_UNREG               "Revokes ability to see hidden devices"

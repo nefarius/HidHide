@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: MIT
 // WhitelistDlg.h
 #pragma once
-#include "HidHideApi.h"
+#include "IDropTarget.h"
+#include "FilterDriverProxy.h"
+
+class CHidHideClientDlg;
 
 class CWhitelistDlg : public CDialogEx, public HidHide::IDropTarget
 {
@@ -10,7 +13,7 @@ class CWhitelistDlg : public CDialogEx, public HidHide::IDropTarget
 
 public:
 
-    CWhitelistDlg(_In_opt_ CWnd* pParent = nullptr);
+    CWhitelistDlg(_In_ CHidHideClientDlg& hidHideClientDlg, _In_opt_ CWnd* pParent);
     virtual ~CWhitelistDlg();
 
     // Called when the cursor first enters the window
@@ -41,7 +44,13 @@ private:
     // User Message on CM Notification Callbacks
     LRESULT OnUserMessageRefresh(_In_ WPARAM wParam, _In_ LPARAM lParam);
 
+    // The shared filter driver proxy
+    HidHide::FilterDriverProxy& FilterDriverProxy() noexcept;
+
     DECLARE_MESSAGE_MAP()
+
+    // The parent
+    CHidHideClientDlg& m_HidHideClientDlg;
 
     // Attributes
     HidHide::FullImageNames m_DropTargetFullImageNames;
