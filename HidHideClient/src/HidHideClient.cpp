@@ -4,7 +4,8 @@
 #include "stdafx.h"
 #include "HidHideClient.h"
 #include "HidHideClientDlg.h"
-#include "HidHideApi.h"
+#include "FilterDriverProxy.h"
+#include "Utils.h"
 #include "Logging.h"
 
 CHidHideClientApp theApp;
@@ -55,14 +56,48 @@ namespace
     }
 }
 
+// Register the ETW logging and tracing providers
+NTSTATUS WINAPI LogRegisterProviders() noexcept
+{
+    try
+    {
+        EventRegisterNefarius_Hid_Hide_Client();
+        EventRegisterNefarius_Drivers_HidHideClient();
+
+        // The define for BldProductVersion is passed from the project file to the source code via a define
+        ::LogEvent(ETW(Started), L"%s", _L(BldProductVersion));
+        return (STATUS_SUCCESS);
+    }
+    catch (...)
+    {
+        DBG_AND_RETURN_NTSTATUS("LogRegisterProviders", STATUS_UNHANDLED_EXCEPTION);
+    }
+}
+
+// Unregister the ETW logging and tracing providers
+NTSTATUS WINAPI LogUnregisterProviders() noexcept
+{
+    try
+    {
+        ::LogEvent(ETW(Stopped), L"");
+        EventUnregisterNefarius_Drivers_HidHideClient();
+        EventUnregisterNefarius_Hid_Hide_Client();
+        return (STATUS_SUCCESS);
+    }
+    catch (...)
+    {
+        DBG_AND_RETURN_NTSTATUS("LogUnregisterProviders", STATUS_UNHANDLED_EXCEPTION);
+    }
+}
+
 CHidHideClientApp::CHidHideClientApp() noexcept
 {
-    LogRegisterProviders();
+    ::LogRegisterProviders();
 }
 
 CHidHideClientApp::~CHidHideClientApp()
 {
-    LogUnregisterProviders();
+    ::LogUnregisterProviders();
 }
 
 BOOL CHidHideClientApp::InitInstance()
@@ -93,19 +128,27 @@ BOOL CHidHideClientApp::InitInstance()
     // We can't do anything when the control device isn't present so allow for a retry on failure
     CHidHideClientDlg dlg(nullptr);
     m_pMainWnd = &dlg;
-    while (!HidHide::Present())
-    {
-        TRACE_ALWAYS(L"");
-        if (IDRETRY != LocalizedMessageBox(IDS_STATIC_MESSAGEBOX_PRESENT, (MB_RETRYCANCEL | MB_ICONEXCLAMATION)))
-        {
-            return (FALSE);
-        }
-    }
 
     // We use exception handling so catch it at top-level and bail out
     try
     {
-        if (-1 == dlg.DoModal()) THROW_WIN32_LAST_ERROR;
+        // Keep retrying when the device is unavailable
+        while (true)
+        {
+            if (auto const deviceStatus{ HidHide::FilterDriverProxy::DeviceStatus() }; (ERROR_SUCCESS == deviceStatus))
+            {
+                if (-1 == dlg.DoModal()) THROW_WIN32_LAST_ERROR;
+                break;
+            }
+            else
+            {
+                TRACE_ALWAYS(L"");
+                if (IDRETRY != LocalizedMessageBox(((ERROR_ACCESS_DENIED == deviceStatus) ? IDS_STATIC_MESSAGEBOX_IN_USE : IDS_STATIC_MESSAGEBOX_PRESENT), (MB_RETRYCANCEL | MB_ICONEXCLAMATION)))
+                {
+                    break;
+                }
+            }
+        }
     }
     catch (...)
     {

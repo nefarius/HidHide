@@ -15,9 +15,9 @@
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
-    <ProjectGuid>{44CE58CD-7B06-4585-8F46-CC7564481912}</ProjectGuid>
-    <Keyword>MFCProj</Keyword>
-    <RootNamespace>HidHideClient</RootNamespace>
+    <ProjectGuid>{4986dcd6-73e0-4b0e-91de-c91204f313d6}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>HidHideCLI</RootNamespace>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
     <BldCompanyName>Nefarius Software Solutions e.U.</BldCompanyName>
     <BldProductName>HidHide</BldProductName>
@@ -77,21 +77,21 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_WINDOWS;NDEBUG;ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CONSOLE;NDEBUG;ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);$(SolutionDir)HidHideCLI\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);(SolutionDir)HidHide\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <ConformanceMode>true</ConformanceMode>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
-      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <ResourceCompile>
       <BldParameters>/D TargetExt="$(TargetExt)" /D TargetFileName="$(TargetFileName)" /D TargetName="$(TargetName)" /D BldCompanyName="$(BldCompanyName)" /D BldProductName="$(BldProductName)" /D BldProductVersion="$(BldProductVersion)" /D BldProductVersionMajor="$(BldProductVersionMajor)" /D BldProductVersionMinor="$(BldProductVersionMinor)" /D BldProductVersionRevision="$(BldProductVersionRevision)" /D BldProductVersionBuild="$(BldProductVersionBuild)" /D BldProductDescription="$(BldProductDescription)" /D BldCopyright="$(BldCopyright)" </BldParameters>
@@ -110,21 +110,21 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_WINDOWS;NDEBUG;ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CONSOLE;NDEBUG;ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);$(SolutionDir)HidHideCLI\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);(SolutionDir)HidHide\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <ConformanceMode>true</ConformanceMode>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <OptimizeReferences>false</OptimizeReferences>
-      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <ResourceCompile>
       <BldParameters>/D TargetExt="$(TargetExt)" /D TargetFileName="$(TargetFileName)" /D TargetName="$(TargetName)" /D BldCompanyName="$(BldCompanyName)" /D BldProductName="$(BldProductName)" /D BldProductVersion="$(BldProductVersion)" /D BldProductVersionMajor="$(BldProductVersionMajor)" /D BldProductVersionMinor="$(BldProductVersionMinor)" /D BldProductVersionRevision="$(BldProductVersionRevision)" /D BldProductVersionBuild="$(BldProductVersionBuild)" /D BldProductDescription="$(BldProductDescription)" /D BldCopyright="$(BldCopyright)" </BldParameters>
@@ -136,65 +136,60 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\HidHideCLI\src\FilterDriverProxy.h" />
-    <ClInclude Include="..\HidHideCLI\src\HID.h" />
-    <ClInclude Include="..\HidHideCLI\src\Logging.h" />
-    <ClInclude Include="..\HidHideCLI\src\Utils.h" />
-    <ClInclude Include="..\HidHideCLI\src\Volume.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="src\BlacklistDlg.h" />
-    <ClInclude Include="src\HidHideClient.h" />
-    <ClInclude Include="src\HidHideClientDlg.h" />
-    <ClInclude Include="src\IDropTarget.h" />
-    <ClInclude Include="src\WhitelistDlg.h" />
+    <ClInclude Include="src\CommandInterpreter.h" />
+    <ClInclude Include="src\Commands.h" />
+    <ClInclude Include="src\FilterDriverProxy.h" />
+    <ClInclude Include="src\HID.h" />
+    <ClInclude Include="src\Utils.h" />
+    <ClInclude Include="src\Logging.h" />
+    <ClInclude Include="src\Volume.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="HidHideClient.rc" />
+    <ResourceCompile Include="HidHideCLI.rc" />
     <ResourceCompile Include="Version.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\HidHideCLI\src\FilterDriverProxy.cpp" />
-    <ClCompile Include="..\HidHideCLI\src\HID.cpp" />
-    <ClCompile Include="..\HidHideCLI\src\Logging.cpp" />
-    <ClCompile Include="..\HidHideCLI\src\Utils.cpp" />
-    <ClCompile Include="..\HidHideCLI\src\Volume.cpp" />
-    <ClCompile Include="src\BlacklistDlg.cpp" />
-    <ClCompile Include="src\HidHideClient.cpp" />
-    <ClCompile Include="src\HidHideClientDlg.cpp" />
-    <ClCompile Include="src\WhitelistDlg.cpp" />
+    <ClCompile Include="src\CommandInterpreter.cpp" />
+    <ClCompile Include="src\Commands.cpp" />
+    <ClCompile Include="src\FilterDriverProxy.cpp" />
+    <ClCompile Include="src\HID.cpp" />
+    <ClCompile Include="src\Utils.cpp" />
+    <ClCompile Include="src\HidHideCLI.cpp" />
+    <ClCompile Include="src\Logging.cpp" />
+    <ClCompile Include="src\Volume.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="src\Application.ico" />
-    <Image Include="src\LockBlank.ico" />
-    <Image Include="src\LockOff.ico" />
-    <Image Include="src\LockOn.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="HidHideClient.wprp">
+    <None Include="HidHideCLI.wprp">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'">true</DeploymentContent>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="HidHideClient.man">
+    <CustomBuild Include="HidHideCLI.man">
       <FileType>Document</FileType>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compile event manifest file</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'">Compile event manifest file</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)%(Identity);$(IntDir)$(ProjectName)ETW.h;$(IntDir)$(ProjectName)ETW.rc;$(IntDir)$(ProjectName)ETW_MSG00001.bin;$(IntDir)$(ProjectName)ETWTEMP.BIN</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'">$(OutDir)%(Identity);$(IntDir)$(ProjectName)ETW.h;$(IntDir)$(ProjectName)ETW.rc;$(IntDir)$(ProjectName)ETW_MSG00001.bin;$(IntDir)$(ProjectName)ETWTEMP.BIN</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mc.exe -um -h "$(IntDir.TrimEnd('\'))" -r "$(IntDir.TrimEnd('\'))" -z "$(ProjectName)ETW" "%(Identity)"
-type "%(Identity)" | powershell -Command "$input | ForEach-Object { $_ -replace \"autoBackup\", \"autobackup\"  } | ForEach-Object { $_ -replace \"maxSize\", \"maxsize\"  } | ForEach-Object { $_ -replace \"fileMax\", \"filemax\"  } | ForEach-Object { $_ -replace \"clockType\", \"clocktype\"  }" &gt; "$(OutDir)%(Identity)"
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+        mc.exe -um -h "$(IntDir.TrimEnd('\'))" -r "$(IntDir.TrimEnd('\'))" -z "$(ProjectName)ETW" "%(Identity)"
+        type "%(Identity)" | powershell -Command "$input | ForEach-Object { $_ -replace \"autoBackup\", \"autobackup\"  } | ForEach-Object { $_ -replace \"maxSize\", \"maxsize\"  } | ForEach-Object { $_ -replace \"fileMax\", \"filemax\"  } | ForEach-Object { $_ -replace \"clockType\", \"clocktype\"  }" &gt; "$(OutDir)%(Identity)"
       </Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'">mc.exe -um -h "$(IntDir.TrimEnd('\'))" -r "$(IntDir.TrimEnd('\'))" -z "$(ProjectName)ETW" "%(Identity)"
-type "%(Identity)" | powershell -Command "$input | ForEach-Object { $_ -replace \"autoBackup\", \"autobackup\"  } | ForEach-Object { $_ -replace \"maxSize\", \"maxsize\"  } | ForEach-Object { $_ -replace \"fileMax\", \"filemax\"  } | ForEach-Object { $_ -replace \"clockType\", \"clocktype\"  }" &gt; "$(OutDir)%(Identity)"
+      <Command Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'">
+        mc.exe -um -h "$(IntDir.TrimEnd('\'))" -r "$(IntDir.TrimEnd('\'))" -z "$(ProjectName)ETW" "%(Identity)"
+        type "%(Identity)" | powershell -Command "$input | ForEach-Object { $_ -replace \"autoBackup\", \"autobackup\"  } | ForEach-Object { $_ -replace \"maxSize\", \"maxsize\"  } | ForEach-Object { $_ -replace \"fileMax\", \"filemax\"  } | ForEach-Object { $_ -replace \"clockType\", \"clocktype\"  }" &gt; "$(OutDir)%(Identity)"
       </Command>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="src\Application.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

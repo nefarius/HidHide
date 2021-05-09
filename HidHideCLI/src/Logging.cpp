@@ -415,38 +415,6 @@ NTSTATUS DbgPrintEx(ULONG componentId, ULONG level, LPCSTR format, ...) noexcept
     }
 }
 
-NTSTATUS LogRegisterProviders() noexcept
-{
-    try
-    {
-        EventRegisterNefarius_Hid_Hide_Client();
-        EventRegisterNefarius_Drivers_HidHideClient();
-
-        // The define for BldProductVersion is passed from the project file to the source code via a define
-        ::LogEvent(ETW(Started), L"%s", _L(BldProductVersion));
-        return (STATUS_SUCCESS);
-    }
-    catch (...)
-    {
-        DBG_AND_RETURN_NTSTATUS("LogRegisterProviders", STATUS_UNHANDLED_EXCEPTION);
-    }
-}
-
-NTSTATUS LogUnregisterProviders() noexcept
-{
-    try
-    {
-        ::LogEvent(ETW(Stopped), L"");
-        EventUnregisterNefarius_Drivers_HidHideClient();
-        EventUnregisterNefarius_Hid_Hide_Client();
-        return (STATUS_SUCCESS);
-    }
-    catch (...)
-    {
-        DBG_AND_RETURN_NTSTATUS("LogUnregisterProviders", STATUS_UNHANDLED_EXCEPTION);
-    }
-}
-
 _Use_decl_annotations_
 NTSTATUS TraceEvent(LPCSTR fileName, UINT32 lineNumber, LPCSTR functionName, PCEVENT_DESCRIPTOR event, LPCWSTR messageW, LPCSTR messageA) noexcept
 {

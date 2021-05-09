@@ -55,7 +55,7 @@ BEGIN
     "#include ""afxribbon.rc""   // MFC ribbon and control bar resources\r\n"
     "#endif\r\n"
     "#endif\r\n"
-    "#include ""HidHideClientETW.rc""\r\n"
+    "#include ""HidHideCLIETW.rc""\r\n"
     "\0"
 END
 
@@ -70,102 +70,6 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDR_DIALOG_APPLICATION  ICON       "src\\Application.ico"
-IDI_ICON_BLACKLIST_LOCK_BLANK ICON "src\\LockBlank.ico"
-IDI_ICON_BLACKLIST_LOCK_OFF ICON   "src\\LockOff.ico"
-IDI_ICON_BLACKLIST_LOCK_ON ICON    "src\\LockOn.ico"
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_DIALOG_APPLICATION DIALOGEX 0, 0, 485, 183
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
-EXSTYLE WS_EX_CONTROLPARENT | WS_EX_APPWINDOW
-FONT 8, "MS Shell Dlg", 0, 0, 0x1
-BEGIN
-    CONTROL         "xxx",IDC_TAB_APPLICATION,"SysTabControl32",WS_TABSTOP,7,7,467,169
-END
-
-IDD_DIALOG_WHITELIST DIALOGEX 0, 0, 464, 152
-STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD
-EXSTYLE WS_EX_CONTROLPARENT
-FONT 8, "MS Shell Dlg", 400, 0, 0x0
-BEGIN
-    LISTBOX         IDC_LIST_WHITELIST,7,6,450,110,LBS_SORT | LBS_MULTIPLESEL | LBS_USETABSTOPS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP,WS_EX_TRANSPARENT
-    LTEXT           "xxx",IDC_STATIC_WHITELIST_GUIDANCE,112,125,237,24,0,WS_EX_TRANSPARENT
-    PUSHBUTTON      "xxx",IDC_BUTTON_WHITELIST_INSERT,405,118,24,14
-    PUSHBUTTON      "xxx",IDC_BUTTON_WHITELIST_DELETE,433,118,24,14
-END
-
-IDD_DIALOG_BLACKLIST DIALOGEX 0, 0, 465, 152
-STYLE DS_SETFONT | DS_FIXEDSYS | DS_CONTROL | WS_CHILD
-EXSTYLE WS_EX_CONTROLPARENT
-FONT 8, "MS Shell Dlg", 400, 0, 0x0
-BEGIN
-    CONTROL         "xxx",IDC_TREE_BLACKLIST,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_DISABLEDRAGDROP | TVS_NOTOOLTIPS | TVS_CHECKBOXES | WS_BORDER | WS_HSCROLL | WS_TABSTOP,7,6,450,110,WS_EX_TRANSPARENT | WS_EX_CLIENTEDGE
-    CONTROL         "xxx",IDC_CHECK_BLACKLIST_FILTER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,102,8,WS_EX_TRANSPARENT
-    CONTROL         "xxx",IDC_CHECK_BLACKLIST_GAMING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,131,102,8,WS_EX_TRANSPARENT
-    CONTROL         "xxx",IDC_CHECK_BLACKLIST_ENABLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,140,102,8,WS_EX_TRANSPARENT
-    LTEXT           "xxx",IDC_STATIC_BLACKLIST_GUIDANCE,112,131,237,12,0,WS_EX_TRANSPARENT
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
-BEGIN
-    IDD_DIALOG_APPLICATION, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 478
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 176
-    END
-
-    IDD_DIALOG_WHITELIST, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 458
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 145
-    END
-
-    IDD_DIALOG_BLACKLIST, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 458
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 148
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// AFX_DIALOG_LAYOUT
-//
-
-IDD_DIALOG_APPLICATION AFX_DIALOG_LAYOUT
-BEGIN
-    0
-END
-
-IDD_DIALOG_WHITELIST AFX_DIALOG_LAYOUT
-BEGIN
-    0
-END
-
-IDD_DIALOG_BLACKLIST AFX_DIALOG_LAYOUT
-BEGIN
-    0
-END
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -175,31 +79,38 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_STATIC_MESSAGEBOX_OK        "&Ok"
-    IDS_STATIC_MESSAGEBOX_CANCEL    "&Cancel"
-    IDS_STATIC_MESSAGEBOX_RETRY     "&Retry"
-    IDS_STATIC_MESSAGEBOX_IGNORE    "&Ignore"
-    IDS_STATIC_MESSAGEBOX_ABORT     "&Abort"
-    IDS_STATIC_MESSAGEBOX_YES       "&Yes"
-    IDS_STATIC_MESSAGEBOX_NO        "&No"
-    IDS_DIALOG_APPLICATION          "HidHide configuration client"
-    IDS_DIALOG_FILE_OPEN            "Identify the application that will be allowed to look through the cloak"
-    IDS_STATIC_FILE_OPEN_FILTER     "Applications |*.exe; *.com; *.bin|Libraries |*.dll; *.ocx|All Files |*.*||"
-    IDS_TAB_APPLICATION_HEADER_0    "Applications"
-    IDS_TAB_APPLICATION_HEADER_1    "Devices"
-    IDS_STATIC_WHITELIST_GUIDANCE   "List here the applications Hid Hide should allow to look through the cloak. Any pre-selected application is not found at the registered location."
-    IDS_BUTTON_WHITELIST_INSERT     "&+"
-    IDS_BUTTON_WHITELIST_DELETE     "&-"
-    IDS_CHECK_BLACKLIST_FILTER      "&Filter-out disconnected"
-    IDS_CHECK_BLACKLIST_GAMING      "&Gaming devices only"
-    IDS_CHECK_BLACKLIST_ENABLE      "&Enable device hiding"
-    IDS_STATIC_BLACKLIST_GUIDANCE   "Select one or more devices and press Enable to control the cloaking."
+    IDS_DIALOG_APPLICATION          "HidHide command line interface"
     IDS_CONTROL_DEVICE_NAME         "\\\\.\\HidHide"
+    IDS_HELP_GUIDANCE               "The above commands can be sequenced reducing the overall overhead involved."
+    IDS_CONSOLE_GUIDANCE            "Type help for options. Press CTRL-Z to save changes and exit. Type Cancel to exit without saving changes."
+    IDS_SYNTAX_ERROR                "The syntax of this command is not correct."
+    IDS_COMMAND_NOT_RECOGNIZED      "The command is not recognized."
+    IDS_WRONG_NUMBER_OF_ARGUMENTS   "The number of command arguments is not correct."
+    IDS_NOT_A_FULLY_QUALIFIED_PATH  "The file name should include a full path."
+    IDS_NOT_AN_EXECUTABLE           "The file name should be an executable (.exe, .com, .bin)."
+    IDS_NOT_ON_A_VOLUME             "The file name should be located on a storage volume (volume is case sensitive)."
+    IDS_DEV_INST_PATH_TOO_LONG      "The device instance path has too many characters."
+    IDS_CLI_SYNTAX_NO_ARGUMENTS     ""
+    IDS_CLI_SYNTAX_APP_PATH         "\x22<fully qualified path>\x22"
+    IDS_CLI_SYNTAX_DEV_INST_PATH    "\x22<device instance path>\x22"
+    IDS_CLI_APP_CLEAN               "Remove absent registered applications"
+    IDS_CLI_APP_LIST                "Lists the registered applications"
+    IDS_CLI_APP_REG                 "Grants ability to see hidden devices"
+    IDS_CLI_APP_UNREG               "Revokes ability to see hidden devices"
+    IDS_CLI_CANCEL                  "Exit without saving configuration changes"
+    IDS_CLI_CLOAK_OFF               "Deactivates hiding of HID devices"
+    IDS_CLI_CLOAK_ON                "Activates hiding of HID devices"
+    IDS_CLI_CLOAK_STATE             "Reports the current cloaking state"
+    IDS_CLI_CLOAK_TOGGLE            "Toggles between active and inactive"
+    IDS_CLI_DEV_ALL                 "Lists all HID devices"
+    IDS_CLI_DEV_GAMING              "Lists all HID devices used for gaming"
+    IDS_CLI_DEV_HIDE                "Hide the device specified"
+    IDS_CLI_DEV_LIST                "Lists the hidden devices"
+    IDS_CLI_DEV_UNHIDE              "Unhide the device specified"
+    IDS_CLI_HELP                    "Summarizes the commands supported"
+    IDS_CLI_VERSION                 "Displays the configuration client version"
     IDS_HID_ATTRIBUTE_DENIED        "denied"
     IDS_HID_ATTRIBUTE_ABSENT        "absent"
-    IDS_STATIC_MESSAGEBOX_PRESENT   "The Hid Hide control device can't be reached. When Hid Hide is just installed be sure to REBOOT first else inspect the status of the Nefarius Hid Hide driver under System Devices in the Device Manager and ensure it is properly loaded and enabled. Once corrected press Retry. When the issue can't be resolved press Cancel and re-install the Hid Hide software."
-    IDS_STATIC_MESSAGEBOX_IN_USE    "The Hid Hide control device can't be accessed. Be sure to close the HidHide command line interface or any other application. When the issue can't be resolved after a REBOOT press Cancel and re-install the Hid Hide software."
-    IDS_STATIC_MESSAGEBOX_EXCEPTION "Something unforeseen has happened which cannot be recovered from. Program execution has to be terminated. Sorry for the inconvenience."
     IDS_PAGE_01             "Generic Desktop"
     IDS_PAGE_02             "Simulation Controls"
     IDS_PAGE_03             "VR Controls"
@@ -295,8 +206,7 @@ LANGUAGE 9, 1
 #include "afxribbon.rc"   // MFC ribbon and control bar resources
 #endif
 #endif
-#include "HidHideClientETW.rc"
+#include "HidHideCLIETW.rc"
 
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
-

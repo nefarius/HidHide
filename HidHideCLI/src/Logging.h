@@ -113,10 +113,10 @@ DWORD WIN32_FROM_CONFIGRET(_In_ CONFIGRET result) noexcept;
 NTSTATUS DbgPrintEx(_In_ ULONG componentId, _In_ ULONG level, _In_z_ _Printf_format_string_ LPCSTR format, ...) noexcept;
 
 // Register the ETW logging and tracing providers
-NTSTATUS LogRegisterProviders() noexcept;
+EXTERN_C NTSTATUS LogRegisterProviders() noexcept;
 
 // Unregister the ETW logging and tracing providers
-NTSTATUS LogUnregisterProviders() noexcept;
+EXTERN_C NTSTATUS LogUnregisterProviders() noexcept;
 
 // Trace a message
 NTSTATUS TraceEvent(_In_ LPCSTR fileName, _In_ UINT32 lineNumber, _In_opt_ LPCSTR functionName, _In_ PCEVENT_DESCRIPTOR event, _In_opt_ LPCWSTR messageW, _In_opt_ LPCSTR messageA) noexcept;
