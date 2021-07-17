@@ -138,7 +138,11 @@
           </Directory>
           <Directory Id="id6D21DF31CC734FCBAF2CFF070E23D249" Name="Symbols">
             <Component Id="id3268EB95774740DEB9DEDAB383AC3C71" Guid="{3268EB95-7747-40DE-B9DE-DAB383AC3C71}" Feature="SYMB" Win64="yes">
+              <?if  $(var.ProductionRelease) = "false" ?>
               <File Id="id6E251226B0934323985AFD80A56DC797" KeyPath="yes" Source="$(var.HidHide.TargetDir)$(var.HidHide.TargetName).pdb"/>
+              <?else ?>
+              <File Id="id6E251226B0934323985AFD80A56DC797" KeyPath="yes" Source="$(var.SolutionDir)drivers\$(sys.BUILDARCH)\$(var.HidHide.TargetName).pdb"/>
+              <?endif ?>
             </Component>
             <Component Id="idBDF799D93299497DA7D829EE40825A62" Guid="{BDF799D9-3299-497D-A7D8-29EE40825A62}" Feature="SYMB" Win64="yes">
               <File Id="id138EE0C0B6E64499A88BA6479413B089" KeyPath="yes" Source="$(var.HidHideClient.TargetDir)$(var.HidHideClient.TargetName).pdb"/>
