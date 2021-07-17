@@ -2,9 +2,13 @@
 // SPDX-License-Identifier: MIT
 // BlacklistDlg.h
 #pragma once
-#include "HidHideApi.h"
+#include "IDropTarget.h"
+#include "FilterDriverProxy.h"
+#include "HID.h"
 
-class CBlacklistDlg : public CDialogEx
+class CHidHideClientDlg;
+
+class CBlacklistDlg : public CDialogEx, public HidHide::IDropTarget
 {
     DECLARE_DYNAMIC(CBlacklistDlg)
 
@@ -16,7 +20,7 @@ public:
     CBlacklistDlg& operator=(_In_ CBlacklistDlg const& rhs) = delete;
     CBlacklistDlg& operator=(_In_ CBlacklistDlg && rhs) = delete;
 
-    explicit CBlacklistDlg(_In_opt_ CWnd* pParent);
+    CBlacklistDlg(_In_ CHidHideClientDlg& hidHideClientDlg, _In_opt_ CWnd* pParent);
     virtual ~CBlacklistDlg();
 
     // Notification handler called when a PnP event of the specified type occurs
@@ -39,10 +43,16 @@ private:
     // User Message on CM Notification Callbacks
     LRESULT OnUserMessageRefresh(_In_ WPARAM wParam, _In_ LPARAM lParam);
 
+    // The shared filter driver proxy
+    HidHide::FilterDriverProxy& FilterDriverProxy() noexcept;
+
     DECLARE_MESSAGE_MAP()
 
+    // The parent
+    CHidHideClientDlg& m_HidHideClientDlg;
+
     // The item data for the black-list
-    HidHide::DescriptionToHidDeviceInstancePathsWithModelInfo m_BlacklistItemData;
+    HidHide::FriendlyNamesAndHidDeviceInformation m_BlacklistItemData;
 
     // Controls
     CTreeCtrl       m_Blacklist;

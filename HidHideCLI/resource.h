@@ -1,49 +1,41 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by HidHideClient.rc
+// Used by HidHideCLI.rc
 //
 #define IDD_DIALOG_APPLICATION          101
-#define IDD_DIALOG_WHITELIST            102
-#define IDD_DIALOG_BLACKLIST            103
 #define IDR_DIALOG_APPLICATION          128
-#define IDI_ICON_BLACKLIST_LOCK_BLANK   129
-#define IDI_ICON_BLACKLIST_LOCK_OFF     130
-#define IDI_ICON_BLACKLIST_LOCK_ON      131
-#define IDS_STATIC_MESSAGEBOX_OK        132
-#define IDS_STATIC_MESSAGEBOX_CANCEL    133
-#define IDS_STATIC_MESSAGEBOX_RETRY     134
-#define IDS_STATIC_MESSAGEBOX_IGNORE    135
-#define IDS_STATIC_MESSAGEBOX_ABORT     136
-#define IDS_STATIC_MESSAGEBOX_YES       137
-#define IDS_STATIC_MESSAGEBOX_NO        138
-#define IDS_DIALOG_APPLICATION          139
-#define IDS_DIALOG_FILE_OPEN            140
-#define IDS_STATIC_FILE_OPEN_FILTER     141
-#define IDS_TAB_APPLICATION_HEADER_0    142
-#define IDS_TAB_APPLICATION_HEADER_1    143
-#define IDS_STATIC_WHITELIST_GUIDANCE   144
-#define IDS_BUTTON_WHITELIST_INSERT     145
-#define IDS_BUTTON_WHITELIST_DELETE     146
-#define IDS_CHECK_BLACKLIST_FILTER      147
-#define IDS_CHECK_BLACKLIST_GAMING      148
-#define IDS_CHECK_BLACKLIST_ENABLE      149
-#define IDS_STATIC_BLACKLIST_GUIDANCE   150
-#define IDS_CONTROL_DEVICE_NAME         151
-#define IDS_HID_ATTRIBUTE_DENIED        152
-#define IDS_HID_ATTRIBUTE_ABSENT        153
-#define IDS_STATIC_MESSAGEBOX_PRESENT   154
-#define IDS_STATIC_MESSAGEBOX_IN_USE    155
-#define IDS_STATIC_MESSAGEBOX_EXCEPTION 156
-#define IDC_TAB_APPLICATION             1000
-#define IDC_LIST_WHITELIST              1001
-#define IDC_STATIC_WHITELIST_GUIDANCE   1002
-#define IDC_BUTTON_WHITELIST_INSERT     1003
-#define IDC_BUTTON_WHITELIST_DELETE     1004
-#define IDC_TREE_BLACKLIST              1005
-#define IDC_CHECK_BLACKLIST_FILTER      1006
-#define IDC_CHECK_BLACKLIST_GAMING      1007
-#define IDC_CHECK_BLACKLIST_ENABLE      1008
-#define IDC_STATIC_BLACKLIST_GUIDANCE   1009
+#define IDS_DIALOG_APPLICATION          129
+#define IDS_CONTROL_DEVICE_NAME         130
+#define IDS_HELP_GUIDANCE               131
+#define IDS_CONSOLE_GUIDANCE            132
+#define IDS_SYNTAX_ERROR                133
+#define IDS_COMMAND_NOT_RECOGNIZED      134
+#define IDS_WRONG_NUMBER_OF_ARGUMENTS   135
+#define IDS_NOT_A_FULLY_QUALIFIED_PATH  136
+#define IDS_NOT_AN_EXECUTABLE           137
+#define IDS_NOT_ON_A_VOLUME             138
+#define IDS_DEV_INST_PATH_TOO_LONG      139
+#define IDS_CLI_SYNTAX_APP_PATH         140
+#define IDS_CLI_SYNTAX_DEV_INST_PATH    141
+#define IDS_CLI_SYNTAX_NO_ARGUMENTS     142
+#define IDS_CLI_APP_CLEAN               143
+#define IDS_CLI_APP_LIST                144
+#define IDS_CLI_APP_REG                 145
+#define IDS_CLI_APP_UNREG               146
+#define IDS_CLI_CANCEL                  147
+#define IDS_CLI_CLOAK_OFF               148
+#define IDS_CLI_CLOAK_ON                149
+#define IDS_CLI_CLOAK_STATE             150
+#define IDS_CLI_CLOAK_TOGGLE            151
+#define IDS_CLI_DEV_ALL                 152
+#define IDS_CLI_DEV_GAMING              153
+#define IDS_CLI_DEV_HIDE                154
+#define IDS_CLI_DEV_LIST                155
+#define IDS_CLI_DEV_UNHIDE              156
+#define IDS_CLI_HELP                    157
+#define IDS_CLI_VERSION                 158
+#define IDS_HID_ATTRIBUTE_DENIED        159
+#define IDS_HID_ATTRIBUTE_ABSENT        160
 #define IDS_PAGE_01                     0x1001
 #define IDS_PAGE_02                     0x1002
 #define IDS_PAGE_03                     0x1003
@@ -117,12 +109,11 @@
 #define IDS_PAGE_0C_USAGE_F1            0x12F1
 
 // Next default values for new objects
-// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        157
+#define _APS_NEXT_RESOURCE_VALUE        161
 #define _APS_NEXT_COMMAND_VALUE         32771
 #define _APS_NEXT_CONTROL_VALUE         1010
-#define _APS_NEXT_SYMED_VALUE           104
+#define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

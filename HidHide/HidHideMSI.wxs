@@ -119,6 +119,19 @@
               <File Id="id9B4043D71FE444EF981485EC6DC2A0C4" KeyPath="yes" Source="$(var.HidHide.TargetDir)$(var.HidHide.TargetName).wprp"/>
             </Component>
           </Directory>
+          <Directory Id="id198E3047B9DC489C81AC49FF1DE3DF2A" Name="HidHideCLI">
+            <Component Id="id5161C47C4EF046DAB01DD11F4B567D2F" Guid="{5161C47C-4EF0-46DA-B01D-D11F4B567D2F}" Feature="PROD" Win64="yes">
+              <File Id="id76BE37F04EB84B2CAA16E6E187519F53" Checksum="yes" KeyPath="yes" Source="$(var.HidHideCLI.TargetPath)" />
+            </Component>
+            <Component Id="id6B909122999A42AE83B84BFDB965B262" Guid="{6B909122-999A-42AE-83B8-4BFDB965B262}" Feature="PROD" Win64="yes">
+              <File Id="idB2D5D6E99CB44AF28CB9C69187572CFE" KeyPath="yes" Source="$(var.HidHideCLI.TargetDir)$(var.HidHideCLI.TargetName).man">
+                <util:EventManifest MessageFile="[id198E3047B9DC489C81AC49FF1DE3DF2A]$(var.HidHideCLI.TargetFileName)" ResourceFile="[id198E3047B9DC489C81AC49FF1DE3DF2A]$(var.HidHideCLI.TargetFileName)"></util:EventManifest>
+              </File>
+            </Component>
+            <Component Id="id8C18775E39D84ACEB8C0F0D960A4CC40" Guid="{8C18775E-39D8-4ACE-B8C0-F0D960A4CC40}" Feature="PROD" Win64="yes">
+              <File Id="id2E67829881D8406AB666D40FA561CB5A" KeyPath="yes" Source="$(var.HidHideCLI.TargetDir)$(var.HidHideCLI.TargetName).wprp"/>
+            </Component>
+          </Directory>
           <Directory Id="id75DD4164523A4F11A87828CB38CD66DC" Name="HidHideClient">
             <Component Id="id8334B23FC9694A779F1F125D7ED020A0" Guid="{8334B23F-C969-4A77-9F1F-125D7ED020A0}" Feature="PROD" Win64="yes">
               <File Id="idB1A53D2A41EC4533BC473BAB8AAF31EC" Checksum="yes" KeyPath="yes" Source="$(var.HidHideClient.TargetPath)">
@@ -143,6 +156,9 @@
               <?else ?>
               <File Id="id6E251226B0934323985AFD80A56DC797" KeyPath="yes" Source="$(var.SolutionDir)drivers\$(sys.BUILDARCH)\$(var.HidHide.TargetName).pdb"/>
               <?endif ?>
+            </Component>
+            <Component Id="id017489F47DD34407BE485B88629C19A5" Guid="{017489F4-7DD3-4407-BE48-5B88629C19A5}" Feature="SYMB" Win64="yes">
+              <File Id="idADFFE233B522444085E2F38F197BE9CF" KeyPath="yes" Source="$(var.HidHideCLI.TargetDir)$(var.HidHideCLI.TargetName).pdb"/>
             </Component>
             <Component Id="idBDF799D93299497DA7D829EE40825A62" Guid="{BDF799D9-3299-497D-A7D8-29EE40825A62}" Feature="SYMB" Win64="yes">
               <File Id="id138EE0C0B6E64499A88BA6479413B089" KeyPath="yes" Source="$(var.HidHideClient.TargetDir)$(var.HidHideClient.TargetName).pdb"/>

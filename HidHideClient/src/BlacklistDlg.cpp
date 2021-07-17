@@ -3,7 +3,8 @@
 // BlacklistDlg.cpp
 #include "stdafx.h"
 #include "BlacklistDlg.h"
-#include "HidHideApi.h"
+#include "HidHideClientDlg.h"
+#include "Utils.h"
 #include "Logging.h"
 
 // Define user-message for processing device interface arrivals
@@ -46,8 +47,10 @@ END_MESSAGE_MAP()
 #pragma warning(pop)
 
 _Use_decl_annotations_
-CBlacklistDlg::CBlacklistDlg(CWnd* pParent)
+CBlacklistDlg::CBlacklistDlg(CHidHideClientDlg& hidHideClientDlg, CWnd* pParent)
     : CDialogEx(IDD_DIALOG_BLACKLIST, pParent)
+    , HidHide::IDropTarget()
+    , m_HidHideClientDlg{ hidHideClientDlg }
     , m_BlacklistItemData{}
     , m_Blacklist{}
     , m_CmNotificationHandle{}
@@ -69,6 +72,11 @@ CBlacklistDlg::~CBlacklistDlg()
 
     // Unsubscribe from HID device arrival
     ::CM_Unregister_Notification(m_CmNotificationHandle);
+}
+
+HidHide::FilterDriverProxy& CBlacklistDlg::FilterDriverProxy() noexcept
+{
+    return (m_HidHideClientDlg.FilterDriverProxy());
 }
 
 _Use_decl_annotations_
@@ -114,7 +122,7 @@ BOOL CBlacklistDlg::OnInitDialog()
     // Reflect the current Active state in the check-box
     m_Filter.SetCheck(BST_CHECKED);
     m_Gaming.SetCheck(BST_CHECKED);
-    m_Enable.SetCheck(HidHide::GetActive() ? BST_CHECKED : BST_UNCHECKED);
+    m_Enable.SetCheck(FilterDriverProxy().GetActive() ? BST_CHECKED : BST_UNCHECKED);
 
     // Prepare list icons
     if (nullptr == (m_LockBlank = ::LoadIconW(AfxGetApp()->m_hInstance, MAKEINTRESOURCEW(IDI_ICON_BLACKLIST_LOCK_BLANK)))) THROW_WIN32_LAST_ERROR;
@@ -159,42 +167,42 @@ LRESULT CBlacklistDlg::OnUserMessageRefresh(WPARAM wParam, LPARAM lParam)
     if (FALSE == m_Blacklist.DeleteAllItems()) THROW_WIN32(ERROR_INVALID_PARAMETER);
 
     // Get the black-listed devices
-    auto const hidDeviceInstancePathsBlacklisted{ HidHide::GetBlacklist() };
+    auto const deviceInstancePathsBlacklisted{ FilterDriverProxy().GetBlacklist() };
 
     // Get the human interface devices and their associated model information
-    m_BlacklistItemData = { HidHide::GetDescriptionToHidDeviceInstancePathsWithModelInfo() };
+    m_BlacklistItemData = { HidHide::HidDevices(false) };
 
     // Fill the tree
     for (auto const& topLevelEntry : m_BlacklistItemData)
     {
         // Get the device instance path of its base container id (if present)
-        auto const deviceInstancePathBaseContainer{ (topLevelEntry.second.empty() ? L"" : topLevelEntry.second.at(0).deviceInstancePathBaseContainer) };
+        auto const baseContainerDeviceInstancePath{ (topLevelEntry.second.empty() ? L"" : topLevelEntry.second.at(0).baseContainerDeviceInstancePath) };
 
         // Is the top-level entry on the black-list ?
-        auto const topLevelEntryBlacklisted{ std::end(hidDeviceInstancePathsBlacklisted) != std::find(std::begin(hidDeviceInstancePathsBlacklisted), std::end(hidDeviceInstancePathsBlacklisted), deviceInstancePathBaseContainer) };
+        auto const topLevelEntryBlacklisted{ std::end(deviceInstancePathsBlacklisted) != std::find(std::begin(deviceInstancePathsBlacklisted), std::end(deviceInstancePathsBlacklisted), baseContainerDeviceInstancePath) };
 
         // Is any of the child entries on the black-list ?
-        auto const anyChildEntryBlacklisted{ std::end(topLevelEntry.second) != std::find_if(std::begin(topLevelEntry.second), std::end(topLevelEntry.second), [hidDeviceInstancePathsBlacklisted](HidHide::HidDeviceInstancePathWithModelInfo const& value)
+        auto const anyChildEntryBlacklisted{ std::end(topLevelEntry.second) != std::find_if(std::begin(topLevelEntry.second), std::end(topLevelEntry.second), [&deviceInstancePathsBlacklisted](HidHide::HidDeviceInformation const& value)
         {
-            return (std::end(hidDeviceInstancePathsBlacklisted) != std::find(std::begin(hidDeviceInstancePathsBlacklisted), std::end(hidDeviceInstancePathsBlacklisted), value.deviceInstancePath));
+            return (std::end(deviceInstancePathsBlacklisted) != std::find(std::begin(deviceInstancePathsBlacklisted), std::end(deviceInstancePathsBlacklisted), value.deviceInstancePath));
         }) };
 
         // Are all child entries on the black-list ?
-        auto const allChildEntryBlacklisted{ std::end(topLevelEntry.second) == std::find_if_not(std::begin(topLevelEntry.second), std::end(topLevelEntry.second), [hidDeviceInstancePathsBlacklisted](HidHide::HidDeviceInstancePathWithModelInfo const& value)
+        auto const allChildEntryBlacklisted{ std::end(topLevelEntry.second) == std::find_if_not(std::begin(topLevelEntry.second), std::end(topLevelEntry.second), [&deviceInstancePathsBlacklisted](HidHide::HidDeviceInformation const& value)
         {
-            return (std::end(hidDeviceInstancePathsBlacklisted) != std::find(std::begin(hidDeviceInstancePathsBlacklisted), std::end(hidDeviceInstancePathsBlacklisted), value.deviceInstancePath));
+            return (std::end(deviceInstancePathsBlacklisted) != std::find(std::begin(deviceInstancePathsBlacklisted), std::end(deviceInstancePathsBlacklisted), value.deviceInstancePath));
         }) };
 
         // Apply the filters only when the entry isn't black-listed
         if ((!topLevelEntryBlacklisted) && (!anyChildEntryBlacklisted))
         {
             // Skip the entry when gaming-only is selected and its not a gaming device
-            if ((0 != (m_Gaming.GetCheck() & BST_CHECKED)) && (std::end(topLevelEntry.second) == std::find_if(std::begin(topLevelEntry.second), std::end(topLevelEntry.second), [](HidHide::HidDeviceInstancePathWithModelInfo const& value) { return (value.gamingDevice); })))
+            if ((0 != (m_Gaming.GetCheck() & BST_CHECKED)) && (std::end(topLevelEntry.second) == std::find_if(std::begin(topLevelEntry.second), std::end(topLevelEntry.second), [](HidHide::HidDeviceInformation const& value) { return (value.gamingDevice); })))
             {
                 continue;
             }
             // Skip the entry when present-only is selected and the device isn't present
-            if ((0 != (m_Filter.GetCheck() & BST_CHECKED)) && (std::end(topLevelEntry.second) == std::find_if(std::begin(topLevelEntry.second), std::end(topLevelEntry.second), [](HidHide::HidDeviceInstancePathWithModelInfo const& value) { return (value.present); })))
+            if ((0 != (m_Filter.GetCheck() & BST_CHECKED)) && (std::end(topLevelEntry.second) == std::find_if(std::begin(topLevelEntry.second), std::end(topLevelEntry.second), [](HidHide::HidDeviceInformation const& value) { return (value.present); })))
             {
                 continue;
             }
@@ -216,7 +224,7 @@ LRESULT CBlacklistDlg::OnUserMessageRefresh(WPARAM wParam, LPARAM lParam)
         // Add its children
         for (auto const& child : topLevelEntry.second)
         {
-            auto const childEntryBlacklisted{ (std::end(hidDeviceInstancePathsBlacklisted) != std::find(std::begin(hidDeviceInstancePathsBlacklisted), std::end(hidDeviceInstancePathsBlacklisted), child.deviceInstancePath)) };
+            auto const childEntryBlacklisted{ (std::end(deviceInstancePathsBlacklisted) != std::find(std::begin(deviceInstancePathsBlacklisted), std::end(deviceInstancePathsBlacklisted), child.deviceInstancePath)) };
             tvInsert.hParent               = hParent;
             tvInsert.itemex.state          = ((topLevelEntryBlacklisted | childEntryBlacklisted) ? LVIS_STATE_CHECKBOX_CHECKED : LVIS_STATE_CHECKBOX_UNCHECKED);
             tvInsert.itemex.stateMask      = TVIS_USERMASK;
@@ -283,7 +291,7 @@ void CBlacklistDlg::OnTvnItemChangedTreeBlacklist(NMHDR* pNMHDR, LRESULT* pResul
     }
 
     // Construct the new black-list for the filter driver
-    HidHide::HidDeviceInstancePaths hidDeviceInstancePaths;
+    HidHide::DeviceInstancePaths deviceInstancePaths;
     for (auto hItem{ m_Blacklist.GetRootItem() }; (nullptr != hItem); hItem = m_Blacklist.GetNextItem(hItem, TVGN_NEXT))
     {
         // When we have a top-level entry and explore the option for blocking the base container device
@@ -292,32 +300,32 @@ void CBlacklistDlg::OnTvnItemChangedTreeBlacklist(NMHDR* pNMHDR, LRESULT* pResul
         {
             // Get the base container device details (just take it from any of the child devices)
             // Note that the class guid will be GUID_NULL when this is a stand-alone device
-            std::wstring deviceInstancePathBaseContainer;
-            GUID         deviceInstancePathBaseContainerClassGuid{};
-            size_t       deviceInstancePathBaseContainerDeviceCount{};
+            std::wstring baseContainerDeviceInstancePath;
+            GUID         baseContainerClassGuid{};
+            size_t       baseContainerDeviceCount{};
             if (auto const hFirstChild{ m_Blacklist.GetChildItem(hItem) }; (nullptr != hFirstChild))
             {
-                auto const firstChilditemData{ reinterpret_cast<HidHide::HidDeviceInstancePathWithModelInfo*>(m_Blacklist.GetItemData(hFirstChild)) };
+                auto const firstChilditemData{ reinterpret_cast<HidHide::HidDeviceInformation*>(m_Blacklist.GetItemData(hFirstChild)) };
                 if (nullptr == firstChilditemData) THROW_WIN32(ERROR_INVALID_PARAMETER);
-                deviceInstancePathBaseContainer            = firstChilditemData->deviceInstancePathBaseContainer;
-                deviceInstancePathBaseContainerClassGuid   = firstChilditemData->deviceInstancePathBaseContainerClassGuid;
-                deviceInstancePathBaseContainerDeviceCount = firstChilditemData->deviceInstancePathBaseContainerDeviceCount;
+                baseContainerDeviceInstancePath = firstChilditemData->baseContainerDeviceInstancePath;
+                baseContainerClassGuid          = firstChilditemData->baseContainerClassGuid;
+                baseContainerDeviceCount        = firstChilditemData->baseContainerDeviceCount;
             }
 
             // When there is a base container device then can be block it or is it also providing non human interface devices?
             // Note that the result will be false when this is a stand-alone device
             auto theBaseContainerDeviceCanBeBlocked{ false };
-            if ((GUID_DEVCLASS_HIDCLASS == deviceInstancePathBaseContainerClassGuid) || (GUID_DEVCLASS_XUSBCLASS == deviceInstancePathBaseContainerClassGuid))
+            if ((GUID_DEVCLASS_HIDCLASS == baseContainerClassGuid) || (GUID_DEVCLASS_XUSBCLASS == baseContainerClassGuid))
             {
                 size_t humanInterfaceDeviceCount{};
                 for (auto hChild{ m_Blacklist.GetChildItem(hItem) }; (nullptr != hChild); hChild = m_Blacklist.GetNextSiblingItem(hChild)) humanInterfaceDeviceCount++;
-                theBaseContainerDeviceCanBeBlocked = (humanInterfaceDeviceCount == deviceInstancePathBaseContainerDeviceCount);
+                theBaseContainerDeviceCanBeBlocked = (humanInterfaceDeviceCount == baseContainerDeviceCount);
             }
 
             // When we can block the base container device then do so
             if (theBaseContainerDeviceCanBeBlocked)
             {
-                hidDeviceInstancePaths.emplace_back(deviceInstancePathBaseContainer);
+                deviceInstancePaths.emplace(baseContainerDeviceInstancePath);
             }
         }
 
@@ -326,15 +334,15 @@ void CBlacklistDlg::OnTvnItemChangedTreeBlacklist(NMHDR* pNMHDR, LRESULT* pResul
         {
             if (LVIS_STATE_CHECKBOX_CHECKED == (LVIS_STATE_CHECKBOX_MASK & m_Blacklist.GetItemState(hChild, TVIS_USERMASK)))
             {
-                auto const childItemData{ reinterpret_cast<HidHide::HidDeviceInstancePathWithModelInfo*>(m_Blacklist.GetItemData(hChild)) };
+                auto const childItemData{ reinterpret_cast<HidHide::HidDeviceInformation*>(m_Blacklist.GetItemData(hChild)) };
                 if (nullptr == childItemData) THROW_WIN32(ERROR_INVALID_PARAMETER);
-                hidDeviceInstancePaths.emplace_back(childItemData->deviceInstancePath);
+                deviceInstancePaths.emplace(childItemData->deviceInstancePath);
             }
         }
     }
 
     // Forward the new selection to the filter driver
-    HidHide::SetBlacklist(hidDeviceInstancePaths);
+    FilterDriverProxy().SetBlacklist(deviceInstancePaths);
     *pResult = 0;
 }
 
@@ -353,5 +361,5 @@ void CBlacklistDlg::OnBnClickedCheckGaming()
 void CBlacklistDlg::OnBnClickedCheckEnable()
 {
     TRACE_ALWAYS(L"");
-    HidHide::SetActive(0 != (m_Enable.GetCheck() & BST_CHECKED));
+    FilterDriverProxy().SetActive(0 != (m_Enable.GetCheck() & BST_CHECKED));
 }

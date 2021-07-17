@@ -4,6 +4,8 @@
 #include "stdafx.h"
 #include "HidHideClient.h"
 #include "HidHideClientDlg.h"
+#include "FilterDriverProxy.h"
+#include "Utils.h"
 #include "Logging.h"
 
 #pragma warning(push)
@@ -19,13 +21,20 @@ END_MESSAGE_MAP()
 _Use_decl_annotations_
 CHidHideClientDlg::CHidHideClientDlg(CWnd* pParent)
     : CDialogEx(IDD_DIALOG_APPLICATION, pParent)
+    , m_FilterDriverProxy{}
+    , m_DropTarget{}
     , m_hIcon{}
     , m_TabApplication{}
-    , m_BlacklistDlg(nullptr)
-    , m_WhitelistDlg{}
+    , m_BlacklistDlg(*this, nullptr)
+    , m_WhitelistDlg(*this, nullptr)
 {
     TRACE_ALWAYS(L"");
     m_hIcon = ::AfxGetApp()->LoadIcon(IDR_DIALOG_APPLICATION);
+}
+
+HidHide::FilterDriverProxy& CHidHideClientDlg::FilterDriverProxy() noexcept
+{
+    return (*m_FilterDriverProxy.get());
 }
 
 _Use_decl_annotations_
@@ -40,6 +49,12 @@ BOOL CHidHideClientDlg::OnInitDialog()
 {
     TRACE_ALWAYS(L"");
     CDialogEx::OnInitDialog();
+
+    // Acquire exclusive access to the filter driver
+    m_FilterDriverProxy = std::make_unique<HidHide::FilterDriverProxy>(true);
+
+    // Register this window as a drop target
+    m_DropTarget.Register(this);
 
     // Set the dialog title and include the version number, as defined via a define from the build environment
     std::wostringstream title;
@@ -114,10 +129,12 @@ void CHidHideClientDlg::ResyncTabDialogVisibilityState()
     case 0: // Applications
         m_BlacklistDlg.ShowWindow(SW_HIDE);
         m_WhitelistDlg.ShowWindow(SW_SHOW);
+        m_DropTarget.SetRedirectionTarget(m_WhitelistDlg);
         break;
     case 1: // Devices
         m_BlacklistDlg.ShowWindow(SW_SHOW);
         m_WhitelistDlg.ShowWindow(SW_HIDE);
+        m_DropTarget.SetRedirectionTarget(m_BlacklistDlg);
         break;
     }
 }

@@ -3,7 +3,9 @@
 // WhitelistDlg.cpp
 #include "stdafx.h"
 #include "WhitelistDlg.h"
-#include "HidHideApi.h"
+#include "HidHideClientDlg.h"
+#include "Utils.h"
+#include "Volume.h"
 #include "Logging.h"
 
 // Define user-message for processing device interface arrivals
@@ -11,15 +13,17 @@ constexpr auto WM_USER_CM_NOTIFICATION_REFRESH{ WM_USER + 1 };
 
 namespace
 {
-    HidHide::FullImageNames ListBoxToStringList(_In_ CListBox const& listBox)
+    // Capture the list box content as a set of paths
+    HidHide::FullImageNames ListBoxToPathSet(_In_ CListBox const& listBox)
     {
+        TRACE_ALWAYS(L"");
         HidHide::FullImageNames result;
 
         for (int index{}, size(listBox.GetCount()); (index < size); index++)
         {
             CString value;
             listBox.GetText(index, value);
-            result.emplace_back(value.GetBuffer());
+            result.emplace(value.GetBuffer());
         }
 
         return (result);
@@ -39,8 +43,11 @@ END_MESSAGE_MAP()
 #pragma warning(pop)
 
 _Use_decl_annotations_
-CWhitelistDlg::CWhitelistDlg(CWnd* pParent)
+CWhitelistDlg::CWhitelistDlg(CHidHideClientDlg& hidHideClientDlg, CWnd* pParent)
     : CDialogEx(IDD_DIALOG_WHITELIST, pParent)
+    , HidHide::IDropTarget()
+    , m_HidHideClientDlg{ hidHideClientDlg }
+    , m_DropTargetFullImageNames{}
     , m_Whitelist{}
     , m_Guidance{}
     , m_Insert{}
@@ -52,6 +59,94 @@ CWhitelistDlg::CWhitelistDlg(CWnd* pParent)
 CWhitelistDlg::~CWhitelistDlg()
 {
     TRACE_ALWAYS(L"");
+}
+
+HidHide::FilterDriverProxy& CWhitelistDlg::FilterDriverProxy() noexcept
+{
+    return (m_HidHideClientDlg.FilterDriverProxy());
+}
+
+_Use_decl_annotations_
+DROPEFFECT CWhitelistDlg::OnDragEnter(CWnd* pWnd, COleDataObject* pDataObject, DWORD dwKeyState, CPoint point)
+{
+    TRACE_ALWAYS(L"");
+    UNREFERENCED_PARAMETER(pWnd);
+    UNREFERENCED_PARAMETER(point);
+
+    // Flush the previous list
+    m_DropTargetFullImageNames.clear();
+
+    // Only accept one or more application files (.exe, .com, .bin) located on a volume
+    for (auto const& fullyQualifiedFileName : HidHide::DragTargetFileNames(pDataObject))
+    {
+        if (HidHide::FileIsAnApplication(fullyQualifiedFileName))
+        {
+            if (auto const fullImageName{ HidHide::FileNameToFullImageName(fullyQualifiedFileName) }; !fullImageName.empty())
+            {
+                // Criteria met proceed to next one
+                m_DropTargetFullImageNames.emplace(fullImageName);
+                continue;
+            }
+        }
+
+        // Criteria not met then flush the result and quit the loop
+        m_DropTargetFullImageNames.clear();
+        break;
+    }
+
+    // Change mouse shape when a copy operation is initiated (left mouse button with or without control pressed) and the critiria are met
+    return ((HidHide::DragTargetCopyOperation(dwKeyState) && (!m_DropTargetFullImageNames.empty())) ? DROPEFFECT_COPY : DROPEFFECT_NONE);
+}
+
+_Use_decl_annotations_
+DROPEFFECT CWhitelistDlg::OnDragOver(CWnd* pWnd, COleDataObject* pDataObject, DWORD dwKeyState, CPoint point)
+{
+    TRACE_PERFORMANCE(L"");
+    UNREFERENCED_PARAMETER(pWnd);
+    UNREFERENCED_PARAMETER(pDataObject);
+    UNREFERENCED_PARAMETER(dwKeyState);
+
+    // Change mouse shape when a copy operation is initiated (left mouse button with or without control pressed) and the critiria are met and the mouse hovers above the whitelist
+    return ((HidHide::DragTargetCopyOperation(dwKeyState) && (!m_DropTargetFullImageNames.empty()) && (MousePointerAtWhitelist(point))) ? DROPEFFECT_COPY : DROPEFFECT_NONE);
+}
+
+_Use_decl_annotations_
+DROPEFFECT CWhitelistDlg::OnDropEx(CWnd* pWnd, COleDataObject* pDataObject, DROPEFFECT dropDefault, DROPEFFECT dropList, CPoint point)
+{
+    TRACE_ALWAYS(L"");
+    UNREFERENCED_PARAMETER(pWnd);
+    UNREFERENCED_PARAMETER(pDataObject);
+    UNREFERENCED_PARAMETER(dropDefault);
+    UNREFERENCED_PARAMETER(dropList);
+
+    if ((m_DropTargetFullImageNames.empty()) || (!MousePointerAtWhitelist(point))) return (DROPEFFECT_NONE);
+
+    // Process all dropped file names and keep track if they are new to the white list
+    auto dirty{ false };
+    auto whitelist{ FilterDriverProxy().GetWhitelist() };
+    for (auto const& fullImageName : m_DropTargetFullImageNames)
+    {
+        if (whitelist.emplace(fullImageName).second) dirty = true;
+    }
+
+    // When there are new entries then update the whitelist accordingly and refresh the screen
+    if (dirty)
+    {
+        FilterDriverProxy().SetWhitelist(whitelist);
+        Refresh();
+    }
+
+    return (DROPEFFECT_COPY);
+}
+
+_Use_decl_annotations_
+bool CWhitelistDlg::MousePointerAtWhitelist(CPoint point)
+{
+    TRACE_PERFORMANCE(L"");
+    CRect rect{};
+    GetDlgItem(IDC_LIST_WHITELIST)->GetWindowRect(&rect);
+    GetParent()->ScreenToClient(&rect);
+    return (FALSE != rect.PtInRect(point));
 }
 
 _Use_decl_annotations_
@@ -101,11 +196,16 @@ LRESULT CWhitelistDlg::OnUserMessageRefresh(WPARAM wParam, LPARAM lParam)
 
     m_Whitelist.UpdateData(FALSE);
     m_Whitelist.ResetContent();
-    for (auto const& fullImageName : HidHide::GetWhitelist())
-    {
-        if (auto const result{ m_Whitelist.AddString(fullImageName.c_str()) }; (LB_ERR == result) || (LB_ERRSPACE == result)) THROW_WIN32(ERROR_INVALID_PARAMETER);
-    }
     m_Whitelist.SetSel(-1, FALSE);
+    for (auto const& fullImageName : FilterDriverProxy().GetWhitelist())
+    {
+        auto const index{ m_Whitelist.AddString(fullImageName.c_str()) };
+        if ((LB_ERR == index) || (LB_ERRSPACE == index)) THROW_WIN32(ERROR_INVALID_PARAMETER);
+
+        // Mask the entry in the list when the file doesn't exist anymore
+        auto const exists{ std::filesystem::exists(HidHide::FullImageNameToFileName(fullImageName)) };
+        if (!exists) m_Whitelist.SetSel(index, TRUE);
+    }
     m_Whitelist.SetFocus();
     m_Whitelist.UpdateData(TRUE);
     return (0);
@@ -138,7 +238,7 @@ void CWhitelistDlg::OnBnClickedButtonWhitelistInsert()
         // No duplicates so add it
         if (auto const result{ m_Whitelist.AddString(fullImageName) }; (LB_ERR == result) || (LB_ERRSPACE == result)) THROW_WIN32(ERROR_INVALID_PARAMETER);
 
-        HidHide::SetWhitelist(ListBoxToStringList(m_Whitelist));
+        FilterDriverProxy().SetWhitelist(ListBoxToPathSet(m_Whitelist));
         Refresh();
     }
 }
@@ -161,6 +261,6 @@ void CWhitelistDlg::OnBnClickedButtonWhitelistDelete()
         if (LB_ERR == m_Whitelist.DeleteString(itemsSelected[index])) THROW_WIN32(ERROR_INVALID_PARAMETER);
     }
 
-    HidHide::SetWhitelist(ListBoxToStringList(m_Whitelist));
+    FilterDriverProxy().SetWhitelist(ListBoxToPathSet(m_Whitelist));
     Refresh();
 }

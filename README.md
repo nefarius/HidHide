@@ -79,6 +79,16 @@ The expanded list may mark entries as *absent* or *denied*. *absent* entries app
 These are residual entries in the caches of the operating system, and can be cleaned-up using utilities like *Device Cleanup Tool*.
 *denied* entries appear for hidden devices when the configuration utility itself is not whilelisted.
 
+## Package integration
+
+Installation packages and third-party applications can rely on the following two registry keys.
+*"HKCR\Installer\Dependencies\NSS.Drivers.HidHide.x64\Version"* signals the availability of HidHide and its version.
+*"HKCR\SOFTWARE\Nefarius Software Solutions e.U.\Nefarius Software Solutions e.U. HidHide\Path"* tells its location.
+
+Third-party software deployment may benefit from the *HidHide Command Line Interface (CLI)* while deploying software.
+Please be conservative while altering a clients' configuration and only extend the configuration with new features offered.
+Don't assume exclusive ownership of the configuration settings as a recovery typically requires manual actions by the user.
+
 ## Bugs & Features
 
 Found a bug and want it fixed? Feel free to open a detailed issue on the [GitHub issue tracker](../../issues)!
