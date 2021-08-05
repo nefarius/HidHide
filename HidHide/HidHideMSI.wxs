@@ -94,7 +94,11 @@
               <?endif ?>
             </Component>
             <Component Id="id8F22E85576CD43B9AB179235C56B5A26" Guid="{8F22E855-76CD-43B9-AB17-9235C56B5A26}" Feature="PROD" Win64="yes">
+              <?if  $(var.ProductionRelease) = "false" ?>
               <File Id="id2F9AA9B2B5954CADA9E66D706B1B091E" KeyPath="yes" Source="$(var.HidHide.TargetDir)DevCon.exe"/>
+              <?else ?>
+              <File Id="id2F9AA9B2B5954CADA9E66D706B1B091E" KeyPath="yes" Source="$(var.SolutionDir)artifacts\bin\Release\$(sys.BUILDARCH)\DevCon.exe"/>
+              <?endif ?>
             </Component>
             <Component Id="idB898B838B8164B058C3061EC87BABA2D" Guid="{B898B838-B816-4B05-8C30-61EC87BABA2D}" Feature="PROD" Win64="yes">
               <?if  $(var.ProductionRelease) = "false" ?>
@@ -121,7 +125,11 @@
           </Directory>
           <Directory Id="id198E3047B9DC489C81AC49FF1DE3DF2A" Name="HidHideCLI">
             <Component Id="id5161C47C4EF046DAB01DD11F4B567D2F" Guid="{5161C47C-4EF0-46DA-B01D-D11F4B567D2F}" Feature="PROD" Win64="yes">
+              <?if  $(var.ProductionRelease) = "false" ?>
               <File Id="id76BE37F04EB84B2CAA16E6E187519F53" Checksum="yes" KeyPath="yes" Source="$(var.HidHideCLI.TargetPath)" />
+              <?else ?>
+              <File Id="id76BE37F04EB84B2CAA16E6E187519F53" Checksum="yes" KeyPath="yes" Source="$(var.SolutionDir)artifacts\bin\Release\$(sys.BUILDARCH)\$(var.HidHideCLI.TargetFileName)" />
+              <?endif ?>
             </Component>
             <Component Id="id6B909122999A42AE83B84BFDB965B262" Guid="{6B909122-999A-42AE-83B8-4BFDB965B262}" Feature="PROD" Win64="yes">
               <File Id="idB2D5D6E99CB44AF28CB9C69187572CFE" KeyPath="yes" Source="$(var.HidHideCLI.TargetDir)$(var.HidHideCLI.TargetName).man">
@@ -134,11 +142,19 @@
           </Directory>
           <Directory Id="id75DD4164523A4F11A87828CB38CD66DC" Name="HidHideClient">
             <Component Id="id8334B23FC9694A779F1F125D7ED020A0" Guid="{8334B23F-C969-4A77-9F1F-125D7ED020A0}" Feature="PROD" Win64="yes">
+              <?if  $(var.ProductionRelease) = "false" ?>
               <File Id="idB1A53D2A41EC4533BC473BAB8AAF31EC" Checksum="yes" KeyPath="yes" Source="$(var.HidHideClient.TargetPath)">
                 <Shortcut Id="id35AD28BA38834640BCD739DC839363B2" Advertise="yes" Name="$(var.BldProductName) Configuration Client" Description="Program for controlling and configuring $(var.BldProductName)" Directory="idD5964DC8DFA143A1A80358CE245935FB" WorkingDirectory="HidHideClientIcon.exe">
                   <Icon Id="id91200836E0964D779477A573F45805E6.exe" SourceFile="$(var.HidHideClient.TargetPath)"/>
                 </Shortcut>
               </File>
+              <?else ?>
+              <File Id="idB1A53D2A41EC4533BC473BAB8AAF31EC" Checksum="yes" KeyPath="yes" Source="$(var.SolutionDir)artifacts\bin\Release\$(sys.BUILDARCH)\$(var.HidHideClient.TargetFileName)">
+                <Shortcut Id="id35AD28BA38834640BCD739DC839363B2" Advertise="yes" Name="$(var.BldProductName) Configuration Client" Description="Program for controlling and configuring $(var.BldProductName)" Directory="idD5964DC8DFA143A1A80358CE245935FB" WorkingDirectory="HidHideClientIcon.exe">
+                  <Icon Id="id91200836E0964D779477A573F45805E6.exe" SourceFile="$(var.SolutionDir)artifacts\bin\Release\$(sys.BUILDARCH)\$(var.HidHideClient.TargetFileName)"/>
+                </Shortcut>
+              </File>
+              <?endif ?>
             </Component>
             <Component Id="idA047283CC870475685026CDCA59FCE26" Guid="{A047283C-C870-4756-8502-6CDCA59FCE26}" Feature="PROD" Win64="yes">
               <File Id="idC5C0037FDE5940D595901DFEE74105AA" KeyPath="yes" Source="$(var.HidHideClient.TargetDir)$(var.HidHideClient.TargetName).man">
@@ -158,10 +174,18 @@
               <?endif ?>
             </Component>
             <Component Id="id017489F47DD34407BE485B88629C19A5" Guid="{017489F4-7DD3-4407-BE48-5B88629C19A5}" Feature="SYMB" Win64="yes">
+              <?if  $(var.ProductionRelease) = "false" ?>
               <File Id="idADFFE233B522444085E2F38F197BE9CF" KeyPath="yes" Source="$(var.HidHideCLI.TargetDir)$(var.HidHideCLI.TargetName).pdb"/>
+              <?else ?>
+              <File Id="idADFFE233B522444085E2F38F197BE9CF" KeyPath="yes" Source="$(var.SolutionDir)artifacts\bin\Release\$(sys.BUILDARCH)\$(var.HidHideCLI.TargetName).pdb"/>
+              <?endif ?>
             </Component>
             <Component Id="idBDF799D93299497DA7D829EE40825A62" Guid="{BDF799D9-3299-497D-A7D8-29EE40825A62}" Feature="SYMB" Win64="yes">
+              <?if  $(var.ProductionRelease) = "false" ?>
               <File Id="id138EE0C0B6E64499A88BA6479413B089" KeyPath="yes" Source="$(var.HidHideClient.TargetDir)$(var.HidHideClient.TargetName).pdb"/>
+              <?else ?>
+              <File Id="id138EE0C0B6E64499A88BA6479413B089" KeyPath="yes" Source="$(var.SolutionDir)artifacts\bin\Release\$(sys.BUILDARCH)\$(var.HidHideClient.TargetName).pdb"/>
+              <?endif ?>
             </Component>
           </Directory>
         </Directory>
