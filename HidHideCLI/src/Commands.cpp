@@ -7,24 +7,50 @@
 #include "Utils.h"
 #include "Volume.h"
 #include "Logging.h"
+#include <sstream>
+#include <iomanip>
 
 namespace
 {
+    // https://stackoverflow.com/a/33799784
+    std::string escape_json(const std::string &s) {
+        std::ostringstream o;
+        for (auto c = s.cbegin(); c != s.cend(); c++) {
+            switch (*c) {
+            case '"': o << "\\\""; break;
+            case '\\': o << "\\\\"; break;
+            case '\b': o << "\\b"; break;
+            case '\f': o << "\\f"; break;
+            case '\n': o << "\\n"; break;
+            case '\r': o << "\\r"; break;
+            case '\t': o << "\\t"; break;
+            default:
+                if ('\x00' <= *c && *c <= '\x1f') {
+                    o << "\\u"
+                      << std::hex << std::setw(4) << std::setfill('0') << (int)*c;
+                } else {
+                    o << *c;
+                }
+            }
+        }
+        return o.str();
+    }
+    
     // Serialize the HidDeviceInformation in a JSON format
     std::wostream& operator<<(_Inout_ std::wostream& os, _In_ HidHide::HidDeviceInformation const& hidDeviceInformation)
     {
         os  << L"{ " \
             << L"\"present\" : " << std::boolalpha << hidDeviceInformation.present << L" ," << std::endl \
             << L"\"gamingDevice\" : " << std::boolalpha << hidDeviceInformation.gamingDevice << L" ," << std::endl \
-            << L"\"symbolicLink\" : \"" << hidDeviceInformation.symbolicLink.wstring() << L"\" ," << std::endl \
-            << L"\"vendor\" : \"" << hidDeviceInformation.vendor << L"\" ," << std::endl \
-            << L"\"product\" : \"" << hidDeviceInformation.product << L"\" ," << std::endl \
-            << L"\"serialNumber\" : \"" << hidDeviceInformation.serialNumber << L"\" ," << std::endl \
-            << L"\"usage\" : \"" << hidDeviceInformation.usage << L"\" ," << std::endl \
-            << L"\"description\" : \"" << hidDeviceInformation.description << L"\" ," << std::endl \
-            << L"\"deviceInstancePath\" : \"" << hidDeviceInformation.deviceInstancePath << L"\" ," << std::endl \
-            << L"\"baseContainerDeviceInstancePath\" : \"" << hidDeviceInformation.baseContainerDeviceInstancePath << L"\" ," << std::endl \
-            << L"\"baseContainerClassGuid\" : \"" << HidHide::GuidToString(hidDeviceInformation.baseContainerClassGuid) << L"\" ," << std::endl \
+            << L"\"symbolicLink\" : \"" << escape_json(hidDeviceInformation.symbolicLink.wstring()) << L"\" ," << std::endl \
+            << L"\"vendor\" : \"" << escape_json(hidDeviceInformation.vendor) << L"\" ," << std::endl \
+            << L"\"product\" : \"" << escape_json(hidDeviceInformation.product) << L"\" ," << std::endl \
+            << L"\"serialNumber\" : \"" << escape_json(hidDeviceInformation.serialNumber) << L"\" ," << std::endl \
+            << L"\"usage\" : \"" << escape_json(hidDeviceInformation.usage) << L"\" ," << std::endl \
+            << L"\"description\" : \"" << escape_json(hidDeviceInformation.description) << L"\" ," << std::endl \
+            << L"\"deviceInstancePath\" : \"" << escape_json(hidDeviceInformation.deviceInstancePath) << L"\" ," << std::endl \
+            << L"\"baseContainerDeviceInstancePath\" : \"" << escape_json(hidDeviceInformation.baseContainerDeviceInstancePath) << L"\" ," << std::endl \
+            << L"\"baseContainerClassGuid\" : \"" << escape_json(HidHide::GuidToString(hidDeviceInformation.baseContainerClassGuid)) << L"\" ," << std::endl \
             << L"\"baseContainerDeviceCount\" : " << hidDeviceInformation.baseContainerDeviceCount << L" }";
         return (os);
     }
@@ -51,7 +77,7 @@ namespace
         for (auto const& hidContainer : hidDevices)
         {
             if (first) first = false; else os << L"," << std::endl;
-            os << L"{ \"friendlyName\" : \"" << hidContainer.first << L"\" , \"devices\" :" << hidContainer.second << L"} ";
+            os << L"{ \"friendlyName\" : \"" << escape_json(hidContainer.first) << L"\" , \"devices\" :" << hidContainer.second << L"} ";
         }
         os << L"] " << std::endl;
         return (os);
