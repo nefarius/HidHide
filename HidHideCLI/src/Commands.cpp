@@ -51,7 +51,7 @@ namespace
         for (auto const& hidContainer : hidDevices)
         {
             if (first) first = false; else os << L"," << std::endl;
-            os << L"{ \"friendlyName\" : " << hidContainer.first << L"\" , \"devices\" :" << hidContainer.second << L"} ";
+            os << L"{ \"friendlyName\" : \"" << hidContainer.first << L"\" , \"devices\" :" << hidContainer.second << L"} ";
         }
         os << L"] " << std::endl;
         return (os);
