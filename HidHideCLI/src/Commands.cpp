@@ -256,7 +256,7 @@ namespace HidHide
     void CommandInterpreter::DevAll(Args const&) const
     {
         TRACE_ALWAYS(L"");
-        std::wcout << HidHide::HidDevices(true) << std::endl;
+        std::wcout << HidHide::HidDevices(false) << std::endl;
     }
 
     _Use_decl_annotations_
