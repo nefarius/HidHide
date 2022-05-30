@@ -97,6 +97,7 @@ BEGIN
     LTEXT           "xxx",IDC_STATIC_WHITELIST_GUIDANCE,112,125,237,24,0,WS_EX_TRANSPARENT
     PUSHBUTTON      "xxx",IDC_BUTTON_WHITELIST_INSERT,405,118,24,14
     PUSHBUTTON      "xxx",IDC_BUTTON_WHITELIST_DELETE,433,118,24,14
+    CONTROL         "xxx",IDC_CHECK_WHITELIST_INVERSE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,102,8,WS_EX_TRANSPARENT
 END
 
 IDD_DIALOG_BLACKLIST DIALOGEX 0, 0, 465, 152
@@ -200,6 +201,7 @@ BEGIN
     IDS_STATIC_MESSAGEBOX_PRESENT   "The Hid Hide control device can't be reached. When Hid Hide is just installed be sure to REBOOT first else inspect the status of the Nefarius Hid Hide driver under System Devices in the Device Manager and ensure it is properly loaded and enabled. Once corrected press Retry. When the issue can't be resolved press Cancel and re-install the Hid Hide software."
     IDS_STATIC_MESSAGEBOX_IN_USE    "The Hid Hide control device can't be accessed. Be sure to close the HidHide command line interface or any other application. When the issue can't be resolved after a REBOOT press Cancel and re-install the Hid Hide software."
     IDS_STATIC_MESSAGEBOX_EXCEPTION "Something unforeseen has happened which cannot be recovered from. Program execution has to be terminated. Sorry for the inconvenience."
+    IDS_CHECK_WHITELIST_INVERSE     "&Inverse application cloak"
     IDS_PAGE_01             "Generic Desktop"
     IDS_PAGE_02             "Simulation Controls"
     IDS_PAGE_03             "VR Controls"

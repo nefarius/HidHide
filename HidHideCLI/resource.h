@@ -36,6 +36,10 @@
 #define IDS_CLI_VERSION                 158
 #define IDS_HID_ATTRIBUTE_DENIED        159
 #define IDS_HID_ATTRIBUTE_ABSENT        160
+#define IDS_CLI_INV_ON                  161
+#define IDS_CLI_INFO_OFF                162
+#define IDS_CLI_INV_OFF                 162
+#define IDS_CLI_INV_STATE               163
 #define IDS_PAGE_01                     0x1001
 #define IDS_PAGE_02                     0x1002
 #define IDS_PAGE_03                     0x1003
@@ -109,6 +113,7 @@
 #define IDS_PAGE_0C_USAGE_F1            0x12F1
 
 // Next default values for new objects
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        161

@@ -64,6 +64,12 @@ namespace HidHide
         // Set the current enabled state
         void SetActive(_In_ bool active);
 
+        // Get the current whitelist inverse state; returns true when the whitelist logic is the inverse (effectively an application backlist)
+        bool GetInverse() const;
+
+        // Set the current whitelist inverse state
+        void SetInverse(_In_ bool inverse);
+
     private:
 
         typedef std::unique_ptr<std::remove_pointer<HANDLE>::type, decltype(&::CloseHandle)> CloseHandlePtr;
@@ -73,5 +79,6 @@ namespace HidHide
         bool                 m_Active;       // Indicates if the filter driver is hiding devices or not
         DeviceInstancePaths  m_Blacklist;    // The device instance paths of the blacklisted HID devices
         FullImageNames       m_Whitelist;    // The full image names of the whitelisted applications
+        bool                 m_Inverse;      // Indicates if the inverse whitelist is enabled
     };
 }

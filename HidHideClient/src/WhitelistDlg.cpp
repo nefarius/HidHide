@@ -37,6 +37,7 @@ IMPLEMENT_DYNAMIC(CWhitelistDlg, CDialogEx)
 BEGIN_MESSAGE_MAP(CWhitelistDlg, CDialogEx)
     ON_BN_CLICKED(IDC_BUTTON_WHITELIST_DELETE,  &CWhitelistDlg::OnBnClickedButtonWhitelistDelete)
     ON_BN_CLICKED(IDC_BUTTON_WHITELIST_INSERT,  &CWhitelistDlg::OnBnClickedButtonWhitelistInsert)
+    ON_BN_CLICKED(IDC_CHECK_WHITELIST_INVERSE,  &CWhitelistDlg::OnBnClickedCheckInverse)
     ON_MESSAGE(WM_USER_CM_NOTIFICATION_REFRESH, &CWhitelistDlg::OnUserMessageRefresh)
     ON_WM_SHOWWINDOW()
 END_MESSAGE_MAP()
@@ -52,6 +53,7 @@ CWhitelistDlg::CWhitelistDlg(CHidHideClientDlg& hidHideClientDlg, CWnd* pParent)
     , m_Guidance{}
     , m_Insert{}
     , m_Delete{}
+    , m_Inverse{}
 {
     TRACE_ALWAYS(L"");
 }
@@ -158,6 +160,7 @@ void CWhitelistDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC_WHITELIST_GUIDANCE, m_Guidance);
     DDX_Control(pDX, IDC_BUTTON_WHITELIST_INSERT,   m_Insert);
     DDX_Control(pDX, IDC_BUTTON_WHITELIST_DELETE,   m_Delete);
+    DDX_Control(pDX, IDC_CHECK_WHITELIST_INVERSE,   m_Inverse);
 }
 
 BOOL CWhitelistDlg::OnInitDialog()
@@ -169,6 +172,10 @@ BOOL CWhitelistDlg::OnInitDialog()
     m_Guidance.SetWindowTextW(HidHide::StringTable(IDS_STATIC_WHITELIST_GUIDANCE).c_str());
     m_Insert.SetWindowTextW(HidHide::StringTable(IDS_BUTTON_WHITELIST_INSERT).c_str());
     m_Delete.SetWindowTextW(HidHide::StringTable(IDS_BUTTON_WHITELIST_DELETE).c_str());
+    m_Inverse.SetWindowTextW(HidHide::StringTable(IDS_CHECK_WHITELIST_INVERSE).c_str());
+
+    // Reflect the current state in the check-box
+    m_Inverse.SetCheck(FilterDriverProxy().GetInverse() ? BST_CHECKED : BST_UNCHECKED);
 
     return (TRUE);
 }
@@ -263,4 +270,10 @@ void CWhitelistDlg::OnBnClickedButtonWhitelistDelete()
 
     FilterDriverProxy().SetWhitelist(ListBoxToPathSet(m_Whitelist));
     Refresh();
+}
+
+void CWhitelistDlg::OnBnClickedCheckInverse()
+{
+    TRACE_ALWAYS(L"");
+    FilterDriverProxy().SetInverse(0 != (m_Inverse.GetCheck() & BST_CHECKED));
 }
