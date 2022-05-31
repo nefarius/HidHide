@@ -130,6 +130,15 @@ namespace HidHide
         // Reports the current cloaking state
         void CloakState(_In_ Args const& args) const;
 
+        // Turns whitelist inverse on
+        void InvOn(_In_ Args const& args);
+
+        // Turns whitelist inverse off
+        void InvOff(_In_ Args const& args);
+
+        // Reports the current whitelist inverse
+        void InvState(_In_ Args const& args) const;
+
         bool const               m_ScriptMode;         // Active when standard input is redirected
         bool const               m_InteractiveMode;    // Active without command line arguments or input redirection
         RegisteredCommands const m_RegisteredCommands; // Self reflection on all commands supported

@@ -60,9 +60,11 @@ private:
     CStatic  m_Guidance;
     CButton  m_Insert;
     CButton  m_Delete;
+    CButton  m_Inverse;
 
     // Events
     afx_msg void OnBnClickedButtonWhitelistInsert();
     afx_msg void OnBnClickedButtonWhitelistDelete();
+    afx_msg void OnBnClickedCheckInverse();
     afx_msg void OnShowWindow(_In_ BOOL bShow, _In_ UINT nStatus);
 };

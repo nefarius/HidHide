@@ -269,6 +269,11 @@ NTSTATUS OnControlDeviceCreate(WDFDEVICE wdfControlDevice)
     if (pControlDeviceContext->active)  LogEvent(ETW(Enabled), L"");
     if (!pControlDeviceContext->active) LogEvent(ETW(Disabled), L"");
 
+    // Query the boolean property indicating the inverse state
+    DECLARE_CONST_UNICODE_STRING(whitelistedInverse, DRIVER_PROPERTY_WHITELISTED_INVERSE);
+    ntstatus = HidHideDriverGetBooleanProperty(&whitelistedInverse, &pControlDeviceContext->whitelistedInverse);
+    if (!NT_SUCCESS(ntstatus)) return (ntstatus);
+
     return (STATUS_SUCCESS);
 }
 
@@ -317,6 +322,12 @@ NTSTATUS OnControlDeviceIoDeviceControl(WDFDEVICE wdfControlDevice, WDFQUEUE wdf
         break;
     case IOCTL_SET_ACTIVE:
         return (OnControlDeviceIoSetActive(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
+        break;
+    case IOCTL_GET_WLINVERSE:
+        return (OnControlDeviceIoGetInverse(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
+        break;
+    case IOCTL_SET_WLINVERSE:
+        return (OnControlDeviceIoSetInverse(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
         break;
     default:
         LOG_AND_RETURN_NTSTATUS(L"OnControlDeviceIoDeviceControl", STATUS_INVALID_PARAMETER);
@@ -499,6 +510,49 @@ NTSTATUS OnControlDeviceIoSetActive(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQueu
 }
 
 _Use_decl_annotations_
+NTSTATUS OnControlDeviceIoGetInverse(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQueue, WDFREQUEST wdfRequest, size_t outputBufferLength, size_t inputBufferLength, ULONG ioControlCode)
+{
+    TRACE_ALWAYS(L"");
+    UNREFERENCED_PARAMETER(wdfControlDevice);
+    UNREFERENCED_PARAMETER(wdfQueue);
+    UNREFERENCED_PARAMETER(ioControlCode);
+
+    PBOOLEAN buffer;
+    NTSTATUS ntstatus;
+
+    // Validate buffer and, on success, report the current status
+    if ((0 != inputBufferLength) || (sizeof(BOOLEAN) != outputBufferLength)) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+    ntstatus = WdfRequestRetrieveOutputBuffer(wdfRequest, outputBufferLength, &buffer, NULL);
+    if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfRequestRetrieveOutputBuffer", ntstatus);
+    *buffer = GetInverse();
+
+    WdfRequestCompleteWithInformation(wdfRequest, STATUS_SUCCESS, outputBufferLength);
+    return (STATUS_SUCCESS);
+}
+
+_Use_decl_annotations_
+NTSTATUS OnControlDeviceIoSetInverse(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQueue, WDFREQUEST wdfRequest, size_t outputBufferLength, size_t inputBufferLength, ULONG ioControlCode)
+{
+    TRACE_ALWAYS(L"");
+    UNREFERENCED_PARAMETER(wdfControlDevice);
+    UNREFERENCED_PARAMETER(wdfQueue);
+    UNREFERENCED_PARAMETER(ioControlCode);
+
+    PBOOLEAN buffer;
+    NTSTATUS ntstatus;
+
+    // Validate buffer, retrieve its content, and set the state accordingly
+    if ((sizeof(BOOLEAN) != inputBufferLength) || (0 != outputBufferLength)) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+    ntstatus = WdfRequestRetrieveInputBuffer(wdfRequest, inputBufferLength, &buffer, NULL);
+    if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfRequestRetrieveOutputBuffer", ntstatus);
+    ntstatus = SetInverse(FALSE != *buffer);
+    if (!NT_SUCCESS(ntstatus)) return (ntstatus);
+
+    WdfRequestCompleteWithInformation(wdfRequest, STATUS_SUCCESS, outputBufferLength);
+    return (STATUS_SUCCESS);
+}
+
+_Use_decl_annotations_
 BOOLEAN Whitelisted(HANDLE processId, BOOLEAN* cacheHit)
 {
     TRACE_PERFORMANCE(L"");
@@ -506,7 +560,8 @@ BOOLEAN Whitelisted(HANDLE processId, BOOLEAN* cacheHit)
     PCONTROL_DEVICE_CONTEXT pControlDeviceContext;
 
     pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
-    return (STATUS_PROCESS_IN_JOB == HidHideProcessIdCheckFullImageNameAgainstWhitelist(s_criticalSectionLock, processId, pControlDeviceContext->whitelistedFullImageNames, cacheHit));
+    BOOLEAN result = (STATUS_PROCESS_IN_JOB == HidHideProcessIdCheckFullImageNameAgainstWhitelist(s_criticalSectionLock, processId, pControlDeviceContext->whitelistedFullImageNames, cacheHit));
+    return GetInverse() ? !result : result;
 }
 
 _Use_decl_annotations_
@@ -664,6 +719,50 @@ NTSTATUS SetActive(BOOLEAN active)
     // Log service active changes
     if ((changed) && (active))  LogEvent(ETW(Enabled),  L"");
     if ((changed) && (!active)) LogEvent(ETW(Disabled), L"");
+
+    return (STATUS_SUCCESS);
+}
+
+_Use_decl_annotations_
+BOOLEAN GetInverse()
+{
+    TRACE_PERFORMANCE(L"");
+
+    PCONTROL_DEVICE_CONTEXT pControlDeviceContext;
+    BOOLEAN                 inverse;
+
+    WdfWaitLockAcquire(s_criticalSectionLock, NULL);
+    pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
+    inverse = pControlDeviceContext->whitelistedInverse;
+    WdfWaitLockRelease(s_criticalSectionLock);
+
+    return (inverse);
+}
+
+_Use_decl_annotations_
+NTSTATUS SetInverse(BOOLEAN inverse)
+{
+    TRACE_PERFORMANCE(L"");
+
+    PCONTROL_DEVICE_CONTEXT pControlDeviceContext;
+    BOOLEAN                 changed;
+    NTSTATUS                ntstatus;
+
+    // Persist the new setting in the registry
+    DECLARE_CONST_UNICODE_STRING(parameterName, DRIVER_PROPERTY_WHITELISTED_INVERSE);
+    ntstatus = HidHideDriverSetBooleanProperty(&parameterName, inverse);
+    if (!NT_SUCCESS(ntstatus)) return (ntstatus);
+
+    // Apply the new setting
+    WdfWaitLockAcquire(s_criticalSectionLock, NULL);
+    pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
+    changed = (pControlDeviceContext->whitelistedInverse != inverse);
+    pControlDeviceContext->whitelistedInverse = inverse;
+    WdfWaitLockRelease(s_criticalSectionLock);
+
+    // Log service inverse changes
+    if ((changed) && (inverse))  LogEvent(ETW(Enabled), L"");
+    if ((changed) && (!inverse)) LogEvent(ETW(Disabled), L"");
 
     return (STATUS_SUCCESS);
 }

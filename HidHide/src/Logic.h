@@ -9,6 +9,7 @@
 #define DRIVER_PROPERTY_WHITELISTED_FULL_IMAGE_NAMES      L"WhitelistedFullImageNames"      // HKLM\SYSTEM\CurrentControlSet\Services\HidHide\Parameters\WhitelistedFullImageNames (REG_MULTI_Z)
 #define DRIVER_PROPERTY_BLACKLISTED_DEVICE_INSTANCE_PATHS L"BlacklistedDeviceInstancePaths" // HKLM\SYSTEM\CurrentControlSet\Services\HidHide\Parameters\BlacklistedDeviceInstancePaths (REG_MULTI_Z)
 #define DRIVER_PROPERTY_ACTIVE                            L"Active"                         // HKLM\SYSTEM\CurrentControlSet\Services\HidHide\Parameters\Active (DWORD)
+#define DRIVER_PROPERTY_WHITELISTED_INVERSE               L"WhitelistedInverse"             // HKLM\SYSTEM\CurrentControlSet\Services\HidHide\Parameters\WhitelistedInverse (DWORD)
 
 // The Hid Hide I/O control custom device type (range 32768 .. 65535)
 #define IoControlDeviceType 32769
@@ -20,6 +21,8 @@
 #define IOCTL_SET_BLACKLIST CTL_CODE(IoControlDeviceType, 2051, METHOD_BUFFERED, FILE_READ_DATA)
 #define IOCTL_GET_ACTIVE    CTL_CODE(IoControlDeviceType, 2052, METHOD_BUFFERED, FILE_READ_DATA)
 #define IOCTL_SET_ACTIVE    CTL_CODE(IoControlDeviceType, 2053, METHOD_BUFFERED, FILE_READ_DATA)
+#define IOCTL_GET_WLINVERSE CTL_CODE(IoControlDeviceType, 2054, METHOD_BUFFERED, FILE_READ_DATA)
+#define IOCTL_SET_WLINVERSE CTL_CODE(IoControlDeviceType, 2055, METHOD_BUFFERED, FILE_READ_DATA)
 
 // {0C320FF7-BD9B-42B6-BDAF-49FEB9C91649}
 DEFINE_GUID(HidHideInterfaceGuid, 0xc320ff7, 0xbd9b, 0x42b6, 0xbd, 0xaf, 0x49, 0xfe, 0xb9, 0xc9, 0x16, 0x49);
@@ -45,6 +48,9 @@ typedef struct _CONTROL_DEVICE_CONTEXT
 
     // The device active (enabled) state
     BOOLEAN active;
+
+    // The whitelisted inverse (enabled) state
+    BOOLEAN whitelistedInverse;
 
     // During a shutdown we may only delete the control device object after the last device is removed so keep track of the number of devices and shutdown state
     BOOLEAN shutdownPending;
@@ -135,6 +141,16 @@ _IRQL_requires_same_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS OnControlDeviceIoSetActive(_In_ WDFDEVICE wdfDevice, _In_ WDFQUEUE wdfQueue, _In_ WDFREQUEST wdfRequest, _In_ size_t outputBufferLength, _In_ size_t inputBufferLength, _In_ ULONG ioControlCode);
 
+// Handle GetInverse I/O request from client
+_IRQL_requires_same_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS OnControlDeviceIoGetInverse(_In_ WDFDEVICE wdfDevice, _In_ WDFQUEUE wdfQueue, _In_ WDFREQUEST wdfRequest, _In_ size_t outputBufferLength, _In_ size_t inputBufferLength, _In_ ULONG ioControlCode);
+
+// Handle SetInverse I/O request from client
+_IRQL_requires_same_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS OnControlDeviceIoSetInverse(_In_ WDFDEVICE wdfDevice, _In_ WDFQUEUE wdfQueue, _In_ WDFREQUEST wdfRequest, _In_ size_t outputBufferLength, _In_ size_t inputBufferLength, _In_ ULONG ioControlCode);
+
 // Is the process id on the whitelist?
 // On a match, the cache-hit indicates if its the first time or not
 _IRQL_requires_same_
@@ -179,6 +195,16 @@ BOOLEAN GetActive();
 _IRQL_requires_same_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS SetActive(_In_ BOOLEAN active);
+
+// Get the inverse state (enable/disable whitelist inverse)
+_IRQL_requires_same_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN GetInverse();
+
+// Set the inverse state (enable/disable whitelist inverse)
+_IRQL_requires_same_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS SetInverse(_In_ BOOLEAN inverse);
 
 // Update data for control device deletion and delete the control device when needed
 // A positive number indicates that we have one or more new filter devices created
