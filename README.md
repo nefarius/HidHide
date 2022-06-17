@@ -33,7 +33,7 @@ multiple notifications while binding game functions and device controls.
 
 ## Package content
 
-*HidHide* is a kernel-mode filter driver available for Windows 8.1 or higher (KMDF 1.13+). It comes with a configuration
+*HidHide* is a kernel-mode filter driver available for **Windows 10** or higher (KMDF 1.13+). It comes with a configuration
 utility via which the driver is configured and controlled. The filter driver starts automatically and runs unattended
 with system privileges. A system reboot may be triggered after driver installation or removal. The configuration utility
 runs in the least privileged mode and doesn't require elevated rights.
