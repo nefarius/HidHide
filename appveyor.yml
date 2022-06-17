@@ -6,10 +6,6 @@ skip_commits:
     - '**/*.md'
 platform:
 - x64
-skip_commits:
-  files:
-    - .github/*
-    - '**/*.md'
 build:
   project: $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
 after_build:
