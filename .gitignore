@@ -365,3 +365,4 @@ HidHide/RC*
 HidHideClient/RC*
 *.opendb
 *.aps
+/Setup
