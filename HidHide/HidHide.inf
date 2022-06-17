@@ -28,27 +28,35 @@ HidHide.sys                            = 1,,
 [DestinationDirs]
 HidHide_Device_CopyFiles               = 12 ; %windir%\System32\DRIVERS\
 
-; ==== Manufacturer Section ====
-
-[Manufacturer]
-%ManufacturerName%                     = Standard,NT$ARCH$
-
-; ==== Models Section ====
-
-[Standard.NT$ARCH$]
-%HidHideDeviceName%                    = HidHide_Device,root\HidHide
-
 ; ==== DDInstall Section ====
 
-[HidHide_Device]
+[DefaultInstall.NT$ARCH$]
+OptionDesc                             = %HidHideServiceDesc%
 CopyFiles                              = HidHide_Device_CopyFiles
+AddReg                                 = HidHide_Device_AddReg
+
+[HidHide_Device_AddReg]
+HKLM, System\CurrentControlSet\Control\Class\{745a17a0-74d3-11d0-b6fe-00a0c90f57da}, UpperFilters, 0x00010008, HidHide ; HIDClass
+HKLM, System\CurrentControlSet\Control\Class\{d61ca365-5af4-4486-998b-9db4734c6ca3}, UpperFilters, 0x00010008, HidHide ; XnaComposite
+HKLM, System\CurrentControlSet\Control\Class\{05f5cfe2-4733-4950-a6bb-07aad01a3a84}, UpperFilters, 0x00010008, HidHide ; XboxComposite
+
+[DefaultUninstall.NT$ARCH$]
+LegacyUninstall                        = 1
+DelFiles                               = @HidHide.sys
+DelReg                                 = HidHide_Device_DelReg
+
+[HidHide_Device_DelReg]
+HKLM, System\CurrentControlSet\Control\Class\{745a17a0-74d3-11d0-b6fe-00a0c90f57da}, UpperFilters, 0x00018002, HidHide ; HIDClass
+HKLM, System\CurrentControlSet\Control\Class\{d61ca365-5af4-4486-998b-9db4734c6ca3}, UpperFilters, 0x00018002, HidHide ; XnaComposite
+HKLM, System\CurrentControlSet\Control\Class\{05f5cfe2-4733-4950-a6bb-07aad01a3a84}, UpperFilters, 0x00018002, HidHide ; XboxComposite
+
 
 [HidHide_Device_CopyFiles]
 HidHide.sys,,,0x00004000 ; COPYFLG_IN_USE_RENAME
 
 ; ==== DDInstall.Services Section ====
 
-[HidHide_Device.Services]
+[DefaultInstall.NT$ARCH$.Services]
 AddService                             = HidHide,%AddServiceFlags%,HidHide_Device_Service_AddService
 
 [HidHide_Device_Service_AddService]
@@ -67,13 +75,6 @@ HKR,"Parameters","Active",%FLG_ADDREG_TYPE_DWORD%,0                             
 [HidHide_Device_Service_AddReg.Security]
 "D:P(OD;CI;KA;;;BA)(OD;CI;KA;;;BU)"                                             ; HKLM\SYSTEM\ControlSet001\Services\HidHide\Parameters\ (prohibit build in adminstrators, and build in users of doing anything with the keys)
 
-; ==== DDInstall.Wdf Section ====
-
-[HidHide_Device.Wdf]
-KmdfService                            = HidHide,HidHide_Device_Wdf_KmdfService
-
-[HidHide_Device_Wdf_KmdfService]
-KmdfLibraryVersion                     = $KMDFVERSION$
 
 ; ==== Strings Section ====
 
@@ -82,6 +83,7 @@ ManufacturerName                       = "Nefarius Software Solutions e.U."
 DiskName                               = "Nefarius HidHide Installation Disk"
 HidHideDeviceName                      = "Nefarius HidHide Device"
 HidHideServiceDisplayName              = "Nefarius HidHide Service"
+HidHideServiceDesc                     = "Nefarius HID Class Filter Driver for restricting access to gaming peripherals"
 AddServiceFlags                        = 0x000013FE ; SPSVCINST_NOCLOBBER_REQUIREDPRIVILEGES
                                                     ; SPSVCINST_STOPSERVICE
                                                     ; SPSVCINST_NOCLOBBER_DESCRIPTION
