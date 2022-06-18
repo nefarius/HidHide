@@ -33,7 +33,6 @@ Global
 		{912E13E7-684B-4B88-8A79-F76288895389}.Production Release|x64.ActiveCfg = Production Release|x64
 		{912E13E7-684B-4B88-8A79-F76288895389}.Production Release|x64.Build.0 = Production Release|x64
 		{912E13E7-684B-4B88-8A79-F76288895389}.Release|x64.ActiveCfg = Release|x64
-		{912E13E7-684B-4B88-8A79-F76288895389}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
