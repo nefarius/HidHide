@@ -118,7 +118,9 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Inf Include="HidHide.inf" />
+    <Inf Include="HidHide_HID.inf" />
+    <Inf Include="HidHide_XBOX.inf" />
+    <Inf Include="HidHide_XNA.inf" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Config.c" />

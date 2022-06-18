@@ -5,11 +5,10 @@
 
 [Version]
 Signature = "$WINDOWS NT$"
-Class = USB
-ClassGuid = {36FC9E60-C465-11CF-8056-444553540000}
-DriverPackageType = ClassFilter
+Class = HIDClass
+ClassGuid = {745a17a0-74d3-11d0-b6fe-00a0c90f57da}
 Provider = %ManufacturerName%
-CatalogFile = HidHide.cat
+CatalogFile = HidHide_HID.cat
 DriverVer = 
 PnpLockdown = 1
  
@@ -18,33 +17,61 @@ PnpLockdown = 1
 1 = %DiskName%,,,""
 
 [SourceDisksFiles]
-HidHide.sys  = 1,,
+HidHide.sys = 1,,
 
 [DestinationDirs]
 DefaultDestDir = 12
 HidHide.DriverFiles = 12
 
+;
+; Install section
+;
+
 [DefaultInstall.NT$ARCH$]
+; No support below Windows 10
+
+[DefaultInstall.NT$ARCH$.10.0]
+; Windows 10 below version 1903
 OptionDesc = %HidHideServiceDesc%
 CopyFiles = HidHide.DriverFiles
 AddReg = HidHide_AddReg
 
+[DefaultInstall.NT$ARCH$.10.0...18362]
+; Windows 10 version 1903 and up
+OptionDesc = %HidHideServiceDesc%
+CopyFiles = HidHide.DriverFiles
+
+[DefaultInstall.NTamd64.Filters]
+; Windows 10 version 1903 and up
+AddFilter = %HidHideServiceName%,,Filter_Install
+    
+[Filter_Install]
+FilterPosition = Upper
+
+[HidHide_AddReg]
+; Add HidHide to UpperFilters
+HKLM, System\CurrentControlSet\Control\Class\{745a17a0-74d3-11d0-b6fe-00a0c90f57da}, UpperFilters, 0x00010008, HidHide ; HIDClass
+
+;
+; Uninstall section
+;
+
 [DefaultUninstall.NT$ARCH$]
+; No support below Windows 10
+
+[DefaultUninstall.NT$ARCH$.10.0]
+; Windows 10 below version 1903
 LegacyUninstall = 1
 DelFiles = @HidHide.sys
 DelReg = HidHide_DelReg
 
-[HidHide_AddReg]
-;Add HidHide to UpperFilters
-HKLM, System\CurrentControlSet\Control\Class\{745a17a0-74d3-11d0-b6fe-00a0c90f57da}, UpperFilters, 0x00010008, HidHide ; HIDClass
-HKLM, System\CurrentControlSet\Control\Class\{d61ca365-5af4-4486-998b-9db4734c6ca3}, UpperFilters, 0x00010008, HidHide ; XnaComposite
-HKLM, System\CurrentControlSet\Control\Class\{05f5cfe2-4733-4950-a6bb-07aad01a3a84}, UpperFilters, 0x00010008, HidHide ; XboxComposite
+[DefaultUninstall.NT$ARCH$.10.0...18362]
+; Windows 10 version 1903 and up
+DelFiles = @HidHide.sys
 
 [HidHide_DelReg]
-;Delete HidHide from UpperFilters
+; Delete HidHide from UpperFilters
 HKLM, System\CurrentControlSet\Control\Class\{745a17a0-74d3-11d0-b6fe-00a0c90f57da}, UpperFilters, 0x00018002, HidHide ; HIDClass
-HKLM, System\CurrentControlSet\Control\Class\{d61ca365-5af4-4486-998b-9db4734c6ca3}, UpperFilters, 0x00018002, HidHide ; XnaComposite
-HKLM, System\CurrentControlSet\Control\Class\{05f5cfe2-4733-4950-a6bb-07aad01a3a84}, UpperFilters, 0x00018002, HidHide ; XboxComposite
 
 [HidHide.DriverFiles]
 HidHide.sys

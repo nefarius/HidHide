@@ -64,7 +64,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Inf Include="HidHide.inf" />
+    <Inf Include="HidHide_HID.inf" />
+    <Inf Include="HidHide_XNA.inf" />
+    <Inf Include="HidHide_XBOX.inf" />
   </ItemGroup>
   <ItemGroup>
     <None Include="HidHide.wprp" />
