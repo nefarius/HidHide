@@ -14,5 +14,7 @@
 .Set DestinationDir=HidHide_x86
 LICENSE.rtf
 bin\Release\x86\HidHide.pdb
-bin\Release\x86\HidHide\HidHide.inf
+bin\Release\x86\HidHide\HidHide_HID.inf
+bin\Release\x86\HidHide\HidHide_XNA.inf
+bin\Release\x86\HidHide\HidHide_XBOX.inf
 bin\Release\x86\HidHide\HidHide.sys
