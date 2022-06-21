@@ -106,4 +106,4 @@ HKR,"Parameters","WhitelistedInverse",0x00010001,0
 ManufacturerName = "Nefarius Software Solutions e.U." 
 DiskName = "Nefarius HidHide Installation Disk"
 HidHideServiceDesc = "Nefarius HID Class Filter Driver for restricting access to gaming peripherals"
-HidHideServiceName = "Nefarius HidHide Service"
+HidHideServiceName = "HidHide"
