@@ -61,6 +61,7 @@
     <ROW Component="hidhide_hid.cat" ComponentId="{140B90CF-C350-460A-939A-7DA0B8A8377C}" Directory_="HidHide_Dir" Attributes="0" KeyPath="LICENSE.rtf" Type="0"/>
     <ROW Component="install.cmd" ComponentId="{9D670EEF-F372-47BF-96BD-D1C5960200A4}" Directory_="x64_Dir" Attributes="0" KeyPath="install.cmd" Type="0"/>
     <ROW Component="nefconw.exe" ComponentId="{F306D60E-E3CF-4C2D-B69C-F0AED9032A08}" Directory_="x64_Dir" Attributes="256" KeyPath="nefconw.exe"/>
+    <ROW Component="updater.exe" ComponentId="{CA7884F6-0DC9-488F-923B-7F3857E26894}" Directory_="APPDIR" Attributes="0" KeyPath="updater.exe"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatsComponent">
     <ROW Feature="C4FE6FD5B7C4D07B3A313E754A9A6A8" Title="Visual C++ Redistributable for Visual Studio 2015-2022 x64" Description="Visual C++ Redistributable for Visual Studio 2015-2022 x64" Display="3" Level="1" Attributes="16"/>
@@ -87,6 +88,7 @@
     <ROW File="install.cmd" Component_="install.cmd" FileName="install.cmd" Attributes="0" SourcePath="install.cmd" SelfReg="false"/>
     <ROW File="nefconw.exe" Component_="nefconw.exe" FileName="nefconw.exe" Attributes="0" SourcePath="nefconw.exe" SelfReg="false" DigSign="true"/>
     <ROW File="uninstall.cmd" Component_="install.cmd" FileName="UNINST~1.CMD|uninstall.cmd" Attributes="0" SourcePath="uninstall.cmd" SelfReg="false"/>
+    <ROW File="updater.exe" Component_="updater.exe" FileName="HIDHID~1.EXE|HidHide_Updater.exe" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;AI_STUBS&gt;updater.exe" SelfReg="false" DigSign="true"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" Options="2"/>
@@ -130,6 +132,11 @@
     <ROW Action="AI_ExtractPrereq" Description="Extracting prerequisite software" DescriptionLocId="ActionText.Description.AI_ExtractPrereq" Template="Extracting [1]{[2] completed}" TemplateLocId="ActionText.Template.AI_ExtractPrereq"/>
     <ROW Action="AI_InstallPostPrerequisite" Description="Installing prerequisite software" DescriptionLocId="ActionText.Description.AI_InstallPrerequisite" Template="Installing [1]{[2] completed}" TemplateLocId="ActionText.Template.AI_InstallPrerequisite"/>
     <ROW Action="AI_InstallPrerequisite" Description="Installing prerequisite software" DescriptionLocId="ActionText.Description.AI_InstallPrerequisite" Template="Installing [1]{[2] completed}" TemplateLocId="ActionText.Template.AI_InstallPrerequisite"/>
+    <ROW Action="AI_ProcessTasks2" Description="Generating actions to schedule tasks on the local computer:" DescriptionLocId="ActionText.Description.AI_ProcessTasks" Template="Task Name: [1]" TemplateLocId="ActionText.Template.AI_ProcessTasks"/>
+    <ROW Action="AI_RemoveTasks2" Description="Removing scheduled task from the local computer" DescriptionLocId="ActionText.Description.AI_RemoveTasks" Template="Task Name: [1]" TemplateLocId="ActionText.Template.AI_RemoveTasks"/>
+    <ROW Action="AI_RollbackTasks2" Description="Rolling back scheduled task on the local computer" DescriptionLocId="ActionText.Description.AI_RollbackTasks" Template="Task Name: [1]" TemplateLocId="ActionText.Template.AI_RollbackTasks"/>
+    <ROW Action="AI_ScheduleTasks2" Description="Scheduling task on the local computer" DescriptionLocId="ActionText.Description.AI_ScheduleTasks" Template="Task Name: [1]" TemplateLocId="ActionText.Template.AI_ScheduleTasks"/>
+    <ROW Action="AI_UninstallTasks2" Description="Generating actions to remove scheduled tasks from the local computer:" DescriptionLocId="ActionText.Description.AI_UninstallTasks"/>
     <ROW Action="AI_VerifyPrereq" Description="Verifying prerequisites" DescriptionLocId="ActionText.Description.AI_VerifyPrereq" Template="[1] was not installed correctly." TemplateLocId="ActionText.Template.AI_VerifyPrereq"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiAppSearchComponent">
@@ -141,6 +148,7 @@
     <ROW Name="SoftwareDetector.dll" SourcePath="&lt;AI_CUSTACTS&gt;SoftwareDetector.dll"/>
     <ROW Name="aicustact.dll" SourcePath="&lt;AI_CUSTACTS&gt;aicustact.dll"/>
     <ROW Name="aipackagechainer.exe" SourcePath="&lt;AI_CUSTACTS&gt;aipackagechainer.exe"/>
+    <ROW Name="aischeduler2.dll" SourcePath="&lt;AI_CUSTACTS&gt;aischeduler2.dll"/>
     <ROW Name="file_deleter.ps1" SourcePath="&lt;AI_SCRIPTS&gt;file_deleter.ps1"/>
     <ROW Name="lzmaextractor.dll" SourcePath="&lt;AI_CUSTACTS&gt;lzmaextractor.dll"/>
   </COMPONENT>
@@ -213,10 +221,17 @@
     <ROW Action="AI_InstallPrerequisite" Type="1" Source="Prereq.dll" Target="InstallPrereq"/>
     <ROW Action="AI_LaunchChainer" Type="3314" Source="AI_PREREQ_CHAINER"/>
     <ROW Action="AI_PREPARE_UPGRADE" Type="65" Source="aicustact.dll" Target="PrepareUpgrade"/>
+    <ROW Action="AI_ProcessTasks2" Type="1" Source="aischeduler2.dll" Target="ProcessTasks"/>
     <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Type="51" Source="AI_SETUPEXEPATH" Target="[AI_SETUPEXEPATH_ORIGINAL]"/>
+    <ROW Action="AI_RemoveTasks2" Type="11265" Source="aischeduler2.dll" Target="DeleteTasks" WithoutSeq="true"/>
     <ROW Action="AI_ResolveKnownFolders" Type="1" Source="aicustact.dll" Target="AI_ResolveKnownFolders"/>
+    <ROW Action="AI_RollbackTasks2" Type="11521" Source="aischeduler2.dll" Target="DeleteTasks" WithoutSeq="true"/>
     <ROW Action="AI_SHOW_LOG" Type="65" Source="aicustact.dll" Target="LaunchLogFile" WithoutSeq="true"/>
     <ROW Action="AI_STORE_LOCATION" Type="51" Source="ARPINSTALLLOCATION" Target="[APPDIR]"/>
+    <ROW Action="AI_ScheduleTasks2" Type="11265" Source="aischeduler2.dll" Target="ScheduleTasks" WithoutSeq="true"/>
+    <ROW Action="AI_UPDATER_SERVICE_CONFIG" Type="3090" Source="updater.exe" Target="/configservice -name &quot;updater&quot;"/>
+    <ROW Action="AI_UPDATER_UNINSTALL" Type="82" Source="updater.exe" Target="/clean silent"/>
+    <ROW Action="AI_UninstallTasks2" Type="1" Source="aischeduler2.dll" Target="UninstallTasks"/>
     <ROW Action="AI_VerifyPrereq" Type="1" Source="Prereq.dll" Target="VerifyPrereq"/>
     <ROW Action="AddClassHID" Type="1106" Source="nefconw.exe" Target="--add-class-filter --position upper --service-name HidHide --class-guid 745a17a0-74d3-11d0-b6fe-00a0c90f57da"/>
     <ROW Action="AddClassXBOX" Type="1106" Source="nefconw.exe" Target="--add-class-filter --position upper --service-name HidHide --class-guid 05f5cfe2-4733-4950-a6bb-07aad01a3a84"/>
@@ -248,9 +263,23 @@
     <ROW Feature_="HidHide_XNA" Component_="HidHide_XNA.cat"/>
     <ROW Feature_="MainFeature" Component_="install.cmd"/>
     <ROW Feature_="MainFeature" Component_="nefconw.exe"/>
+    <ROW Feature_="MainFeature" Component_="updater.exe"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
     <ROW Name="Application.exe" SourcePath="..\HidHideCLI\src\Application.ico" Index="0"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiIniFileComponent">
+    <ROW IniFile="AppDir" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="AppDir" Value="[APPDIR]" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="ApplicationName" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="ApplicationName" Value="[ProductName]" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="ApplicationVersion" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="ApplicationVersion" Value="[ProductVersion]" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="CheckFrequency" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="CheckFrequency" Value="2" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="CompanyName" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="CompanyName" Value="[Manufacturer]" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="DefaultCommandLine" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="DefaultCommandLine" Value="/checknow" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="DownloadsFolder" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="DownloadsFolder" Value="[CommonAppDataFolder][Manufacturer]\[ProductName]\updates\" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="Flags" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="Flags" Value="PerMachine|ShowConfigOptionsButton" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="ID" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="ID" Value="[UpgradeCode]" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="SupportServiceName" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="SupportServiceName" Value="updater" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="URL" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="URL" Value="https://updates.vigem.org/api/github/ViGEm/HidHide/updates" Action="0" Component_="updater.exe"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
     <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
@@ -287,6 +316,10 @@
     <ROW Action="UninstallXNA" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="1605"/>
     <ROW Action="UninstallXBOX" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="1606"/>
     <ROW Action="ForceReboot" Condition="AI_UPGRADE&lt;&gt;&quot;No&quot; AND OLDPRODUCTS AND AFTERREBOOT&lt;&gt;1" Sequence="1501" SeqType="0"/>
+    <ROW Action="AI_UPDATER_UNINSTALL" Condition="($updater.exe = 2) AND (?updater.exe = 3) AND NOT (UPGRADINGPRODUCTCODE)" Sequence="1551"/>
+    <ROW Action="AI_ProcessTasks2" Condition="(VersionNT &gt;= 600) AND (REMOVE&lt;&gt;&quot;ALL&quot;)" Sequence="1624"/>
+    <ROW Action="AI_UninstallTasks2" Condition="(VersionNT &gt;= 600) AND (REMOVE=&quot;ALL&quot;)" Sequence="1699"/>
+    <ROW Action="AI_UPDATER_SERVICE_CONFIG" Condition="( ( ( NOT Installed AND VersionNT) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; AND VersionNT) ) AND ($updater.exe = 3) )" Sequence="5801"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstallUISequenceComponent">
     <ROW Action="AI_ResolveKnownFolders" Sequence="53"/>
@@ -333,6 +366,12 @@
     <ROW Registry="Software" Root="-1" Key="Software" Name="\"/>
     <ROW Registry="Version" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
   </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiServCtrlComponent">
+    <ROW ServiceControl="updater" Name="updater" Event="160" Wait="1" Component_="updater.exe"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiServInstComponent">
+    <ROW ServiceInstall="updater" Name="updater" DisplayName="updater" ServiceType="16" StartType="3" ErrorControl="1" Arguments="/runservice" Component_="updater.exe" Description="Updater Support Service"/>
+  </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
     <ROW Shortcut="HidHideConfigurationClient" Directory_="DesktopFolder" Name="HIDHID~1|HidHide Configuration Client" Component_="HidHideClient.exe" Target="[#HidHideClient.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="x64_Dir"/>
     <ROW Shortcut="HidHideConfigurationClient_1" Directory_="StartMenuFolder" Name="HIDHID~1|HidHide Configuration Client" Component_="HidHideClient.exe" Target="[#HidHideClient.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="x64_Dir"/>
@@ -351,5 +390,11 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.PreReqSearchComponent">
     <ROW SearchKey="C4FE6FD5B7C4D07B3A313E754A9A6A8Vers" Prereq="C4FE6FD5B7C4D07B3A313E754A9A6A8" SearchType="2" SearchString="HKLM\SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum\Version" VerMin="14.30.30704" Order="1" Property="PreReqSearch_C4FE6FD5B7C4D07B3A313E"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.ScheduledTasksComponent">
+    <ROW TaskId="AI_updater" TaskName="HidHide_Updater" Run="[#updater.exe]" CmdLine="/silent" WorkDir="[APPDIR]" UserProp="[%UserDomain]\[LogonUser]" Flags="24576" Trigger="1|1|1|1|0|0|0||0|0" Settings="2|60" Condition="1" TaskVersion="2.0"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.UpdaterComponent">
+    <ROW Updater="updater.exe" URL="URL" SearchFreq="CheckFrequency" DownloadsFolder="DownloadsFolder" ID="ID" TargetDir="AppDir" AppName="ApplicationName" AppVersion="ApplicationVersion" CompanyName="CompanyName" DefCommandLine="DefaultCommandLine" SupportServiceName="SupportServiceName" Flags="Flags" IconPath="..\HidHideCLI\src\Application.ico" IconIndex="0" UnistallCASeq="AI_UPDATER_UNINSTALL" SupportServiceCASeq="AI_UPDATER_SERVICE_CONFIG" SupportService="updater" SupportServiceCtrl="updater" TaskId="AI_updater" Description="[|UpdaterName] [|ProductVersion]"/>
   </COMPONENT>
 </DOCUMENT>
