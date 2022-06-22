@@ -174,7 +174,7 @@ _Use_decl_annotations_
     NTSTATUS       ntstatus;
 
     // Bail out when memory allocation failed
-    temp = ExAllocatePoolWithTag(NonPagedPool, sizeof(*temp), CONFIG_TAG);
+    temp = ExAllocatePoolZero(NonPagedPool, sizeof(*temp), CONFIG_TAG);
     if (NULL == temp) LOG_AND_RETURN_NTSTATUS(L"ExAllocatePoolWithTag", STATUS_NO_MEMORY);
 
     // Ensure that the left and right pointers are NULL and the string is terminated

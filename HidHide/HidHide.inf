@@ -5,10 +5,11 @@
 
 [Version]
 Signature = "$WINDOWS NT$"
-Class = XnaComposite
-ClassGuid = {d61ca365-5af4-4486-998b-9db4734c6ca3}
+Class = USB
+ClassGuid = {36FC9E60-C465-11CF-8056-444553540000}
+DriverPackageType = ClassFilter
 Provider = %ManufacturerName%
-CatalogFile = HidHide_XNA.cat
+CatalogFile = HidHide.cat
 DriverVer = 
 PnpLockdown = 1
  
@@ -23,55 +24,27 @@ HidHide.sys = 1,,
 DefaultDestDir = 12
 HidHide.DriverFiles = 12
 
-;
-; Install section
-;
-
 [DefaultInstall.NT$ARCH$]
-; No support below Windows 10
-
-[DefaultInstall.NT$ARCH$.10.0]
-; Windows 10 below version 1903
 OptionDesc = %HidHideServiceDesc%
 CopyFiles = HidHide.DriverFiles
 AddReg = HidHide_AddReg
 
-[DefaultInstall.NT$ARCH$.10.0...18362]
-; Windows 10 version 1903 and up
-OptionDesc = %HidHideServiceDesc%
-CopyFiles = HidHide.DriverFiles
-
-[DefaultInstall.NTamd64.Filters]
-; Windows 10 version 1903 and up
-AddFilter = %HidHideServiceName%,,Filter_Install
-    
-[Filter_Install]
-FilterPosition = Upper
-
-[HidHide_AddReg]
-; Add HidHide to UpperFilters
-HKLM, System\CurrentControlSet\Control\Class\{d61ca365-5af4-4486-998b-9db4734c6ca3}, UpperFilters, 0x00010008, HidHide ; XnaComposite
-
-;
-; Uninstall section
-;
-
 [DefaultUninstall.NT$ARCH$]
-; No support below Windows 10
-
-[DefaultUninstall.NT$ARCH$.10.0]
-; Windows 10 below version 1903
 LegacyUninstall = 1
 DelFiles = @HidHide.sys
 DelReg = HidHide_DelReg
 
-[DefaultUninstall.NT$ARCH$.10.0...18362]
-; Windows 10 version 1903 and up
-DelFiles = @HidHide.sys
+[HidHide_AddReg]
+;Add HidHide to UpperFilters
+HKLM, System\CurrentControlSet\Control\Class\{745a17a0-74d3-11d0-b6fe-00a0c90f57da}, UpperFilters, 0x00010008, HidHide ; HIDClass
+HKLM, System\CurrentControlSet\Control\Class\{d61ca365-5af4-4486-998b-9db4734c6ca3}, UpperFilters, 0x00010008, HidHide ; XnaComposite
+HKLM, System\CurrentControlSet\Control\Class\{05f5cfe2-4733-4950-a6bb-07aad01a3a84}, UpperFilters, 0x00010008, HidHide ; XboxComposite
 
 [HidHide_DelReg]
-; Delete HidHide from UpperFilters
+;Delete HidHide from UpperFilters
+HKLM, System\CurrentControlSet\Control\Class\{745a17a0-74d3-11d0-b6fe-00a0c90f57da}, UpperFilters, 0x00018002, HidHide ; HIDClass
 HKLM, System\CurrentControlSet\Control\Class\{d61ca365-5af4-4486-998b-9db4734c6ca3}, UpperFilters, 0x00018002, HidHide ; XnaComposite
+HKLM, System\CurrentControlSet\Control\Class\{05f5cfe2-4733-4950-a6bb-07aad01a3a84}, UpperFilters, 0x00018002, HidHide ; XboxComposite
 
 [HidHide.DriverFiles]
 HidHide.sys
@@ -95,8 +68,6 @@ HKR,"Parameters","WhitelistedFullImageNames",0x00010002,""
 HKR,"Parameters","BlacklistedDeviceInstancePaths",0x00010002,""
 ; HKLM\SYSTEM\ControlSet001\Services\HidHide\Parameters\Active (disable service after each install as we require the user to run the configuration utility first)
 HKR,"Parameters","Active",0x00010001,0
-; HKLM\SYSTEM\ControlSet001\Services\HidHide\Parameters\WhitelistedInverse
-HKR,"Parameters","WhitelistedInverse",0x00010001,0
 
 [HidHide_Device_Service_AddReg.Security]
 ; HKLM\SYSTEM\ControlSet001\Services\HidHide\Parameters\ (prohibit built-in adminstrators, and built-in users of doing anything with the keys)
