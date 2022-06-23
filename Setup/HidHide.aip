@@ -19,10 +19,10 @@
     <ROW Property="ARPURLUPDATEINFO" Value="https://github.com/ViGEm/HidHide/releases"/>
     <ROW Property="IAgree" Value="No" Type="4"/>
     <ROW Property="Manufacturer" Value="Nefarius Software Solutions e.U."/>
-    <ROW Property="ProductCode" Value="1033:{27DA4340-FE06-4620-96DA-EA4417D6C28C} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{B74D4CD2-ECFB-4114-827F-583049AE19A6} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="HidHide"/>
-    <ROW Property="ProductVersion" Value="1.2.74"/>
+    <ROW Property="ProductVersion" Value="1.2.84"/>
     <ROW Property="REBOOT" MultiBuildValue="DefaultBuild:Force"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR;UPGRADE_1"/>
     <ROW Property="UpgradeCode" Value="{88FDE3F4-0C3A-4462-9FE0-5C25648A1026}"/>
@@ -55,9 +55,8 @@
     <ROW Component="HidHide.sys" ComponentId="{AA6173B6-0815-4B0E-BBB1-CA1299A51ACA}" Directory_="HidHide_Dir" Attributes="256" KeyPath="HidHide.sys_1" Type="0"/>
     <ROW Component="HidHideCLI.exe" ComponentId="{FEEC20CC-7370-4347-9A41-8DFD19FAC53D}" Directory_="x64_Dir" Attributes="256" KeyPath="HidHideCLI.exe"/>
     <ROW Component="HidHideClient.exe" ComponentId="{C3EC16D6-35D4-4479-812E-9CEA0346E2D8}" Directory_="x64_Dir" Attributes="256" KeyPath="HidHideClient.exe"/>
-    <ROW Component="HidHide_XBOX.inf_1" ComponentId="{83C18336-1AE5-4C9F-AFF1-DBA1AA697B19}" Directory_="HidHide_Dir" Attributes="0" Condition="VersionNT &gt;= 500" KeyPath="HidHide_XBOX.inf"/>
-    <ROW Component="HidHide_XNA.cat" ComponentId="{3F01BB1F-BB4D-4696-8946-265174A05A7F}" Directory_="HidHide_Dir" Attributes="0" KeyPath="HidHide_XNA.cat_1" Type="0"/>
     <ROW Component="ProductInformation" ComponentId="{9BBA26D8-0EE7-4EA8-B2F3-6283DBAD7DDF}" Directory_="APPDIR" Attributes="260" KeyPath="Version"/>
+    <ROW Component="hidhide.cat" ComponentId="{35CB06F9-C51D-4996-BBC9-4F000A66462D}" Directory_="HidHide_Dir" Attributes="0" KeyPath="hidhide.cat" Type="0"/>
     <ROW Component="hidhide_hid.cat" ComponentId="{140B90CF-C350-460A-939A-7DA0B8A8377C}" Directory_="HidHide_Dir" Attributes="0" KeyPath="LICENSE.rtf" Type="0"/>
     <ROW Component="install.cmd" ComponentId="{9D670EEF-F372-47BF-96BD-D1C5960200A4}" Directory_="x64_Dir" Attributes="0" KeyPath="install.cmd" Type="0"/>
     <ROW Component="nefconw.exe" ComponentId="{F306D60E-E3CF-4C2D-B69C-F0AED9032A08}" Directory_="x64_Dir" Attributes="256" KeyPath="nefconw.exe"/>
@@ -75,20 +74,16 @@
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFilesComponent">
     <ROW File="HidHide.pdb" Component_="HidHide.pdb" FileName="HidHide.pdb" Attributes="0" SourcePath="..\drivers\x64\HidHide.pdb" SelfReg="false"/>
-    <ROW File="hidhide_xbox.cat" Component_="HidHide_XBOX.inf_1" FileName="HIDHID~2.CAT|hidhide_xbox.cat" Attributes="0" SourcePath="..\drivers\x64\HidHide\hidhide_xbox.cat" SelfReg="false"/>
-    <ROW File="HidHide_XBOX.inf" Component_="HidHide_XBOX.inf_1" FileName="HIDHID~2.INF|HidHide_XBOX.inf" Attributes="0" SourcePath="..\drivers\x64\HidHide\HidHide_XBOX.inf" SelfReg="false"/>
     <ROW File="LICENSE.rtf" Component_="hidhide_hid.cat" FileName="LICENSE.rtf" Attributes="0" SourcePath="..\drivers\x64\HidHide\LICENSE.rtf" SelfReg="false"/>
     <ROW File="HidHideCLI.exe" Component_="HidHideCLI.exe" FileName="HIDHID~1.EXE|HidHideCLI.exe" Attributes="0" SourcePath="..\artifacts\bin\Release\x64\HidHideCLI.exe" SelfReg="false"/>
     <ROW File="HidHideClient.exe" Component_="HidHideClient.exe" FileName="HIDHID~2.EXE|HidHideClient.exe" Attributes="0" SourcePath="..\artifacts\bin\Release\x64\HidHideClient.exe" SelfReg="false"/>
-    <ROW File="HidHide_HID.inf_1" Component_="HidHide.sys" FileName="HIDHID~1.INF|HidHide_HID.inf" Attributes="0" SourcePath="..\drivers\x64\HidHide\HidHide_HID.inf" SelfReg="false"/>
     <ROW File="HidHide.sys_1" Component_="HidHide.sys" FileName="HidHide.sys" Attributes="0" SourcePath="..\drivers\x64\HidHide\HidHide.sys" SelfReg="false"/>
-    <ROW File="HidHide_HID.cat_1" Component_="HidHide.sys" FileName="HIDHID~1.CAT|HidHide_HID.cat" Attributes="0" SourcePath="..\drivers\x64\HidHide\hidhide_hid.cat" SelfReg="false"/>
-    <ROW File="HidHide_XNA.inf_1" Component_="HidHide_XNA.cat" FileName="HIDHID~3.INF|HidHide_XNA.inf" Attributes="0" SourcePath="..\drivers\x64\HidHide\HidHide_XNA.inf" SelfReg="false"/>
-    <ROW File="HidHide_XNA.cat_1" Component_="HidHide_XNA.cat" FileName="HIDHID~3.CAT|HidHide_XNA.cat" Attributes="0" SourcePath="..\drivers\x64\HidHide\hidhide_xna.cat" SelfReg="false"/>
     <ROW File="install.cmd" Component_="install.cmd" FileName="install.cmd" Attributes="0" SourcePath="install.cmd" SelfReg="false"/>
     <ROW File="nefconw.exe" Component_="nefconw.exe" FileName="nefconw.exe" Attributes="0" SourcePath="nefconw.exe" SelfReg="false" DigSign="true"/>
     <ROW File="uninstall.cmd" Component_="install.cmd" FileName="UNINST~1.CMD|uninstall.cmd" Attributes="0" SourcePath="uninstall.cmd" SelfReg="false"/>
     <ROW File="updater.exe" Component_="updater.exe" FileName="HIDHID~1.EXE|HidHide_Updater.exe" Version="65535.65535.65535.65535" Attributes="0" SourcePath="&lt;AI_STUBS&gt;updater.exe" SelfReg="false" DigSign="true"/>
+    <ROW File="hidhide.cat" Component_="hidhide.cat" FileName="hidhide.cat" Attributes="0" SourcePath="..\drivers\x64\HidHide\hidhide.cat" SelfReg="false"/>
+    <ROW File="HidHide.inf" Component_="hidhide.cat" FileName="HidHide.inf" Attributes="0" SourcePath="..\drivers\x64\HidHide\HidHide.inf" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" Options="2"/>
@@ -236,34 +231,29 @@
     <ROW Action="AddClassHID" Type="1106" Source="nefconw.exe" Target="--add-class-filter --position upper --service-name HidHide --class-guid 745a17a0-74d3-11d0-b6fe-00a0c90f57da"/>
     <ROW Action="AddClassXBOX" Type="1106" Source="nefconw.exe" Target="--add-class-filter --position upper --service-name HidHide --class-guid 05f5cfe2-4733-4950-a6bb-07aad01a3a84"/>
     <ROW Action="AddClassXNA" Type="1106" Source="nefconw.exe" Target="--add-class-filter --position upper --service-name HidHide --class-guid d61ca365-5af4-4486-998b-9db4734c6ca3"/>
-    <ROW Action="InstallHID" Type="1106" Source="nefconw.exe" Target="--install-driver --inf-path &quot;[HidHide_Dir]HidHide_HID.inf&quot;"/>
-    <ROW Action="InstallXBOX" Type="1106" Source="nefconw.exe" Target="--install-driver --inf-path &quot;[HidHide_Dir]HidHide_XBOX.inf&quot;"/>
-    <ROW Action="InstallXNA" Type="1106" Source="nefconw.exe" Target="--install-driver --inf-path &quot;[HidHide_Dir]HidHide_XNA.inf&quot;"/>
+    <ROW Action="InstallHID" Type="1106" Source="nefconw.exe" Target="--install-driver --inf-path &quot;[HidHide_Dir]HidHide.inf&quot;"/>
     <ROW Action="RemoveClassHID" Type="1106" Source="nefconw.exe" Target="--remove-class-filter --position upper --service-name HidHide --class-guid 745a17a0-74d3-11d0-b6fe-00a0c90f57da"/>
     <ROW Action="RemoveClassXBOX" Type="1106" Source="nefconw.exe" Target="--remove-class-filter --position upper --service-name HidHide --class-guid 05f5cfe2-4733-4950-a6bb-07aad01a3a84"/>
     <ROW Action="RemoveClassXNA" Type="1106" Source="nefconw.exe" Target="--remove-class-filter --position upper --service-name HidHide --class-guid d61ca365-5af4-4486-998b-9db4734c6ca3"/>
     <ROW Action="SET_APPDIR" Type="307" Source="APPDIR" Target="[ProgramFilesFolder][Manufacturer]\[ProductName]" MultiBuildTarget="DefaultBuild:[ProgramFiles64Folder]Nefarius Software Solutions\[ProductName]"/>
     <ROW Action="SET_SHORTCUTDIR" Type="307" Source="SHORTCUTDIR" Target="[ProgramMenuFolder][ProductName]"/>
     <ROW Action="SET_TARGETDIR_TO_APPDIR" Type="51" Source="TARGETDIR" Target="[APPDIR]"/>
-    <ROW Action="UninstallHID" Type="1106" Source="nefconw.exe" Target="--uninstall-driver --inf-path &quot;[HidHide_Dir]HidHide_HID.inf&quot;"/>
-    <ROW Action="UninstallXBOX" Type="1106" Source="nefconw.exe" Target="--uninstall-driver --inf-path &quot;[HidHide_Dir]HidHide_XBOX.inf&quot;"/>
-    <ROW Action="UninstallXNA" Type="1106" Source="nefconw.exe" Target="--uninstall-driver --inf-path &quot;[HidHide_Dir]HidHide_XNA.inf&quot;"/>
+    <ROW Action="UninstallHID" Type="1106" Source="nefconw.exe" Target="--uninstall-driver --inf-path &quot;[HidHide_Dir]HidHide.inf&quot;"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiFeatCompsComponent">
     <ROW Feature_="MainFeature" Component_="APPDIR"/>
     <ROW Feature_="MainFeature" Component_="ProductInformation"/>
     <ROW Feature_="MainFeature" Component_="AI_ExePath"/>
     <ROW Feature_="MainFeature" Component_="HidHide.pdb"/>
-    <ROW Feature_="HidHide_XBOX" Component_="HidHide_XBOX.inf_1"/>
     <ROW Feature_="HidHide_1" Component_="hidhide_hid.cat"/>
     <ROW Feature_="C4FE6FD5B7C4D07B3A313E754A9A6A8" Component_="C4FE6FD5B7C4D07B3A313E754A9A6A8"/>
     <ROW Feature_="MainFeature" Component_="HidHideCLI.exe"/>
     <ROW Feature_="MainFeature" Component_="HidHideClient.exe"/>
     <ROW Feature_="HidHide_HID" Component_="HidHide.sys"/>
-    <ROW Feature_="HidHide_XNA" Component_="HidHide_XNA.cat"/>
     <ROW Feature_="MainFeature" Component_="install.cmd"/>
     <ROW Feature_="MainFeature" Component_="nefconw.exe"/>
     <ROW Feature_="MainFeature" Component_="updater.exe"/>
+    <ROW Feature_="MainFeature" Component_="hidhide.cat"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
     <ROW Name="Application.exe" SourcePath="..\HidHideCLI\src\Application.ico" Index="0"/>
@@ -304,17 +294,13 @@
     <ROW Action="AI_AppSearchEx" Sequence="102"/>
     <ROW Action="AI_DetectSoftware" Sequence="101"/>
     <ROW Action="InstallHID" Condition="( NOT Installed )" Sequence="6401"/>
-    <ROW Action="InstallXNA" Condition="( NOT Installed )" Sequence="6402"/>
-    <ROW Action="InstallXBOX" Condition="( NOT Installed )" Sequence="6403"/>
-    <ROW Action="AddClassHID" Condition="( NOT Installed )" Sequence="6404"/>
-    <ROW Action="AddClassXNA" Condition="( NOT Installed )" Sequence="6405"/>
-    <ROW Action="AddClassXBOX" Condition="( NOT Installed )" Sequence="6406"/>
+    <ROW Action="AddClassHID" Condition="( NOT Installed )" Sequence="6402"/>
+    <ROW Action="AddClassXNA" Condition="( NOT Installed )" Sequence="6403"/>
+    <ROW Action="AddClassXBOX" Condition="( NOT Installed )" Sequence="6404"/>
     <ROW Action="RemoveClassHID" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="1601"/>
     <ROW Action="RemoveClassXNA" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="1602"/>
     <ROW Action="RemoveClassXBOX" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="1603"/>
     <ROW Action="UninstallHID" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="1604"/>
-    <ROW Action="UninstallXNA" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="1605"/>
-    <ROW Action="UninstallXBOX" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="1606"/>
     <ROW Action="ForceReboot" Condition="AI_UPGRADE&lt;&gt;&quot;No&quot; AND OLDPRODUCTS AND AFTERREBOOT&lt;&gt;1" Sequence="1501" SeqType="0"/>
     <ROW Action="AI_UPDATER_UNINSTALL" Condition="($updater.exe = 2) AND (?updater.exe = 3) AND NOT (UPGRADINGPRODUCTCODE)" Sequence="1551"/>
     <ROW Action="AI_ProcessTasks2" Condition="(VersionNT &gt;= 600) AND (REMOVE&lt;&gt;&quot;ALL&quot;)" Sequence="1624"/>
