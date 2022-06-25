@@ -2,8 +2,6 @@ Param(
     [Parameter(Mandatory=$true)]
     [string]$BuildVersion,
     [Parameter(Mandatory=$true)]
-    [string]$SetupVersion,
-    [Parameter(Mandatory=$true)]
     [string]$Token,
     [Parameter(Mandatory=$false)]
     [string]$Path = "./artifacts",
@@ -120,11 +118,6 @@ if ($NoSigning -eq $false) {
     # sign with only one certificate
     Invoke-Expression "& `"$signTool`" sign /v /as /n `"$certName`" /tr $timestampUrl /fd sha256 /td sha256 $files"
 }
-
-# Update setup version variable
-$setupProject = ".\HidHide\HidHideMSI.wixproj"
-$regex = '(?<=<BldProductVersion>)[^<]*'
-(Get-Content $setupProject) -replace $regex, $SetupVersion | Set-Content $setupProject -Encoding UTF8
 
 # Print helper job names for sign portal
 #"HidHide x86 v$BuildVersion $(Get-Date -Format "dd.MM.yyyy")"

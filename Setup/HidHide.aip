@@ -19,10 +19,10 @@
     <ROW Property="ARPURLUPDATEINFO" Value="https://github.com/ViGEm/HidHide/releases"/>
     <ROW Property="IAgree" Value="No" Type="4"/>
     <ROW Property="Manufacturer" Value="Nefarius Software Solutions e.U."/>
-    <ROW Property="ProductCode" Value="1033:{B74D4CD2-ECFB-4114-827F-583049AE19A6} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{00140269-0944-45B8-A6DA-8BE07D1F43AF} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="HidHide"/>
-    <ROW Property="ProductVersion" Value="1.2.84"/>
+    <ROW Property="ProductVersion" Value="1.2.87"/>
     <ROW Property="REBOOT" MultiBuildValue="DefaultBuild:Force"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR;UPGRADE_1"/>
     <ROW Property="UpgradeCode" Value="{88FDE3F4-0C3A-4462-9FE0-5C25648A1026}"/>
@@ -295,7 +295,7 @@
     <ROW Action="AI_VerifyPrereq" Sequence="1101"/>
     <ROW Action="AI_AppSearchEx" Sequence="102"/>
     <ROW Action="AI_DetectSoftware" Sequence="101"/>
-    <ROW Action="InstallDriver" Condition="( NOT Installed )" Sequence="6401"/>
+    <ROW Action="InstallDriver" Condition="( NOT Installed )" Sequence="6402"/>
     <ROW Action="AddClassHID" Condition="( NOT Installed )" Sequence="6403"/>
     <ROW Action="AddClassXNA" Condition="( NOT Installed )" Sequence="6404"/>
     <ROW Action="AddClassXBOX" Condition="( NOT Installed )" Sequence="6405"/>
@@ -308,7 +308,7 @@
     <ROW Action="AI_ProcessTasks2" Condition="(VersionNT &gt;= 600) AND (REMOVE&lt;&gt;&quot;ALL&quot;)" Sequence="1624"/>
     <ROW Action="AI_UninstallTasks2" Condition="(VersionNT &gt;= 600) AND (REMOVE=&quot;ALL&quot;)" Sequence="1699"/>
     <ROW Action="AI_UPDATER_SERVICE_CONFIG" Condition="( ( ( NOT Installed AND VersionNT) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; AND VersionNT) ) AND ($updater.exe = 3) )" Sequence="5801"/>
-    <ROW Action="AddDeviceNode" Condition="( NOT Installed )" Sequence="6402"/>
+    <ROW Action="AddDeviceNode" Condition="( NOT Installed )" Sequence="6401"/>
     <ROW Action="UninstallDevice" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="1604"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstallUISequenceComponent">
