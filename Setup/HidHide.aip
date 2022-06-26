@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<DOCUMENT Type="Advanced Installer" CreateVersion="19.5" version="19.5" Modules="enterprise" RootPath="." Language="en" Id="{96C36008-6781-4863-9906-0DD672266838}">
+<DOCUMENT Type="Advanced Installer" CreateVersion="19.5" version="19.6" Modules="enterprise" RootPath="." Language="en" Id="{96C36008-6781-4863-9906-0DD672266838}">
   <COMPONENT cid="caphyon.advinst.msicomp.ProjectOptionsComponent">
-    <ROW Name="HiddenItems" Value="AppXProductDetailsComponent;AppXDependenciesComponent;AppXAppDetailsComponent;AppXVisualAssetsComponent;AppXCapabilitiesComponent;AppXAppDeclarationsComponent;AppXUriRulesComponent;SccmComponent;ActSyncAppComponent;CPLAppletComponent;AutorunComponent;GameUxComponent;SilverlightSlnComponent;FixupComponent;MsiXDiffComponent;MsixManifestEditorComponent"/>
+    <ROW Name="HiddenItems" Value="ActSyncAppComponent;CPLAppletComponent;AutorunComponent;GameUxComponent;SilverlightSlnComponent;SharePointSlnComponent;AppXAppDetailsComponent;FixupComponent;AppXCapabilitiesComponent;AppXDependenciesComponent;AppXProductDetailsComponent;AppXVisualAssetsComponent;AppXAppDeclarationsComponent;AppXUriRulesComponent;MsiXDiffComponent;MsixManifestEditorComponent"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiPropsComponent">
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
     <ROW Property="AI_CURRENT_YEAR" Value="2022" ValueLocId="-"/>
     <ROW Property="AI_FINDEXE_TITLE" Value="Select the installation package for [|ProductName]" ValueLocId="AI.Property.FindExeTitle"/>
-    <ROW Property="AI_PACKAGING_TOOL" Value="Advanced Installer 19.5 build 36301275" ValueLocId="-"/>
+    <ROW Property="AI_PACKAGING_TOOL" Value="Advanced Installer 19.6 build bf52c98e" ValueLocId="-"/>
     <ROW Property="AI_PREDEF_LCONDS_PROPS" Value="AI_DETECTED_INTERNET_CONNECTION"/>
     <ROW Property="ALLUSERS" Value="1"/>
     <ROW Property="ARPCOMMENTS" Value="This installer database contains the logic and data required to install [|ProductName]." ValueLocId="*"/>
@@ -224,7 +224,6 @@
     <ROW Action="AI_SHOW_LOG" Type="65" Source="aicustact.dll" Target="LaunchLogFile" WithoutSeq="true"/>
     <ROW Action="AI_STORE_LOCATION" Type="51" Source="ARPINSTALLLOCATION" Target="[APPDIR]"/>
     <ROW Action="AI_ScheduleTasks2" Type="11265" Source="aischeduler2.dll" Target="ScheduleTasks" WithoutSeq="true"/>
-    <ROW Action="AI_UPDATER_SERVICE_CONFIG" Type="3090" Source="updater.exe" Target="/configservice -name &quot;updater&quot;"/>
     <ROW Action="AI_UPDATER_UNINSTALL" Type="82" Source="updater.exe" Target="/clean silent"/>
     <ROW Action="AI_UninstallTasks2" Type="1" Source="aischeduler2.dll" Target="UninstallTasks"/>
     <ROW Action="AI_VerifyPrereq" Type="1" Source="Prereq.dll" Target="VerifyPrereq"/>
@@ -270,7 +269,6 @@
     <ROW IniFile="DownloadsFolder" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="DownloadsFolder" Value="[CommonAppDataFolder][Manufacturer]\[ProductName]\updates\" Action="0" Component_="updater.exe"/>
     <ROW IniFile="Flags" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="Flags" Value="PerMachine|ShowConfigOptionsButton" Action="0" Component_="updater.exe"/>
     <ROW IniFile="ID" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="ID" Value="[UpgradeCode]" Action="0" Component_="updater.exe"/>
-    <ROW IniFile="SupportServiceName" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="SupportServiceName" Value="updater" Action="0" Component_="updater.exe"/>
     <ROW IniFile="URL" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="URL" Value="https://updates.vigem.org/api/github/ViGEm/HidHide/updates" Action="0" Component_="updater.exe"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
@@ -307,7 +305,6 @@
     <ROW Action="AI_UPDATER_UNINSTALL" Condition="($updater.exe = 2) AND (?updater.exe = 3) AND NOT (UPGRADINGPRODUCTCODE)" Sequence="1551"/>
     <ROW Action="AI_ProcessTasks2" Condition="(VersionNT &gt;= 600) AND (REMOVE&lt;&gt;&quot;ALL&quot;)" Sequence="1624"/>
     <ROW Action="AI_UninstallTasks2" Condition="(VersionNT &gt;= 600) AND (REMOVE=&quot;ALL&quot;)" Sequence="1699"/>
-    <ROW Action="AI_UPDATER_SERVICE_CONFIG" Condition="( ( ( NOT Installed AND VersionNT) OR ( Installed AND REMOVE &lt;&gt; &quot;ALL&quot; AND AI_INSTALL_MODE &lt;&gt; &quot;Remove&quot; AND VersionNT) ) AND ($updater.exe = 3) )" Sequence="5801"/>
     <ROW Action="AddDeviceNode" Condition="( NOT Installed )" Sequence="6401"/>
     <ROW Action="UninstallDevice" Condition="( Installed AND ( REMOVE = &quot;ALL&quot; OR AI_INSTALL_MODE = &quot;Remove&quot; ) )" Sequence="1604"/>
   </COMPONENT>
@@ -356,12 +353,6 @@
     <ROW Registry="Software" Root="-1" Key="Software" Name="\"/>
     <ROW Registry="Version" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
   </COMPONENT>
-  <COMPONENT cid="caphyon.advinst.msicomp.MsiServCtrlComponent">
-    <ROW ServiceControl="updater" Name="updater" Event="160" Wait="1" Component_="updater.exe"/>
-  </COMPONENT>
-  <COMPONENT cid="caphyon.advinst.msicomp.MsiServInstComponent">
-    <ROW ServiceInstall="updater" Name="updater" DisplayName="updater" ServiceType="16" StartType="3" ErrorControl="1" Arguments="/runservice" Component_="updater.exe" Description="Updater Support Service"/>
-  </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
     <ROW Shortcut="HidHideConfigurationClient" Directory_="DesktopFolder" Name="HIDHID~1|HidHide Configuration Client" Component_="HidHideClient.exe" Target="[#HidHideClient.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="x64_Dir"/>
     <ROW Shortcut="HidHideConfigurationClient_1" Directory_="StartMenuFolder" Name="HIDHID~1|HidHide Configuration Client" Component_="HidHideClient.exe" Target="[#HidHideClient.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="x64_Dir"/>
@@ -385,6 +376,6 @@
     <ROW TaskId="AI_updater" TaskName="HidHide_Updater" Run="[#updater.exe]" CmdLine="/silent" WorkDir="[APPDIR]" UserProp="[%UserDomain]\[LogonUser]" Flags="24576" Trigger="1|1|1|1|0|0|0||0|0" Settings="2|60" Condition="1" TaskVersion="2.0"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.UpdaterComponent">
-    <ROW Updater="updater.exe" URL="URL" SearchFreq="CheckFrequency" DownloadsFolder="DownloadsFolder" ID="ID" TargetDir="AppDir" AppName="ApplicationName" AppVersion="ApplicationVersion" CompanyName="CompanyName" DefCommandLine="DefaultCommandLine" SupportServiceName="SupportServiceName" Flags="Flags" IconPath="..\HidHideCLI\src\Application.ico" IconIndex="0" UnistallCASeq="AI_UPDATER_UNINSTALL" SupportServiceCASeq="AI_UPDATER_SERVICE_CONFIG" SupportService="updater" SupportServiceCtrl="updater" TaskId="AI_updater" Description="[|UpdaterName] [|ProductVersion]"/>
+    <ROW Updater="updater.exe" URL="URL" SearchFreq="CheckFrequency" DownloadsFolder="DownloadsFolder" ID="ID" TargetDir="AppDir" AppName="ApplicationName" AppVersion="ApplicationVersion" CompanyName="CompanyName" DefCommandLine="DefaultCommandLine" Flags="Flags" IconPath="..\HidHideCLI\src\Application.ico" IconIndex="0" UnistallCASeq="AI_UPDATER_UNINSTALL" TaskId="AI_updater" Description="[|UpdaterName] [|ProductVersion]"/>
   </COMPONENT>
 </DOCUMENT>
