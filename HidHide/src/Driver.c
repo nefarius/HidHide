@@ -17,6 +17,8 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
     // Note use DBG_AND_RETURN_NTSTATUS for now till the ETW provides are registered
     // Note that INFO_LEVEL and TRACE_LEVEL are suppressed per default; only ERROR_LEVEL is immediately forwarded
 
+    ExInitializeDriverRuntime(DrvRtPoolNxOptIn);
+
     WDF_DRIVER_CONFIG_INIT(&wdfDriverConfig, NULL);
     wdfDriverConfig.EvtDriverDeviceAdd = HidHideDriverEvtDeviceAdd;
     wdfDriverConfig.EvtDriverUnload    = HidHideDriverEvtUnload;

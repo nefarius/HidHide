@@ -19,10 +19,10 @@
     <ROW Property="ARPURLUPDATEINFO" Value="https://github.com/ViGEm/HidHide/releases"/>
     <ROW Property="IAgree" Value="No" Type="4"/>
     <ROW Property="Manufacturer" Value="Nefarius Software Solutions e.U."/>
-    <ROW Property="ProductCode" Value="1033:{7D24F89C-34F5-4BEE-B4A4-4D6D8D197360} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{38CDA381-E433-4EDC-95DD-A9567F947661} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="HidHide"/>
-    <ROW Property="ProductVersion" Value="1.2.93"/>
+    <ROW Property="ProductVersion" Value="1.2.97"/>
     <ROW Property="REBOOT" MultiBuildValue="DefaultBuild:Force"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR;UPGRADE_1"/>
     <ROW Property="UpgradeCode" Value="{8822CC70-E2A5-4CB7-8F14-E27101150A1D}"/>
