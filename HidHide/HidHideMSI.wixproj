@@ -47,6 +47,25 @@
     <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <BldParameters>BldCompanyName=$(BldCompanyName);BldProductName=$(BldProductName);BldProductVersion=$(BldProductVersion);BldProductVersionMajor=$(BldProductVersionMajor);BldProductVersionMinor=$(BldProductVersionMinor);BldProductVersionRevision=$(BldProductVersionRevision);BldProductVersionBuild=$(BldProductVersionBuild);BldProductDescription=$(BldProductDescription);BldCopyright=$(BldCopyright);</BldParameters>
+    <DefineConstants>ProductionRelease=false;Debug;NuspecBasePath=$(NuspecBasePath);$(BldParameters)$(DefineConstants)</DefineConstants>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <RunWixToolsOutOfProc>true</RunWixToolsOutOfProc>
+    <SuppressIces>ICE40;ICE61</SuppressIces>
+    <SignOutput Condition="('$(BldCertificateThumbprint)' != '')">true</SignOutput>
+    <TargetPdbFileName Condition="('$(TargetPdbFileName)' == '')">$(OutputName).wixpdb</TargetPdbFileName>
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Any CPU' ">
+    <OutputPath>bin\$(Platform)\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="HidHideMSI.wxs" />
   </ItemGroup>

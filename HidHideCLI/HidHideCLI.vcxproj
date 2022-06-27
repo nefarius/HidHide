@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Production Release|x64">
       <Configuration>Production Release</Configuration>
       <Platform>x64</Platform>
@@ -36,6 +40,13 @@
     <SpectreMitigation>Spectre</SpectreMitigation>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>Dynamic</UseOfMfc>
+    <SpectreMitigation>Spectre</SpectreMitigation>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
@@ -51,11 +62,21 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)obj\$(MSBuildProjectName)\$(Configuration)\$(Platform)\</IntDir>
+    <CopyLocalDeploymentContent>true</CopyLocalDeploymentContent>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)obj\$(MSBuildProjectName)\$(Configuration)\$(Platform)\</IntDir>
@@ -70,6 +91,39 @@
     <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <BldParameters>/D BldCompanyName="$(BldCompanyName)" /D BldProductName="$(BldProductName)" /D BldProductVersion="$(BldProductVersion)" /D BldProductVersionMajor="$(BldProductVersionMajor)" /D BldProductVersionMinor="$(BldProductVersionMinor)" /D BldProductVersionRevision="$(BldProductVersionRevision)" /D BldProductVersionBuild="$(BldProductVersionBuild)" /D BldProductDescription="$(BldProductDescription)" /D BldCopyright="$(BldCopyright)" </BldParameters>
+      <ProjectDirLength>$([System.String]::Copy('$(ProjectDir)').Length)</ProjectDirLength>
+      <AdditionalOptions>%(BldParameters)%(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CONSOLE;NDEBUG;ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);(SolutionDir)HidHide\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <ConformanceMode>true</ConformanceMode>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <ResourceCompile>
+      <BldParameters>/D TargetExt="$(TargetExt)" /D TargetFileName="$(TargetFileName)" /D TargetName="$(TargetName)" /D BldCompanyName="$(BldCompanyName)" /D BldProductName="$(BldProductName)" /D BldProductVersion="$(BldProductVersion)" /D BldProductVersionMajor="$(BldProductVersionMajor)" /D BldProductVersionMinor="$(BldProductVersionMinor)" /D BldProductVersionRevision="$(BldProductVersionRevision)" /D BldProductVersionBuild="$(BldProductVersionBuild)" /D BldProductDescription="$(BldProductDescription)" /D BldCopyright="$(BldCopyright)" </BldParameters>
+      <Culture>0x0409</Culture>
+      <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>%(BldParameters)%(AdditionalOptions)</AdditionalOptions>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="('$(ConfigurationType)' == 'DynamicLibrary')">_WINDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <BldParameters>/D BldCompanyName="$(BldCompanyName)" /D BldProductName="$(BldProductName)" /D BldProductVersion="$(BldProductVersion)" /D BldProductVersionMajor="$(BldProductVersionMajor)" /D BldProductVersionMinor="$(BldProductVersionMinor)" /D BldProductVersionRevision="$(BldProductVersionRevision)" /D BldProductVersionBuild="$(BldProductVersionBuild)" /D BldProductDescription="$(BldProductDescription)" /D BldCopyright="$(BldCopyright)" </BldParameters>
       <ProjectDirLength>$([System.String]::Copy('$(ProjectDir)').Length)</ProjectDirLength>
@@ -162,12 +216,14 @@
     <ClCompile Include="src\Volume.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="HidHideCLI.wprp">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'">true</DeploymentContent>
     </None>
   </ItemGroup>
@@ -175,10 +231,16 @@
     <CustomBuild Include="HidHideCLI.man">
       <FileType>Document</FileType>
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compile event manifest file</Message>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compile event manifest file</Message>
       <Message Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'">Compile event manifest file</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)%(Identity);$(IntDir)$(ProjectName)ETW.h;$(IntDir)$(ProjectName)ETW.rc;$(IntDir)$(ProjectName)ETW_MSG00001.bin;$(IntDir)$(ProjectName)ETWTEMP.BIN</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Identity);$(IntDir)$(ProjectName)ETW.h;$(IntDir)$(ProjectName)ETW.rc;$(IntDir)$(ProjectName)ETW_MSG00001.bin;$(IntDir)$(ProjectName)ETWTEMP.BIN</Outputs>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'">$(OutDir)%(Identity);$(IntDir)$(ProjectName)ETW.h;$(IntDir)$(ProjectName)ETW.rc;$(IntDir)$(ProjectName)ETW_MSG00001.bin;$(IntDir)$(ProjectName)ETWTEMP.BIN</Outputs>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+        mc.exe -um -h "$(IntDir.TrimEnd('\'))" -r "$(IntDir.TrimEnd('\'))" -z "$(ProjectName)ETW" "%(Identity)"
+        type "%(Identity)" | powershell -Command "$input | ForEach-Object { $_ -replace \"autoBackup\", \"autobackup\"  } | ForEach-Object { $_ -replace \"maxSize\", \"maxsize\"  } | ForEach-Object { $_ -replace \"fileMax\", \"filemax\"  } | ForEach-Object { $_ -replace \"clockType\", \"clocktype\"  }" &gt; "$(OutDir)%(Identity)"
+      </Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
         mc.exe -um -h "$(IntDir.TrimEnd('\'))" -r "$(IntDir.TrimEnd('\'))" -z "$(ProjectName)ETW" "%(Identity)"
         type "%(Identity)" | powershell -Command "$input | ForEach-Object { $_ -replace \"autoBackup\", \"autobackup\"  } | ForEach-Object { $_ -replace \"maxSize\", \"maxsize\"  } | ForEach-Object { $_ -replace \"fileMax\", \"filemax\"  } | ForEach-Object { $_ -replace \"clockType\", \"clocktype\"  }" &gt; "$(OutDir)%(Identity)"
       </Command>

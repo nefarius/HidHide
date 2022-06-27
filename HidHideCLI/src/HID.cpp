@@ -219,7 +219,7 @@ namespace
         GUID        buffer{};
         ULONG       needed{ sizeof(buffer) };
         if (auto const result{ ::CM_Locate_DevNodeW(&devInst, const_cast<DEVINSTID_W>(deviceInstancePath.c_str()), CM_LOCATE_DEVNODE_PHANTOM) }; (CR_SUCCESS != result)) THROW_CONFIGRET(result);
-        if (auto const result{ ::CM_Get_DevNode_PropertyW(devInst, &DEVPKEY_Device_ClassGuid, &devPropType, reinterpret_cast<PBYTE>(&buffer), &needed, 0) }; (CR_SUCCESS != result)) THROW_CONFIGRET(result);
+        if (auto const result{ ::CM_Get_DevNode_PropertyW(devInst, &DEVPKEY_Device_ClassGuid, &devPropType, reinterpret_cast<PBYTE>(&buffer), &needed, 0) }; (CR_SUCCESS != result)) return (GUID_NULL);
         if (DEVPROP_TYPE_GUID != devPropType) THROW_WIN32(ERROR_INVALID_PARAMETER);
         return (buffer);
     }
