@@ -194,7 +194,7 @@ BEGIN
     IDS_CHECK_BLACKLIST_FILTER      "&Filter-out disconnected"
     IDS_CHECK_BLACKLIST_GAMING      "&Gaming devices only"
     IDS_CHECK_BLACKLIST_ENABLE      "&Enable device hiding"
-    IDS_STATIC_BLACKLIST_GUIDANCE   "Select one or more devices and press Enable to control the cloaking."
+    IDS_STATIC_BLACKLIST_GUIDANCE   "Select one or more devices and press Enable to control the cloaking. RE-CONNECT the devices afterwards for changes to take effect."
     IDS_CONTROL_DEVICE_NAME         "\\\\.\\HidHide"
     IDS_HID_ATTRIBUTE_DENIED        "denied"
     IDS_HID_ATTRIBUTE_ABSENT        "absent"
