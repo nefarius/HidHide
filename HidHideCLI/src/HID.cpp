@@ -149,7 +149,8 @@ namespace
         TRACE_ALWAYS(L"");
 
         // 0x28DE 0x1142 = Valve Corporation Steam Controller
-        return (((attributes.VendorID == 0x28DE) && (attributes.ProductID == 0x1142)) || (0x05 == capabilities.UsagePage) || (0x01 == capabilities.UsagePage) && ((0x04 == capabilities.Usage) || (0x05 == capabilities.Usage)));
+        // 0x28DE 0x1205 = Valve Software Steam Deck Controller
+        return (((attributes.VendorID == 0x28DE) && (attributes.ProductID == 0x1205)) || ((attributes.VendorID == 0x28DE) && (attributes.ProductID == 0x1142)) || (0x05 == capabilities.UsagePage) || (0x01 == capabilities.UsagePage) && ((0x04 == capabilities.Usage) || (0x05 == capabilities.Usage)));
     }
 
     // Get the base container id of a particular device instance
