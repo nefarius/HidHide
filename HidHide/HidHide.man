@@ -48,9 +48,6 @@
         messageFileName="%WinDir%\System32\drivers\HidHide.sys">
         <channels>
           <channel symbol="EtwChannelTracing" name="Nefarius-Drivers-HidHide/Diagnostic" type="Analytic" enabled="true">
-            <logging>
-              <autoBackup>true</autoBackup>
-            </logging>
             <publishing>
               <keywords>0x000000000001</keywords>
               <fileMax>16</fileMax>
