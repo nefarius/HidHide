@@ -17,10 +17,10 @@
     <ROW Property="ARPURLUPDATEINFO" Value="https://github.com/ViGEm/HidHide/releases"/>
     <ROW Property="IAgree" Value="No" Type="4"/>
     <ROW Property="Manufacturer" Value="Nefarius Software Solutions e.U."/>
-    <ROW Property="ProductCode" Value="1033:{27AF679E-48DB-4B49-A689-1D6A3A52C472} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{E7FEC9CC-0009-4909-ADF5-CEDBD10458DA} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="HidHide"/>
-    <ROW Property="ProductVersion" Value="1.2.98"/>
+    <ROW Property="ProductVersion" Value="1.2.120"/>
     <ROW Property="REBOOT" MultiBuildValue="DefaultBuild:Force"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;AI_SETUPEXEPATH;SETUPEXEDIR;UPGRADE_1"/>
     <ROW Property="UpgradeCode" Value="{8822CC70-E2A5-4CB7-8F14-E27101150A1D}"/>
@@ -100,7 +100,7 @@
     <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DigCertStoreComponent">
-    <ROW TimeStampUrl="http://timestamp.digicert.com" SignerDescription="[|ProductName]" SignOptions="7" SignTool="0" UseSha256="1" Thumbprint="f88a20d1f8f87c188c7b7d65a1f897332b26cae6 Subject: Nefarius Software Solutions e.U.&#10;Issuer: DigiCert Global G3 Code Signing ECC SHA384 2021 CA1&#10;Valid from 11/25/2021 to 02/13/2025&#10;User\MY" Subject="CN=Nefarius Software Solutions e.U., O=Nefarius Software Solutions e.U., L=Wels, C=AT, SERIALNUMBER=505039f, OID.1.3.6.1.4.1.311.60.2.1.1=Wels, OID.1.3.6.1.4.1.311.60.2.1.2=Oberösterreich, OID.1.3.6.1.4.1.311.60.2.1.3=AT, OID.2.5.4.15=Private Organization"/>
+    <ROW TimeStampUrl="http://timestamp.digicert.com" SignerDescription="[|ProductName]" SignOptions="7" SignTool="0" UseSha256="1" Thumbprint="1f431092ec96a80b41ab5317f53ac02ea6f9b89b Subject: Nefarius Software Solutions e.U.&#10;Issuer: DigiCert Trusted G4 Code Signing RSA4096 SHA384 2021 CA1&#10;Valid from 03/13/2023 to 02/17/2025&#10;User\MY" Subject="CN=Nefarius Software Solutions e.U., O=Nefarius Software Solutions e.U., L=Wels, C=AT, SERIALNUMBER=505039f, OID.2.5.4.15=Private Organization, OID.1.3.6.1.4.1.311.60.2.1.1=Wels, OID.1.3.6.1.4.1.311.60.2.1.2=Oberösterreich, OID.1.3.6.1.4.1.311.60.2.1.3=AT"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
     <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
