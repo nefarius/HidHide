@@ -98,8 +98,6 @@ Don't assume exclusive ownership of the configuration settings as a recovery typ
 
 Found a bug and want it fixed? Feel free to open a detailed issue on the [GitHub issue tracker](../../issues)!
 
-Have an idea for a new feature? Let's have a chat about your request on [Discord](https://discord.vigem.org) or the [community forums](https://forums.vigem.org).
-
 *HidHide* provides both logging and tracing. Logging can be found the *Event Viewer* under *Windows Logs* and *System*.
 Tracing can be found under *Applications and Services Logs* and *Nefarius* after enabling *Show Analytic and Debug Logs*.
 Extended tracing is available but switched off per default for performance reasons. Tracing is controlled using the *wevtutil* utility
