@@ -114,7 +114,7 @@ Tracing to the debug console is enabled with /k:3 and /k:7 respectively.
 
 ## Questions & Support
 
-Please respect that the GitHub issue tracker isn't a help desk. [Look at the community support resources](https://vigem.org/Community-Support/).
+Please respect that the GitHub issue tracker isn't a help desk. [Look at the community support resources](https://docs.nefarius.at/Community-Support/).
 
 ## Donations
 
