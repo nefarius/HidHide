@@ -215,7 +215,7 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'">true</DeploymentContent>
     </None>
-    <None Include="$(WDKContentRoot)Tools\x$(PlatformArchitecture)\devcon.exe">
+    <None Include="$(WDKContentRoot)Tools\$(TargetPlatformVersion)\x$(PlatformArchitecture)\devcon.exe">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'">true</DeploymentContent>
