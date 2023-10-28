@@ -38,21 +38,30 @@ int App::main(const std::vector<std::string>& args)
     if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_HIDCLASS, serviceName,
                                                      util::DeviceClassFilterPosition::Upper, found) || !found)
     {
-        // TODO: implement me
+        if (!add_device_class_filter(&GUID_DEVCLASS_HIDCLASS, serviceName, util::DeviceClassFilterPosition::Upper))
+        {
+            err_logger->error("Failed to add upper filters entry for HIDClass");
+        }
     }
 
-     // filter value or entry not present
+    // filter value or entry not present
     if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName,
                                                      util::DeviceClassFilterPosition::Upper, found) || !found)
     {
-        // TODO: implement me
+        if (!add_device_class_filter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName, util::DeviceClassFilterPosition::Upper))
+        {
+            err_logger->error("Failed to add upper filters entry for XnaComposite");
+        }
     }
 
-     // filter value or entry not present
+    // filter value or entry not present
     if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName,
                                                      util::DeviceClassFilterPosition::Upper, found) || !found)
     {
-        // TODO: implement me
+        if (!add_device_class_filter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName, util::DeviceClassFilterPosition::Upper))
+        {
+            err_logger->error("Failed to add upper filters entry for XboxComposite");
+        }
     }
 
     waitForTerminationRequest();
