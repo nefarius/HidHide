@@ -366,3 +366,4 @@ HidHideClient/RC*
 *.opendb
 *.aps
 /Setup
+vcpkg_installed
