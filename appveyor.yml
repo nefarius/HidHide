@@ -1,5 +1,6 @@
 version: 1.2.{build}.0
-image: Visual Studio 2019
+build_cloud: WIN-LKR467JS4GL
+image: Windows
 configuration: Release
 skip_commits:
   files:
