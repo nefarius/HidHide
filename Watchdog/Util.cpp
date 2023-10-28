@@ -14,7 +14,7 @@ bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& fi
 
     if (INVALID_HANDLE_VALUE == key)
     {
-        spdlog::error("SetupDiOpenClassRegKey failed with error code %v", GetLastError());
+        spdlog::error("SetupDiOpenClassRegKey failed with error code {}", GetLastError());
         return false;
     }
 
@@ -49,7 +49,7 @@ bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& fi
 
         if (status != ERROR_SUCCESS)
         {
-            spdlog::error("RegQueryValueExW failed with status %v", status);
+            spdlog::error("RegQueryValueExW failed with status {}", status);
             RegCloseKey(key);
             SetLastError(status);
             return false;
@@ -87,7 +87,7 @@ bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& fi
 
         if (status != ERROR_SUCCESS)
         {
-            spdlog::error("RegSetValueExW failed with status %v", status);
+            spdlog::error("RegSetValueExW failed with status {}", status);
             RegCloseKey(key);
             SetLastError(status);
             return false;
@@ -118,7 +118,7 @@ bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& fi
 
         if (status != ERROR_SUCCESS)
         {
-            spdlog::error("RegSetValueExW failed with status %v", status);
+            spdlog::error("RegSetValueExW failed with status {}", status);
             RegCloseKey(key);
             SetLastError(status);
             return false;
@@ -139,7 +139,7 @@ bool util::remove_device_class_filter(const GUID* classGuid, const std::wstring&
 
     if (INVALID_HANDLE_VALUE == key)
     {
-        spdlog::error("SetupDiOpenClassRegKey failed with error code %v", GetLastError());
+        spdlog::error("SetupDiOpenClassRegKey failed with error code {}", GetLastError());
         return false;
     }
 
@@ -174,7 +174,7 @@ bool util::remove_device_class_filter(const GUID* classGuid, const std::wstring&
 
         if (status != ERROR_SUCCESS)
         {
-            spdlog::error("RegQueryValueExW failed with status %v", status);
+            spdlog::error("RegQueryValueExW failed with status {}", status);
             RegCloseKey(key);
             SetLastError(status);
             return false;
@@ -210,7 +210,7 @@ bool util::remove_device_class_filter(const GUID* classGuid, const std::wstring&
 
         if (status != ERROR_SUCCESS)
         {
-            spdlog::error("RegSetValueExW failed with status %v", status);
+            spdlog::error("RegSetValueExW failed with status {}", status);
             RegCloseKey(key);
             SetLastError(status);
             return false;
@@ -239,7 +239,7 @@ bool util::has_device_class_filter(const GUID* classGuid, const std::wstring& fi
 
     if (INVALID_HANDLE_VALUE == key)
     {
-        spdlog::error("SetupDiOpenClassRegKey failed with error code %v", GetLastError());
+        spdlog::error("SetupDiOpenClassRegKey failed with error code {}", GetLastError());
         return false;
     }
 
@@ -274,7 +274,7 @@ bool util::has_device_class_filter(const GUID* classGuid, const std::wstring& fi
 
         if (status != ERROR_SUCCESS)
         {
-            spdlog::error("RegQueryValueExW failed with status %v", status);
+            spdlog::error("RegQueryValueExW failed with status {}", status);
             RegCloseKey(key);
             SetLastError(status);
             return false;
