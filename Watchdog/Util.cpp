@@ -4,9 +4,11 @@
 #include <SetupAPI.h>
 #include <winreg/WinReg.hpp>
 #include <spdlog/spdlog.h>
+#include <algorithm>
+
 
 bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& filterName,
-    DeviceClassFilterPosition::Value position)
+                                   DeviceClassFilterPosition::Value position)
 {
     auto key = SetupDiOpenClassRegKey(classGuid, KEY_ALL_ACCESS);
 
@@ -72,7 +74,7 @@ bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& fi
 
         const std::vector<wchar_t> multiString = winreg::detail::BuildMultiString(filters);
 
-        const DWORD dataSize = static_cast<DWORD>(multiString.size() * sizeof(wchar_t));
+        const DWORD dataSize = multiString.size() * sizeof(wchar_t);
 
         status = RegSetValueExW(
             key,
@@ -103,7 +105,7 @@ bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& fi
 
         const std::vector<wchar_t> multiString = winreg::detail::BuildMultiString(filters);
 
-        const DWORD dataSize = static_cast<DWORD>(multiString.size() * sizeof(wchar_t));
+        const DWORD dataSize = multiString.size() * sizeof(wchar_t);
 
         status = RegSetValueExW(
             key,
@@ -131,7 +133,7 @@ bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& fi
 }
 
 bool util::remove_device_class_filter(const GUID* classGuid, const std::wstring& filterName,
-    DeviceClassFilterPosition::Value position)
+                                      DeviceClassFilterPosition::Value position)
 {
     auto key = SetupDiOpenClassRegKey(classGuid, KEY_ALL_ACCESS);
 
@@ -195,7 +197,7 @@ bool util::remove_device_class_filter(const GUID* classGuid, const std::wstring&
 
         const std::vector<wchar_t> multiString = winreg::detail::BuildMultiString(filters);
 
-        const DWORD dataSize = static_cast<DWORD>(multiString.size() * sizeof(wchar_t));
+        const DWORD dataSize = multiString.size() * sizeof(wchar_t);
 
         status = RegSetValueExW(
             key,
@@ -213,6 +215,89 @@ bool util::remove_device_class_filter(const GUID* classGuid, const std::wstring&
             SetLastError(status);
             return false;
         }
+
+        RegCloseKey(key);
+        return true;
+    }
+    //
+    // Value doesn't exist, return
+    // 
+    if (status == ERROR_FILE_NOT_FOUND)
+    {
+        RegCloseKey(key);
+        return true;
+    }
+
+    RegCloseKey(key);
+    return false;
+}
+
+bool util::has_device_class_filter(const GUID* classGuid, const std::wstring& filterName,
+                                   DeviceClassFilterPosition::Value position, const std::wstring& serviceName,
+                                   bool& found)
+{
+    auto key = SetupDiOpenClassRegKey(classGuid, KEY_READ);
+
+    if (INVALID_HANDLE_VALUE == key)
+    {
+        spdlog::error("SetupDiOpenClassRegKey failed with error code %v", GetLastError());
+        return false;
+    }
+
+    LPCWSTR filterValue = (position == DeviceClassFilterPosition::Lower) ? L"LowerFilters" : L"UpperFilters";
+    DWORD type, size;
+    std::vector<std::wstring> filters;
+
+    auto status = RegQueryValueExW(
+        key,
+        filterValue,
+        nullptr,
+        &type,
+        nullptr,
+        &size
+    );
+
+    //
+    // Value exists already, read it with returned buffer size
+    // 
+    if (status == ERROR_SUCCESS)
+    {
+        std::vector<wchar_t> temp(size / sizeof(wchar_t));
+
+        status = RegQueryValueExW(
+            key,
+            filterValue,
+            nullptr,
+            &type,
+            reinterpret_cast<LPBYTE>(&temp[0]),
+            &size
+        );
+
+        if (status != ERROR_SUCCESS)
+        {
+            spdlog::error("RegQueryValueExW failed with status %v", status);
+            RegCloseKey(key);
+            SetLastError(status);
+            return false;
+        }
+
+        //
+        // Remove value, if found
+        //
+        size_t index = 0;
+        size_t len = wcslen(&temp[0]);
+        while (len > 0)
+        {
+            if (filterName != &temp[index])
+            {
+                filters.emplace_back(&temp[index]);
+            }
+            index += len + 1;
+            len = wcslen(&temp[index]);
+        }
+
+        // check if it contains our desired service
+        found = std::ranges::find(filters, serviceName) != filters.end();
 
         RegCloseKey(key);
         return true;
