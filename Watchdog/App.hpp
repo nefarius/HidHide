@@ -4,21 +4,19 @@
 
 #include <Poco/Util/ServerApplication.h>
 
-class App : public Poco::Util::ServerApplication {
-
+class App : public Poco::Util::ServerApplication
+{
 public:
     App() = default;
 
-    ~App() = default;
+    ~App() override = default;
 
 protected:
-    void initialize(Application &self);
+    void initialize(Application& self) override;
 
-    void uninitialize();
+    void uninitialize() override;
 
-    int main(const std::vector<std::string> &args);
-
-
+    int main(const std::vector<std::string>& args) override;
 };
 
 
