@@ -21,6 +21,5 @@ namespace util
                                     DeviceClassFilterPosition::Value position);
 
     bool has_device_class_filter(const GUID* classGuid, const std::wstring& filterName,
-                                 DeviceClassFilterPosition::Value position, const std::wstring& serviceName,
-                                 bool& found);
+                                 DeviceClassFilterPosition::Value position, bool& found);
 };

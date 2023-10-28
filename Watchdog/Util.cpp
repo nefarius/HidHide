@@ -113,7 +113,7 @@ bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& fi
             0, // reserved
             REG_MULTI_SZ,
             reinterpret_cast<const BYTE*>(&multiString[0]),
-            static_cast<DWORD>(dataSize)
+            (DWORD)dataSize
         );
 
         if (status != ERROR_SUCCESS)
@@ -205,7 +205,7 @@ bool util::remove_device_class_filter(const GUID* classGuid, const std::wstring&
             0, // reserved
             REG_MULTI_SZ,
             reinterpret_cast<const BYTE*>(&multiString[0]),
-            static_cast<DWORD>(dataSize)
+            (DWORD)dataSize
         );
 
         if (status != ERROR_SUCCESS)
@@ -233,10 +233,9 @@ bool util::remove_device_class_filter(const GUID* classGuid, const std::wstring&
 }
 
 bool util::has_device_class_filter(const GUID* classGuid, const std::wstring& filterName,
-                                   DeviceClassFilterPosition::Value position, const std::wstring& serviceName,
-                                   bool& found)
+                                   DeviceClassFilterPosition::Value position, bool& found)
 {
-    auto key = SetupDiOpenClassRegKey(classGuid, KEY_READ);
+    const auto key = SetupDiOpenClassRegKey(classGuid, KEY_READ);
 
     if (INVALID_HANDLE_VALUE == key)
     {
@@ -282,22 +281,20 @@ bool util::has_device_class_filter(const GUID* classGuid, const std::wstring& fi
         }
 
         //
-        // Remove value, if found
+        // Enumerate values
         //
         size_t index = 0;
         size_t len = wcslen(&temp[0]);
         while (len > 0)
         {
-            if (filterName != &temp[index])
+            if (filterName == &temp[index])
             {
-                filters.emplace_back(&temp[index]);
+                found = true;
+                break;
             }
             index += len + 1;
             len = wcslen(&temp[index]);
         }
-
-        // check if it contains our desired service
-        found = std::ranges::find(filters, serviceName) != filters.end();
 
         RegCloseKey(key);
         return true;

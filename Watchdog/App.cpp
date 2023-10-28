@@ -1,8 +1,17 @@
 #include "App.hpp"
-#include <fstream>
 #include "Util.h"
+#include <initguid.h>
+#include <devguid.h>
 #include <spdlog/spdlog.h>
-#include <spdlog/sinks/msvc_sink.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+
+// XnaComposite
+DEFINE_GUID(GUID_DEVCLASS_XNACOMPOSITE,
+            0xd61ca365L, 0x5af4, 0x4486, 0x99, 0x8b, 0x9d, 0xb4, 0x73, 0x4c, 0x6c, 0xa3);
+
+// XboxComposite
+DEFINE_GUID(GUID_DEVCLASS_XBOXCOMPOSITE,
+            0x05f5cfe2L, 0x4733, 0x4950, 0xa6, 0xbb, 0x07, 0xaa, 0xd0, 0x1a, 0x3a, 0x84);
 
 void App::initialize(Application& self)
 {
@@ -16,25 +25,39 @@ void App::uninitialize()
 
 int App::main(const std::vector<std::string>& args)
 {
-    auto debugSink = std::make_shared<spdlog::sinks::msvc_sink_mt>(false);
-#if _DEBUG
-    debugSink->set_level(spdlog::level::debug);
-#else
-    debugSink->set_level(spdlog::level::info);
-#endif
+    const auto console = spdlog::stdout_color_mt("console");
+    const auto err_logger = spdlog::stderr_color_mt("stderr");
 
-    auto logger = std::make_shared<spdlog::logger>("HidHideWatchdog", debugSink);
+    set_default_logger(err_logger);
 
-#if _DEBUG
-    spdlog::set_level(spdlog::level::debug);
-    logger->flush_on(spdlog::level::debug);
-#else
-			logger->flush_on(spdlog::level::info);
-#endif
+    console->info("Application started");
 
-    spdlog::set_default_logger(logger);
+    const auto serviceName = L"HidHide";
 
-    while (true)
+    // filter value or entry not present
+    if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_HIDCLASS, serviceName,
+                                                     util::DeviceClassFilterPosition::Upper, found) || !found)
     {
+        // TODO: implement me
     }
+
+     // filter value or entry not present
+    if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName,
+                                                     util::DeviceClassFilterPosition::Upper, found) || !found)
+    {
+        // TODO: implement me
+    }
+
+     // filter value or entry not present
+    if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName,
+                                                     util::DeviceClassFilterPosition::Upper, found) || !found)
+    {
+        // TODO: implement me
+    }
+
+    waitForTerminationRequest();
+
+    console->info("Exiting application");
+
+    return EXIT_OK;
 }
