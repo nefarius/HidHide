@@ -74,7 +74,7 @@ bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& fi
 
         const std::vector<wchar_t> multiString = winreg::detail::BuildMultiString(filters);
 
-        const DWORD dataSize = multiString.size() * sizeof(wchar_t);
+        const auto& dataSize = multiString.size() * sizeof(wchar_t);
 
         status = RegSetValueExW(
             key,
@@ -82,7 +82,7 @@ bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& fi
             0, // reserved
             REG_MULTI_SZ,
             reinterpret_cast<const BYTE*>(&multiString[0]),
-            dataSize
+            static_cast<DWORD>(dataSize)
         );
 
         if (status != ERROR_SUCCESS)
@@ -105,7 +105,7 @@ bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& fi
 
         const std::vector<wchar_t> multiString = winreg::detail::BuildMultiString(filters);
 
-        const DWORD dataSize = multiString.size() * sizeof(wchar_t);
+        const auto dataSize = multiString.size() * sizeof(wchar_t);
 
         status = RegSetValueExW(
             key,
@@ -113,7 +113,7 @@ bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& fi
             0, // reserved
             REG_MULTI_SZ,
             reinterpret_cast<const BYTE*>(&multiString[0]),
-            dataSize
+            static_cast<DWORD>(dataSize)
         );
 
         if (status != ERROR_SUCCESS)
@@ -197,7 +197,7 @@ bool util::remove_device_class_filter(const GUID* classGuid, const std::wstring&
 
         const std::vector<wchar_t> multiString = winreg::detail::BuildMultiString(filters);
 
-        const DWORD dataSize = multiString.size() * sizeof(wchar_t);
+        const auto dataSize = multiString.size() * sizeof(wchar_t);
 
         status = RegSetValueExW(
             key,
@@ -205,7 +205,7 @@ bool util::remove_device_class_filter(const GUID* classGuid, const std::wstring&
             0, // reserved
             REG_MULTI_SZ,
             reinterpret_cast<const BYTE*>(&multiString[0]),
-            dataSize
+            static_cast<DWORD>(dataSize)
         );
 
         if (status != ERROR_SUCCESS)
