@@ -6,6 +6,7 @@
   "supports": "!(arm | uwp)",
   "dependencies": [
     "poco",
-    "spdlog"
+    "spdlog",
+    "winreg"
   ]
 }
