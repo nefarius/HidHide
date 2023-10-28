@@ -45,6 +45,10 @@ int App::main(const std::vector<std::string>& args)
             err_logger->error("Failed to add upper filters entry for HIDClass");
         }
     }
+    else
+    {
+        console->info("HIDClass is configured properly");
+    }
 
     // filter value or entry not present
     if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName,
@@ -57,6 +61,10 @@ int App::main(const std::vector<std::string>& args)
             err_logger->error("Failed to add upper filters entry for XnaComposite");
         }
     }
+    else
+    {
+        console->info("XnaComposite is configured properly");
+    }
 
     // filter value or entry not present
     if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName,
@@ -68,6 +76,10 @@ int App::main(const std::vector<std::string>& args)
         {
             err_logger->error("Failed to add upper filters entry for XboxComposite");
         }
+    }
+    else
+    {
+        console->info("XboxComposite is configured properly");
     }
 
     waitForTerminationRequest();

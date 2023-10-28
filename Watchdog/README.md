@@ -1,6 +1,14 @@
 # HidHide Watchdog
 
-TBD
+Small Windows service checking and rectifying missing device class filter entries.
+
+## How to install
+
+Elevated terminal:
+
+```PowerShell
+.\HidHideWatchdog.exe /registerService /displayName "HidHide Watchdog"
+```
 
 ## 3rd party credits
 
