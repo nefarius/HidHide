@@ -5,6 +5,9 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+#include <Poco/Task.h>
+#include <Poco/TaskManager.h>
+
 // XnaComposite
 DEFINE_GUID(GUID_DEVCLASS_XNACOMPOSITE,
             0xd61ca365L, 0x5af4, 0x4486, 0x99, 0x8b, 0x9d, 0xb4, 0x73, 0x4c, 0x6c, 0xa3);
@@ -12,6 +15,66 @@ DEFINE_GUID(GUID_DEVCLASS_XNACOMPOSITE,
 // XboxComposite
 DEFINE_GUID(GUID_DEVCLASS_XBOXCOMPOSITE,
             0x05f5cfe2L, 0x4733, 0x4950, 0xa6, 0xbb, 0x07, 0xaa, 0xd0, 0x1a, 0x3a, 0x84);
+
+//
+// Background task running as long as the service is running
+// 
+class WatchdogTask : public Poco::Task
+{
+public:
+    explicit WatchdogTask(const std::string& name)
+        : Task(name)
+    {
+    }
+
+    void runTask() override
+    {
+        // sleep breaks on app termination
+        while (!sleep(3000))
+        {
+            const auto serviceName = L"HidHide";
+
+            // filter value or entry not present
+            if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_HIDCLASS, serviceName,
+                                                             util::DeviceClassFilterPosition::Upper, found) || !found)
+            {
+                spdlog::warn("Filter missing for HIDClass, adding");
+
+                if (!add_device_class_filter(&GUID_DEVCLASS_HIDCLASS, serviceName,
+                                             util::DeviceClassFilterPosition::Upper))
+                {
+                    spdlog::error("Failed to add upper filters entry for HIDClass");
+                }
+            }
+
+            // filter value or entry not present
+            if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName,
+                                                             util::DeviceClassFilterPosition::Upper, found) || !found)
+            {
+                spdlog::warn("Filter missing for XnaComposite, adding");
+
+                if (!add_device_class_filter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName,
+                                             util::DeviceClassFilterPosition::Upper))
+                {
+                    spdlog::error("Failed to add upper filters entry for XnaComposite");
+                }
+            }
+
+            // filter value or entry not present
+            if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName,
+                                                             util::DeviceClassFilterPosition::Upper, found) || !found)
+            {
+                spdlog::warn("Filter missing for XboxComposite, adding");
+
+                if (!add_device_class_filter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName,
+                                             util::DeviceClassFilterPosition::Upper))
+                {
+                    spdlog::error("Failed to add upper filters entry for XboxComposite");
+                }
+            }
+        }
+    }
+};
 
 void App::initialize(Application& self)
 {
@@ -23,6 +86,9 @@ void App::uninitialize()
     Application::uninitialize();
 }
 
+//
+// Main service routine
+// 
 int App::main(const std::vector<std::string>& args)
 {
     const auto console = spdlog::stdout_color_mt("console");
@@ -32,57 +98,11 @@ int App::main(const std::vector<std::string>& args)
 
     console->info("Application started");
 
-    const auto serviceName = L"HidHide";
-
-    // filter value or entry not present
-    if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_HIDCLASS, serviceName,
-                                                     util::DeviceClassFilterPosition::Upper, found) || !found)
-    {
-        console->warn("Filter missing for HIDClass, adding");
-
-        if (!add_device_class_filter(&GUID_DEVCLASS_HIDCLASS, serviceName, util::DeviceClassFilterPosition::Upper))
-        {
-            err_logger->error("Failed to add upper filters entry for HIDClass");
-        }
-    }
-    else
-    {
-        console->info("HIDClass is configured properly");
-    }
-
-    // filter value or entry not present
-    if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName,
-                                                     util::DeviceClassFilterPosition::Upper, found) || !found)
-    {
-        console->warn("Filter missing for XnaComposite, adding");
-
-        if (!add_device_class_filter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName, util::DeviceClassFilterPosition::Upper))
-        {
-            err_logger->error("Failed to add upper filters entry for XnaComposite");
-        }
-    }
-    else
-    {
-        console->info("XnaComposite is configured properly");
-    }
-
-    // filter value or entry not present
-    if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName,
-                                                     util::DeviceClassFilterPosition::Upper, found) || !found)
-    {
-        console->warn("Filter missing for XboxComposite, adding");
-
-        if (!add_device_class_filter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName, util::DeviceClassFilterPosition::Upper))
-        {
-            err_logger->error("Failed to add upper filters entry for XboxComposite");
-        }
-    }
-    else
-    {
-        console->info("XboxComposite is configured properly");
-    }
-
+    Poco::TaskManager tm;
+    tm.start(new WatchdogTask("HidHideWatchdog"));
     waitForTerminationRequest();
+    tm.cancelAll();
+    tm.joinAll();
 
     console->info("Exiting application");
 
