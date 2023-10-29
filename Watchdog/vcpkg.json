@@ -2,7 +2,7 @@
   "name": "hidhide-watchdog",
   "version": "1.0.0",
   "description": "hidhide-watchdog",
-  "license": "BSD-3-Clause",
+  "license": "MIT",
   "supports": "!(arm | uwp)",
   "dependencies": [
     "poco",
