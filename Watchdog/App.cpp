@@ -2,6 +2,9 @@
 #include "Util.h"
 #include <initguid.h>
 #include <devguid.h>
+
+#include <scope_guard.hpp>
+
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
@@ -21,6 +24,58 @@ DEFINE_GUID(GUID_DEVCLASS_XBOXCOMPOSITE,
 // 
 class WatchdogTask : public Poco::Task
 {
+    static DWORD checkServiceStatus(const std::wstring& serviceName, int& serviceState)
+    {
+        SC_HANDLE sch = nullptr;
+        SC_HANDLE svc = nullptr;
+
+        sg::make_scope_guard(
+            [sch, svc]() noexcept
+            {
+                if (sch) CloseServiceHandle(svc);
+                if (svc) CloseServiceHandle(svc);
+            });
+
+        sch = OpenSCManager(
+            nullptr,
+            nullptr,
+            SC_MANAGER_ALL_ACCESS
+        );
+        if (sch == nullptr)
+        {
+            return GetLastError();
+        }
+
+        svc = OpenService(
+            sch,
+            serviceName.c_str(),
+            SC_MANAGER_ALL_ACCESS
+        );
+        if (svc == nullptr)
+        {
+            return GetLastError();
+        }
+
+        SERVICE_STATUS_PROCESS stat;
+        DWORD needed = 0;
+        BOOL ret = QueryServiceStatusEx(
+            svc,
+            SC_STATUS_PROCESS_INFO,
+            (BYTE*)&stat,
+            sizeof stat,
+            &needed
+        );
+        if (ret == 0)
+        {
+            return GetLastError();
+        }
+
+        // ReSharper disable once CppRedundantCastExpression
+        serviceState = (DWORD)stat.dwCurrentState;
+
+        return ERROR_SUCCESS;
+    }
+
 public:
     explicit WatchdogTask(const std::string& name)
         : Task(name)
