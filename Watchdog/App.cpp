@@ -85,19 +85,43 @@ public:
     {
         spdlog::get("console")->info("Started watchdog background thread");
 
-        // sleep breaks on app termination
-        while (!sleep(3000))
+        do
         {
             const auto serviceName = L"HidHide";
+            unsigned long winError = 0, serviceStatus = 0;
+
+            // check if driver service is healthy
+            if ((winError = CheckServiceStatus(serviceName, serviceStatus)) != ERROR_SUCCESS)
+            {
+                spdlog::error("Failed to query service status, error {}", winError);
+                continue;
+            }
+
+            // expecting service to be running as an indicator that driver is loaded
+            if (serviceStatus != SERVICE_RUNNING)
+            {
+                spdlog::error("Driver service not detected running, removing filter entries");
+
+                //
+                // Prevents bricked HID devices
+                // 
+
+                RemoveDeviceClassFilter(&GUID_DEVCLASS_HIDCLASS,
+                                        serviceName, util::DeviceClassFilterPosition::Upper);
+                RemoveDeviceClassFilter(&GUID_DEVCLASS_XNACOMPOSITE,
+                                        serviceName, util::DeviceClassFilterPosition::Upper);
+                RemoveDeviceClassFilter(&GUID_DEVCLASS_XBOXCOMPOSITE,
+                                        serviceName, util::DeviceClassFilterPosition::Upper);
+            }
 
             // filter value or entry not present
             if (bool found = false; !HasDeviceClassFilter(&GUID_DEVCLASS_HIDCLASS, serviceName,
-                                                             util::DeviceClassFilterPosition::Upper, found) || !found)
+                                                          util::DeviceClassFilterPosition::Upper, found) || !found)
             {
                 spdlog::warn("Filter missing for HIDClass, adding");
 
                 if (!AddDeviceClassFilter(&GUID_DEVCLASS_HIDCLASS, serviceName,
-                                             util::DeviceClassFilterPosition::Upper))
+                                          util::DeviceClassFilterPosition::Upper))
                 {
                     spdlog::error("Failed to add upper filters entry for HIDClass");
                 }
@@ -105,12 +129,12 @@ public:
 
             // filter value or entry not present
             if (bool found = false; !HasDeviceClassFilter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName,
-                                                             util::DeviceClassFilterPosition::Upper, found) || !found)
+                                                          util::DeviceClassFilterPosition::Upper, found) || !found)
             {
                 spdlog::warn("Filter missing for XnaComposite, adding");
 
                 if (!AddDeviceClassFilter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName,
-                                             util::DeviceClassFilterPosition::Upper))
+                                          util::DeviceClassFilterPosition::Upper))
                 {
                     spdlog::error("Failed to add upper filters entry for XnaComposite");
                 }
@@ -118,17 +142,19 @@ public:
 
             // filter value or entry not present
             if (bool found = false; !HasDeviceClassFilter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName,
-                                                             util::DeviceClassFilterPosition::Upper, found) || !found)
+                                                          util::DeviceClassFilterPosition::Upper, found) || !found)
             {
                 spdlog::warn("Filter missing for XboxComposite, adding");
 
                 if (!AddDeviceClassFilter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName,
-                                             util::DeviceClassFilterPosition::Upper))
+                                          util::DeviceClassFilterPosition::Upper))
                 {
                     spdlog::error("Failed to add upper filters entry for XboxComposite");
                 }
             }
         }
+        // sleep breaks on app termination
+        while (!sleep(5000));
 
         spdlog::get("console")->info("Stopping watchdog background thread");
     }
