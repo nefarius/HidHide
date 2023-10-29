@@ -12,7 +12,7 @@ Elevated terminal:
 
 ## 3rd party credits
 
+- [Fast C++ logging library](https://github.com/gabime/spdlog)
 - [POCO C++ Libraries](https://pocoproject.org/)
 - [WinReg](https://github.com/GiovanniDicanio/WinReg)
-- [Fast C++ logging library](https://github.com/gabime/spdlog)
 - [nefcon](https://github.com/nefarius/nefcon)
