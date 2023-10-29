@@ -29,6 +29,8 @@ public:
 
     void runTask() override
     {
+        spdlog::get("console")->info("Started watchdog background thread");
+
         // sleep breaks on app termination
         while (!sleep(3000))
         {
@@ -73,6 +75,8 @@ public:
                 }
             }
         }
+
+        spdlog::get("console")->info("Stopping watchdog background thread");
     }
 };
 
