@@ -98,13 +98,22 @@ int App::main(const std::vector<std::string>& args)
 
     console->info("Application started");
 
-    Poco::TaskManager tm;
-    tm.start(new WatchdogTask("HidHideWatchdog"));
-    waitForTerminationRequest();
-    tm.cancelAll();
-    tm.joinAll();
+    const bool is_admin = util::is_admin();
+
+    if (is_admin)
+    {
+        Poco::TaskManager tm;
+        tm.start(new WatchdogTask("HidHideWatchdog"));
+        waitForTerminationRequest();
+        tm.cancelAll();
+        tm.joinAll();
+    }
+    else
+    {
+        err_logger->error("App need administrative permissions to run");
+    }
 
     console->info("Exiting application");
 
-    return EXIT_OK;
+    return is_admin ? EXIT_OK : EXIT_TEMPFAIL;
 }

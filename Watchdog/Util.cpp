@@ -113,7 +113,8 @@ bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& fi
             0, // reserved
             REG_MULTI_SZ,
             reinterpret_cast<const BYTE*>(&multiString[0]),
-            (DWORD)dataSize
+            // ReSharper disable once CppRedundantCastExpression
+            static_cast<DWORD>(dataSize)
         );
 
         if (status != ERROR_SUCCESS)
@@ -205,7 +206,8 @@ bool util::remove_device_class_filter(const GUID* classGuid, const std::wstring&
             0, // reserved
             REG_MULTI_SZ,
             reinterpret_cast<const BYTE*>(&multiString[0]),
-            (DWORD)dataSize
+            // ReSharper disable once CppRedundantCastExpression
+            static_cast<DWORD>(dataSize)
         );
 
         if (status != ERROR_SUCCESS)
@@ -310,4 +312,61 @@ bool util::has_device_class_filter(const GUID* classGuid, const std::wstring& fi
 
     RegCloseKey(key);
     return false;
+}
+
+unsigned long util::is_admin_mode(bool& is_admin)
+{
+    DWORD dwError = ERROR_SUCCESS;
+    PSID pAdministratorsGroup = nullptr;
+    BOOL IsAdmin = 0;
+
+    // Allocate and initialize a SID of the administrators group.
+    SID_IDENTIFIER_AUTHORITY NtAuthority = SECURITY_NT_AUTHORITY;
+    if (!AllocateAndInitializeSid(
+        &NtAuthority,
+        2,
+        SECURITY_BUILTIN_DOMAIN_RID,
+        DOMAIN_ALIAS_RID_ADMINS,
+        0, 0, 0, 0, 0, 0,
+        &pAdministratorsGroup))
+    {
+        dwError = GetLastError();
+        goto Cleanup;
+    }
+    
+    // Determine whether the SID of administrators group is enabled in 
+    // the primary access token of the process.
+    if (!CheckTokenMembership(nullptr, pAdministratorsGroup, &IsAdmin))
+    {
+        dwError = GetLastError();
+    }
+
+    is_admin = IsAdmin > 0;
+
+Cleanup:
+    // Centralized cleanup for all allocated resources.
+    if (pAdministratorsGroup)
+    {
+        FreeSid(pAdministratorsGroup);
+        pAdministratorsGroup = nullptr;
+    }
+
+    return dwError;
+}
+
+bool util::is_admin()
+{
+    bool isAdmin = false;
+
+    if (is_admin_mode(isAdmin) != ERROR_SUCCESS)
+    {
+        return false;
+    }
+
+    if (!isAdmin)
+    {
+        return false;
+    }
+
+    return true;
 }

@@ -22,4 +22,8 @@ namespace util
 
     bool has_device_class_filter(const GUID* classGuid, const std::wstring& filterName,
                                  DeviceClassFilterPosition::Value position, bool& found);
+
+    unsigned long is_admin_mode(bool& is_admin);
+
+    bool is_admin();
 };
