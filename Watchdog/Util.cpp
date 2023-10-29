@@ -7,7 +7,7 @@
 #include <algorithm>
 
 
-bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& filterName,
+bool util::AddDeviceClassFilter(const GUID* classGuid, const std::wstring& filterName,
                                    DeviceClassFilterPosition::Value position)
 {
     auto key = SetupDiOpenClassRegKey(classGuid, KEY_ALL_ACCESS);
@@ -133,7 +133,7 @@ bool util::add_device_class_filter(const GUID* classGuid, const std::wstring& fi
     return false;
 }
 
-bool util::remove_device_class_filter(const GUID* classGuid, const std::wstring& filterName,
+bool util::RemoveDeviceClassFilter(const GUID* classGuid, const std::wstring& filterName,
                                       DeviceClassFilterPosition::Value position)
 {
     auto key = SetupDiOpenClassRegKey(classGuid, KEY_ALL_ACCESS);
@@ -234,7 +234,7 @@ bool util::remove_device_class_filter(const GUID* classGuid, const std::wstring&
     return false;
 }
 
-bool util::has_device_class_filter(const GUID* classGuid, const std::wstring& filterName,
+bool util::HasDeviceClassFilter(const GUID* classGuid, const std::wstring& filterName,
                                    DeviceClassFilterPosition::Value position, bool& found)
 {
     const auto key = SetupDiOpenClassRegKey(classGuid, KEY_READ);
@@ -314,7 +314,7 @@ bool util::has_device_class_filter(const GUID* classGuid, const std::wstring& fi
     return false;
 }
 
-unsigned long util::is_admin_mode(bool& is_admin)
+unsigned long util::IsAdminMode(bool& is_admin)
 {
     DWORD dwError = ERROR_SUCCESS;
     PSID pAdministratorsGroup = nullptr;
@@ -354,11 +354,11 @@ Cleanup:
     return dwError;
 }
 
-bool util::is_admin()
+bool util::IsAdmin()
 {
     bool isAdmin = false;
 
-    if (is_admin_mode(isAdmin) != ERROR_SUCCESS)
+    if (IsAdminMode(isAdmin) != ERROR_SUCCESS)
     {
         return false;
     }

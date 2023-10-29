@@ -24,7 +24,7 @@ DEFINE_GUID(GUID_DEVCLASS_XBOXCOMPOSITE,
 // 
 class WatchdogTask : public Poco::Task
 {
-    static DWORD checkServiceStatus(const std::wstring& serviceName, int& serviceState)
+    static DWORD CheckServiceStatus(const std::wstring& serviceName, unsigned long& serviceState)
     {
         SC_HANDLE sch = nullptr;
         SC_HANDLE svc = nullptr;
@@ -70,8 +70,7 @@ class WatchdogTask : public Poco::Task
             return GetLastError();
         }
 
-        // ReSharper disable once CppRedundantCastExpression
-        serviceState = (DWORD)stat.dwCurrentState;
+        serviceState = stat.dwCurrentState;
 
         return ERROR_SUCCESS;
     }
@@ -92,12 +91,12 @@ public:
             const auto serviceName = L"HidHide";
 
             // filter value or entry not present
-            if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_HIDCLASS, serviceName,
+            if (bool found = false; !HasDeviceClassFilter(&GUID_DEVCLASS_HIDCLASS, serviceName,
                                                              util::DeviceClassFilterPosition::Upper, found) || !found)
             {
                 spdlog::warn("Filter missing for HIDClass, adding");
 
-                if (!add_device_class_filter(&GUID_DEVCLASS_HIDCLASS, serviceName,
+                if (!AddDeviceClassFilter(&GUID_DEVCLASS_HIDCLASS, serviceName,
                                              util::DeviceClassFilterPosition::Upper))
                 {
                     spdlog::error("Failed to add upper filters entry for HIDClass");
@@ -105,12 +104,12 @@ public:
             }
 
             // filter value or entry not present
-            if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName,
+            if (bool found = false; !HasDeviceClassFilter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName,
                                                              util::DeviceClassFilterPosition::Upper, found) || !found)
             {
                 spdlog::warn("Filter missing for XnaComposite, adding");
 
-                if (!add_device_class_filter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName,
+                if (!AddDeviceClassFilter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName,
                                              util::DeviceClassFilterPosition::Upper))
                 {
                     spdlog::error("Failed to add upper filters entry for XnaComposite");
@@ -118,12 +117,12 @@ public:
             }
 
             // filter value or entry not present
-            if (bool found = false; !has_device_class_filter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName,
+            if (bool found = false; !HasDeviceClassFilter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName,
                                                              util::DeviceClassFilterPosition::Upper, found) || !found)
             {
                 spdlog::warn("Filter missing for XboxComposite, adding");
 
-                if (!add_device_class_filter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName,
+                if (!AddDeviceClassFilter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName,
                                              util::DeviceClassFilterPosition::Upper))
                 {
                     spdlog::error("Failed to add upper filters entry for XboxComposite");
@@ -157,7 +156,7 @@ int App::main(const std::vector<std::string>& args)
 
     console->info("Application started");
 
-    const bool is_admin = util::is_admin();
+    const bool is_admin = util::IsAdmin();
 
     if (is_admin)
     {

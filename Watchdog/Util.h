@@ -14,16 +14,16 @@ namespace util
         };
     };
 
-    bool add_device_class_filter(const GUID* classGuid, const std::wstring& filterName,
+    bool AddDeviceClassFilter(const GUID* classGuid, const std::wstring& filterName,
+                              DeviceClassFilterPosition::Value position);
+
+    bool RemoveDeviceClassFilter(const GUID* classGuid, const std::wstring& filterName,
                                  DeviceClassFilterPosition::Value position);
 
-    bool remove_device_class_filter(const GUID* classGuid, const std::wstring& filterName,
-                                    DeviceClassFilterPosition::Value position);
+    bool HasDeviceClassFilter(const GUID* classGuid, const std::wstring& filterName,
+                              DeviceClassFilterPosition::Value position, bool& found);
 
-    bool has_device_class_filter(const GUID* classGuid, const std::wstring& filterName,
-                                 DeviceClassFilterPosition::Value position, bool& found);
+    unsigned long IsAdminMode(bool& is_admin);
 
-    unsigned long is_admin_mode(bool& is_admin);
-
-    bool is_admin();
+    bool IsAdmin();
 };
