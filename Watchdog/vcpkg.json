@@ -1,0 +1,13 @@
+{
+  "name": "hidhide-watchdog",
+  "version": "1.0.0",
+  "description": "hidhide-watchdog",
+  "license": "MIT",
+  "supports": "!(arm | uwp)",
+  "dependencies": [
+    "poco",
+    "spdlog",
+    "winreg",
+    "scope-guard"
+  ]
+}

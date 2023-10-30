@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<DOCUMENT Type="Advanced Installer" CreateVersion="19.5" version="20.6" Modules="enterprise" RootPath="." Language="en" Id="{96C36008-6781-4863-9906-0DD672266838}">
+<DOCUMENT Type="Advanced Installer" CreateVersion="19.5" version="21.1" Modules="enterprise" RootPath="." Language="en" Id="{96C36008-6781-4863-9906-0DD672266838}">
   <COMPONENT cid="caphyon.advinst.msicomp.ProjectOptionsComponent">
     <ROW Name="HiddenItems" Value="ActSyncAppComponent;CPLAppletComponent;AutorunComponent;GameUxComponent;SilverlightSlnComponent;SharePointSlnComponent;AppXAppDetailsComponent;FixupComponent;AppXCapabilitiesComponent;AppXDependenciesComponent;AppXProductDetailsComponent;AppXVisualAssetsComponent;AppXAppDeclarationsComponent;AppXUriRulesComponent;MsiXDiffComponent;MsixManifestEditorComponent"/>
   </COMPONENT>
@@ -7,18 +7,18 @@
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
     <ROW Property="ALLUSERS" Value="1"/>
     <ROW Property="ARPCOMMENTS" Value="This installer database contains the logic and data required to install [|ProductName]." ValueLocId="*"/>
-    <ROW Property="ARPHELPLINK" Value="https://vigem.org/projects/HidHide/"/>
+    <ROW Property="ARPHELPLINK" Value="https://docs.nefarius.at/projects/HidHide/"/>
     <ROW Property="ARPNOMODIFY" MultiBuildValue="DefaultBuild:1"/>
     <ROW Property="ARPNOREPAIR" Value="1"/>
     <ROW Property="ARPPRODUCTICON" Value="Application.exe" Type="8"/>
-    <ROW Property="ARPURLINFOABOUT" Value="https://vigem.org/Community-Support/"/>
-    <ROW Property="ARPURLUPDATEINFO" Value="https://github.com/ViGEm/HidHide/releases"/>
+    <ROW Property="ARPURLINFOABOUT" Value="https://docs.nefarius.at/Community-Support/"/>
+    <ROW Property="ARPURLUPDATEINFO" Value="https://github.com/nefarius/HidHide/releases"/>
     <ROW Property="IAgree" Value="No" Type="4"/>
     <ROW Property="Manufacturer" Value="Nefarius Software Solutions e.U."/>
-    <ROW Property="ProductCode" Value="1033:{48DD38C8-443E-4474-A249-AB32389E08F6} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{C0B33147-9D04-4A70-A915-A641913C8B54} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="HidHide"/>
-    <ROW Property="ProductVersion" Value="1.2.128"/>
+    <ROW Property="ProductVersion" Value="1.3.170" Options="32"/>
     <ROW Property="REBOOT" MultiBuildValue="DefaultBuild:Force"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;UPGRADE_1"/>
     <ROW Property="UpgradeCode" Value="{8822CC70-E2A5-4CB7-8F14-E27101150A1D}"/>
@@ -52,6 +52,7 @@
     <ROW Component="HidHide.sys" ComponentId="{AA6173B6-0815-4B0E-BBB1-CA1299A51ACA}" Directory_="HidHide_Dir" Attributes="256" KeyPath="HidHide.sys_1" Type="0"/>
     <ROW Component="HidHideCLI.exe" ComponentId="{FEEC20CC-7370-4347-9A41-8DFD19FAC53D}" Directory_="x64_Dir" Attributes="256" KeyPath="HidHideCLI.exe"/>
     <ROW Component="HidHideClient.exe" ComponentId="{C3EC16D6-35D4-4479-812E-9CEA0346E2D8}" Directory_="x64_Dir" Attributes="256" KeyPath="HidHideClient.exe"/>
+    <ROW Component="HidHideWatchdog.exe" ComponentId="{42C955B2-C626-49ED-B24F-8AB91AB09D83}" Directory_="x64_Dir" Attributes="256" KeyPath="HidHideWatchdog.exe"/>
     <ROW Component="ProductInformation" ComponentId="{9BBA26D8-0EE7-4EA8-B2F3-6283DBAD7DDF}" Directory_="APPDIR" Attributes="260" KeyPath="Version"/>
     <ROW Component="hidhide.cat" ComponentId="{35CB06F9-C51D-4996-BBC9-4F000A66462D}" Directory_="HidHide_Dir" Attributes="0" KeyPath="hidhide.cat" Type="0"/>
     <ROW Component="hidhide_hid.cat" ComponentId="{140B90CF-C350-460A-939A-7DA0B8A8377C}" Directory_="HidHide_Dir" Attributes="0" KeyPath="LICENSE.rtf" Type="0"/>
@@ -82,9 +83,17 @@
     <ROW File="hidhide.cat" Component_="hidhide.cat" FileName="hidhide.cat" Attributes="0" SourcePath="..\drivers\x64\HidHide\hidhide.cat" SelfReg="false"/>
     <ROW File="HidHide.inf" Component_="hidhide.cat" FileName="HidHide.inf" Attributes="0" SourcePath="..\drivers\x64\HidHide\HidHide.inf" SelfReg="false"/>
     <ROW File="HidHide.man" Component_="HidHide.man" FileName="HidHide.man" Attributes="0" SourcePath="..\HidHide\HidHide.man" SelfReg="false"/>
+    <ROW File="HidHideWatchdog.exe" Component_="HidHideWatchdog.exe" FileName="HIDHID~3.EXE|HidHideWatchdog.exe" Attributes="0" SourcePath="..\artifacts\bin\Release\x64\HidHideWatchdog.exe" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" Options="2"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.BootstrapperUISequenceComponent">
+    <ROW Action="AI_DownloadPrereq" Condition="AI_BOOTSTRAPPER AND (NOT AI_PrereqsFulfilled)" Sequence="647"/>
+    <ROW Action="AI_ExtractPrereq" Condition="AI_BOOTSTRAPPER AND (NOT AI_PrereqsFulfilled)" Sequence="648"/>
+    <ROW Action="AI_InstallPrePrerequisite" Condition="AI_BOOTSTRAPPER AND (NOT AI_PrereqsFulfilled)" Sequence="649"/>
+    <ROW Action="AI_VerifyPrePrereq" Condition="AI_BOOTSTRAPPER AND (NOT AI_PrereqsFulfilled)" Sequence="651"/>
+    <ROW Action="AI_CleanPrePrereq" Condition="AI_BOOTSTRAPPER AND (NOT AI_PrereqsFulfilled)" Sequence="652"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BuildComponent">
     <ROW BuildKey="DefaultBuild" BuildName="DefaultBuild" BuildOrder="1" BuildType="0" Languages="en" InstallationType="2" CabsLocation="1" CompressCabs="false" UseLzma="true" LzmaMethod="2" LzmaCompressionLevel="4" PackageType="1" FilesInsideExe="true" ExeIconPath="..\HidHideCLI\src\Application.ico" ExtractionFolder="[CommonAppDataFolder]\Nefarius Software Solutions\[|ProductName] [|ProductVersion]\install" ExtUI="true" Options="1" KeepMsiFiles="true" UseLargeSchema="true" ExeName="HidHide_[|ProductVersion]_x64" MsiPackageType="x64"/>
@@ -94,7 +103,7 @@
     <ROW Path="&lt;AI_DICTS&gt;ui_en.ail"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.DigCertStoreComponent">
-    <ROW TimeStampUrl="http://timestamp.digicert.com" SignerDescription="[|ProductName]" SignOptions="7" SignTool="0" UseSha256="1" Thumbprint="1f431092ec96a80b41ab5317f53ac02ea6f9b89b Subject: Nefarius Software Solutions e.U.&#10;Issuer: DigiCert Trusted G4 Code Signing RSA4096 SHA384 2021 CA1&#10;Valid from 03/13/2023 to 02/17/2025&#10;User\MY" Subject="CN=Nefarius Software Solutions e.U., O=Nefarius Software Solutions e.U., L=Wels, C=AT, SERIALNUMBER=505039f, OID.2.5.4.15=Private Organization, OID.1.3.6.1.4.1.311.60.2.1.1=Wels, OID.1.3.6.1.4.1.311.60.2.1.2=Oberösterreich, OID.1.3.6.1.4.1.311.60.2.1.3=AT"/>
+    <ROW TimeStampUrl="http://timestamp.digicert.com" SignerDescription="[|ProductName]" SignOptions="7" SignTool="0" UseSha256="1" Thumbprint="1f431092ec96a80b41ab5317f53ac02ea6f9b89b Subject: Nefarius Software Solutions e.U.&#10;Issuer: DigiCert Trusted G4 Code Signing RSA4096 SHA384 2021 CA1&#10;Valid from 03/13/2023 to 02/17/2025" Subject="CN=Nefarius Software Solutions e.U., O=Nefarius Software Solutions e.U., L=Wels, C=AT, SERIALNUMBER=505039f, OID.2.5.4.15=Private Organization, OID.1.3.6.1.4.1.311.60.2.1.1=Wels, OID.1.3.6.1.4.1.311.60.2.1.2=Oberösterreich, OID.1.3.6.1.4.1.311.60.2.1.3=AT" Store="User\MY"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.FragmentComponent">
     <ROW Fragment="CommonUI.aip" Path="&lt;AI_FRAGS&gt;CommonUI.aip"/>
@@ -118,12 +127,14 @@
     <ROW Action="AI_ExtractFiles" Description="Extracting files from archive" DescriptionLocId="ActionText.Description.AI_ExtractLzma" TemplateLocId="-"/>
     <ROW Action="AI_ExtractPrereq" Description="Extracting prerequisite software" DescriptionLocId="ActionText.Description.AI_ExtractPrereq" Template="Extracting [1]{[2] completed}" TemplateLocId="ActionText.Template.AI_ExtractPrereq"/>
     <ROW Action="AI_InstallPostPrerequisite" Description="Installing prerequisite software" DescriptionLocId="ActionText.Description.AI_InstallPrerequisite" Template="Installing [1]{[2] completed}" TemplateLocId="ActionText.Template.AI_InstallPrerequisite"/>
+    <ROW Action="AI_InstallPrePrerequisite" Description="Installing prerequisite software" DescriptionLocId="ActionText.Description.AI_InstallPrerequisite" Template="[1]" TemplateLocId="ActionText.Template.AI_InstallPrerequisite"/>
     <ROW Action="AI_InstallPrerequisite" Description="Installing prerequisite software" DescriptionLocId="ActionText.Description.AI_InstallPrerequisite" Template="Installing [1]{[2] completed}" TemplateLocId="ActionText.Template.AI_InstallPrerequisite"/>
     <ROW Action="AI_ProcessTasks2" Description="Generating actions to schedule tasks on the local computer:" DescriptionLocId="ActionText.Description.AI_ProcessTasks" Template="Task Name: [1]" TemplateLocId="ActionText.Template.AI_ProcessTasks"/>
     <ROW Action="AI_RemoveTasks2" Description="Removing scheduled task from the local computer" DescriptionLocId="ActionText.Description.AI_RemoveTasks" Template="Task Name: [1]" TemplateLocId="ActionText.Template.AI_RemoveTasks"/>
     <ROW Action="AI_RollbackTasks2" Description="Rolling back scheduled task on the local computer" DescriptionLocId="ActionText.Description.AI_RollbackTasks" Template="Task Name: [1]" TemplateLocId="ActionText.Template.AI_RollbackTasks"/>
     <ROW Action="AI_ScheduleTasks2" Description="Scheduling task on the local computer" DescriptionLocId="ActionText.Description.AI_ScheduleTasks" Template="Task Name: [1]" TemplateLocId="ActionText.Template.AI_ScheduleTasks"/>
     <ROW Action="AI_UninstallTasks2" Description="Generating actions to remove scheduled tasks from the local computer:" DescriptionLocId="ActionText.Description.AI_UninstallTasks"/>
+    <ROW Action="AI_VerifyPrePrereq" Description="Verifying prerequisites" DescriptionLocId="ActionText.Description.AI_VerifyPrereq" Template="[1] was not installed correctly." TemplateLocId="ActionText.Template.AI_VerifyPrereq"/>
     <ROW Action="AI_VerifyPrereq" Description="Verifying prerequisites" DescriptionLocId="ActionText.Description.AI_VerifyPrereq" Template="[1] was not installed correctly." TemplateLocId="ActionText.Template.AI_VerifyPrereq"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiBinaryComponent">
@@ -174,6 +185,10 @@
     <ROW Dialog_="ExitDialog" Control_="Finish" Event="DoAction" Argument="AI_CleanPrereq" Condition="1" Ordering="301"/>
     <ROW Dialog_="FatalError" Control_="Finish" Event="DoAction" Argument="AI_CleanPrereq" Condition="1" Ordering="102"/>
     <ROW Dialog_="UserExit" Control_="Finish" Event="DoAction" Argument="AI_CleanPrereq" Condition="1" Ordering="101"/>
+    <ROW Dialog_="FatalError" Control_="Finish" Event="DoAction" Argument="AI_RollbackPrePrereq" Condition="1" Ordering="103"/>
+    <ROW Dialog_="ExitDialog" Control_="Finish" Event="DoAction" Argument="AI_CleanPrePrereq" Condition="1" Ordering="302"/>
+    <ROW Dialog_="FatalError" Control_="Finish" Event="DoAction" Argument="AI_CleanPrePrereq" Condition="1" Ordering="104"/>
+    <ROW Dialog_="UserExit" Control_="Finish" Event="DoAction" Argument="AI_CleanPrePrereq" Condition="1" Ordering="102"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCreateFolderComponent">
     <ROW Directory_="APPDIR" Component_="APPDIR" ManualDelete="true"/>
@@ -181,6 +196,7 @@
   <COMPONENT cid="caphyon.advinst.msicomp.MsiCustActComponent">
     <ROW Action="AI_AppSearchEx" Type="1" Source="Prereq.dll" Target="DoAppSearchEx"/>
     <ROW Action="AI_BACKUP_AI_SETUPEXEPATH" Type="51" Source="AI_SETUPEXEPATH_ORIGINAL" Target="[AI_SETUPEXEPATH]"/>
+    <ROW Action="AI_CleanPrePrereq" Type="65" Source="Prereq.dll" Target="CleanPrereq" WithoutSeq="true"/>
     <ROW Action="AI_CleanPrereq" Type="65" Source="Prereq.dll" Target="CleanPrereq" WithoutSeq="true"/>
     <ROW Action="AI_ConfigureChainer" Type="1" Source="Prereq.dll" Target="ConfigurePrereqLauncher"/>
     <ROW Action="AI_DATA_SETTER" Type="51" Source="CustomActionData" Target="[AI_SETUPEXEPATH]"/>
@@ -195,6 +211,7 @@
     <ROW Action="AI_ExtractPrereq" Type="65" Source="Prereq.dll" Target="ExtractPrereq"/>
     <ROW Action="AI_InstallModeCheck" Type="1" Source="aicustact.dll" Target="UpdateInstallMode" WithoutSeq="true"/>
     <ROW Action="AI_InstallPostPrerequisite" Type="1" Source="Prereq.dll" Target="InstallPostPrereq"/>
+    <ROW Action="AI_InstallPrePrerequisite" Type="65" Source="Prereq.dll" Target="InstallPrePrereq"/>
     <ROW Action="AI_InstallPrerequisite" Type="1" Source="Prereq.dll" Target="InstallPrereq"/>
     <ROW Action="AI_LaunchChainer" Type="3314" Source="AI_PREREQ_CHAINER"/>
     <ROW Action="AI_PREPARE_UPGRADE" Type="65" Source="aicustact.dll" Target="PrepareUpgrade"/>
@@ -203,12 +220,14 @@
     <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Type="51" Source="AI_SETUPEXEPATH" Target="[AI_SETUPEXEPATH_ORIGINAL]"/>
     <ROW Action="AI_RemoveTasks2" Type="11265" Source="aischeduler2.dll" Target="DeleteTasks" WithoutSeq="true"/>
     <ROW Action="AI_ResolveKnownFolders" Type="1" Source="aicustact.dll" Target="AI_ResolveKnownFolders"/>
+    <ROW Action="AI_RollbackPrePrereq" Type="65" Source="Prereq.dll" Target="RollbackPrePrereq" WithoutSeq="true"/>
     <ROW Action="AI_RollbackTasks2" Type="11521" Source="aischeduler2.dll" Target="DeleteTasks" WithoutSeq="true"/>
     <ROW Action="AI_SHOW_LOG" Type="65" Source="aicustact.dll" Target="LaunchLogFile" WithoutSeq="true"/>
     <ROW Action="AI_STORE_LOCATION" Type="51" Source="ARPINSTALLLOCATION" Target="[APPDIR]"/>
     <ROW Action="AI_ScheduleTasks2" Type="11265" Source="aischeduler2.dll" Target="ScheduleTasks" WithoutSeq="true"/>
     <ROW Action="AI_UPDATER_UNINSTALL" Type="82" Source="updater.exe" Target="/clean silent"/>
     <ROW Action="AI_UninstallTasks2" Type="1" Source="aischeduler2.dll" Target="UninstallTasks"/>
+    <ROW Action="AI_VerifyPrePrereq" Type="1" Source="Prereq.dll" Target="VerifyPrePrereq"/>
     <ROW Action="AI_VerifyPrereq" Type="1" Source="Prereq.dll" Target="VerifyPrereq"/>
     <ROW Action="AddClassHID" Type="1106" Source="nefconw.exe" Target="--add-class-filter --position upper --service-name HidHide --class-guid 745a17a0-74d3-11d0-b6fe-00a0c90f57da"/>
     <ROW Action="AddClassXBOX" Type="1106" Source="nefconw.exe" Target="--add-class-filter --position upper --service-name HidHide --class-guid 05f5cfe2-4733-4950-a6bb-07aad01a3a84"/>
@@ -240,6 +259,7 @@
     <ROW Feature_="MainFeature" Component_="updater.exe"/>
     <ROW Feature_="MainFeature" Component_="hidhide.cat"/>
     <ROW Feature_="MainFeature" Component_="HidHide.man"/>
+    <ROW Feature_="MainFeature" Component_="HidHideWatchdog.exe"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
     <ROW Name="Application.exe" SourcePath="..\HidHideCLI\src\Application.ico" Index="0"/>
@@ -252,9 +272,9 @@
     <ROW IniFile="CompanyName" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="CompanyName" Value="[Manufacturer]" Action="0" Component_="updater.exe"/>
     <ROW IniFile="DefaultCommandLine" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="DefaultCommandLine" Value="/checknow" Action="0" Component_="updater.exe"/>
     <ROW IniFile="DownloadsFolder" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="DownloadsFolder" Value="[CommonAppDataFolder][Manufacturer]\[ProductName]\updates\" Action="0" Component_="updater.exe"/>
-    <ROW IniFile="Flags" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="Flags" Value="PerMachine|ShowConfigOptionsButton" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="Flags" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="Flags" Value="PerMachine" Action="0" Component_="updater.exe"/>
     <ROW IniFile="ID" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="ID" Value="[UpgradeCode]" Action="0" Component_="updater.exe"/>
-    <ROW IniFile="URL" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="URL" Value="https://updates.vigem.org/api/github/ViGEm/HidHide/updates" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="URL" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="URL" Value="https://aiu.api.nefarius.systems/api/github/ViGEm/HidHide/updates" Action="0" Component_="updater.exe"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
     <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
@@ -264,7 +284,7 @@
     <ROW Action="AI_EnableDebugLog" Sequence="51"/>
     <ROW Action="AI_ExtractFiles" Sequence="1399" Builds="DefaultBuild"/>
     <ROW Action="AI_DATA_SETTER" Sequence="1398"/>
-    <ROW Action="AI_ConfigureChainer" Condition="((UILevel = 2) OR (UILevel = 3)) AND (NOT UPGRADINGPRODUCTCODE)" Sequence="6597"/>
+    <ROW Action="AI_ConfigureChainer" Condition="(NOT SETUPEXEDIR) AND ((UILevel = 2) OR (UILevel = 3)) AND (NOT UPGRADINGPRODUCTCODE)" Sequence="6597"/>
     <ROW Action="AI_LaunchChainer" Condition="AI_PREREQ_CHAINER AND (NOT UPGRADINGPRODUCTCODE)" Sequence="6598"/>
     <ROW Action="AI_VerifyPrereq" Sequence="1101"/>
     <ROW Action="AI_AppSearchEx" Sequence="101"/>
@@ -294,13 +314,14 @@
     <ROW Action="AI_EnableDebugLog" Sequence="51"/>
     <ROW Action="AI_BACKUP_AI_SETUPEXEPATH" Sequence="99"/>
     <ROW Action="AI_RESTORE_AI_SETUPEXEPATH" Condition="AI_SETUPEXEPATH_ORIGINAL" Sequence="102"/>
-    <ROW Action="AI_DownloadPrereq" Sequence="1297"/>
-    <ROW Action="AI_ExtractPrereq" Sequence="1298"/>
-    <ROW Action="AI_InstallPrerequisite" Sequence="1299"/>
+    <ROW Action="AI_DownloadPrereq" Sequence="1296"/>
+    <ROW Action="AI_ExtractPrereq" Sequence="1297"/>
+    <ROW Action="AI_InstallPrerequisite" Sequence="1298"/>
     <ROW Action="AI_InstallPostPrerequisite" Sequence="1301"/>
     <ROW Action="AI_CleanPrereq" Sequence="1302"/>
     <ROW Action="AI_AppSearchEx" Sequence="101"/>
     <ROW Action="AI_PRESERVE_INSTALL_TYPE" Sequence="199"/>
+    <ROW Action="AI_InstallPrePrerequisite" Condition="Installed" Sequence="1299"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiLaunchConditionsComponent">
     <ROW Condition="( Version9X OR ( NOT VersionNT64 ) OR ( VersionNT64 AND ((VersionNT64 &lt;&gt; 600) OR (MsiNTProductType &lt;&gt; 1)) AND ((VersionNT64 &lt;&gt; 600) OR (MsiNTProductType = 1)) AND ((VersionNT64 &lt;&gt; 601) OR (MsiNTProductType &lt;&gt; 1)) AND ((VersionNT64 &lt;&gt; 601) OR (MsiNTProductType = 1)) AND ((VersionNT64 &lt;&gt; 602) OR (MsiNTProductType &lt;&gt; 1)) AND ((VersionNT64 &lt;&gt; 602) OR (MsiNTProductType = 1)) AND ((VersionNT64 &lt;&gt; 603) OR (MsiNTProductType &lt;&gt; 1)) AND ((VersionNT64 &lt;&gt; 603) OR (MsiNTProductType = 1)) ) )" Description="[ProductName] cannot be installed on the following Windows versions: [WindowsTypeNT64Display]." DescriptionLocId="AI.LaunchCondition.NoSpecificNT64" IsPredefined="true" Builds="DefaultBuild"/>
@@ -324,6 +345,12 @@
     <ROW Registry="Software" Root="-1" Key="Software" Name="\"/>
     <ROW Registry="Version" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
   </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiServCtrlComponent">
+    <ROW ServiceControl="HidHideWatchdog.exe" Name="HidHideWatchdog.exe" Event="161" Wait="1" Component_="HidHideWatchdog.exe"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiServInstComponent">
+    <ROW ServiceInstall="HidHideWatchdog.exe" Name="HidHideWatchdog.exe" DisplayName="HidHide Watchdog" ServiceType="16" StartType="2" ErrorControl="1" Component_="HidHideWatchdog.exe" Description="Makes sure that HidHide drivers are operational across reboots or system changes."/>
+  </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
     <ROW Shortcut="HidHideConfigurationClient" Directory_="DesktopFolder" Name="HIDHID~1|HidHide Configuration Client" Component_="HidHideClient.exe" Target="[#HidHideClient.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="x64_Dir"/>
     <ROW Shortcut="HidHideConfigurationClient_1" Directory_="StartMenuFolder" Name="HIDHID~1|HidHide Configuration Client" Component_="HidHideClient.exe" Target="[#HidHideClient.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="x64_Dir"/>
@@ -337,7 +364,7 @@
     <ROW UpgradeCode="{88FDE3F4-0C3A-4462-9FE0-5C25648A1026}" VersionMax="1.2.87" Attributes="1541" ActionProperty="UPGRADE_1"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.PreReqComponent">
-    <ROW PrereqKey="C4FE6FD5B7C4D07B3A313E754A9A6A8" DisplayName="Visual C++ Redistributable for Visual Studio 2015-2022 x64" VersionMin="14.30" SetupFileUrl="https://download.visualstudio.microsoft.com/download/pr/2250605e-e48f-43ed-ba6e-e0cc18bc530d/A9F5D2EAF67BF0DB0178B6552A71C523C707DF0E2CC66C06BFBC08BDC53387E7/VC_redist.x64.exe" Location="1" ExactSize="0" WinNTVersions="Windows 9x/ME/NT/2000/XP/Vista/Windows 7/Windows 8 x86/Windows 8.1 x86/Windows 10 x86" WinNT64Versions="Windows Vista RTM x64, Windows Vista SP1 x64, Windows Server 2008 RTM x64, Windows 7 RTM x64, Windows Server 2008 R2 RTM x64" Operator="1" ComLine="/q /norestart" BasicUiComLine="/q /norestart" NoUiComLine="/q /norestart" Options="xfm" TargetName="Visual C++ Redistributable for Visual Studio 2015-2022" Feature="C4FE6FD5B7C4D07B3A313E754A9A6A8"/>
+    <ROW PrereqKey="C4FE6FD5B7C4D07B3A313E754A9A6A8" DisplayName="Visual C++ Redistributable for Visual Studio 2015-2022 x64" VersionMin="14.30" SetupFileUrl="https://download.visualstudio.microsoft.com/download/pr/2250605e-e48f-43ed-ba6e-e0cc18bc530d/A9F5D2EAF67BF0DB0178B6552A71C523C707DF0E2CC66C06BFBC08BDC53387E7/VC_redist.x64.exe" Location="1" ExactSize="0" WinNTVersions="Windows 9x/ME/NT/2000/XP/Vista/Windows 7/Windows 8 x86/Windows 8.1 x86/Windows 10 x86" WinNT64Versions="Windows Vista RTM x64, Windows Vista SP1 x64, Windows Server 2008 RTM x64, Windows 7 RTM x64, Windows Server 2008 R2 RTM x64" Operator="1" ComLine="/q /norestart" Options="xfm" TargetName="Visual C++ Redistributable for Visual Studio 2015-2022" Feature="C4FE6FD5B7C4D07B3A313E754A9A6A8"/>
     <ATTRIBUTE name="PrereqsOrder" value="C4FE6FD5B7C4D07B3A313E754A9A6A8"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.PreReqSearchComponent">

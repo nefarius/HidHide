@@ -1,11 +1,14 @@
-version: 1.2.{build}.0
-image: Visual Studio 2019
+version: 1.3.{build}.0
+build_cloud: WIN-LKR467JS4GL
+image: Windows
 configuration: Release
 skip_commits:
   files:
     - '**/*.md'
 platform:
 - x64
+install:
+- ps: Setup-VS2022
 build:
   project: $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
 after_build:

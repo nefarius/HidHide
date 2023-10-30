@@ -23,7 +23,6 @@
     <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <RootNamespace>HidHide</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
     <BldCompanyName>Nefarius Software Solutions e.U.</BldCompanyName>
     <BldProductName>HidHide</BldProductName>
     <BldProductVersion Condition="'$(APPVEYOR_BUILD_VERSION)' == ''">1.0.0.0</BldProductVersion>
@@ -216,7 +215,7 @@
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'">true</DeploymentContent>
     </None>
-    <None Include="$(WDKContentRoot)Tools\x$(PlatformArchitecture)\devcon.exe">
+    <None Include="$(WDKContentRoot)Tools\$(TargetPlatformVersion)\x$(PlatformArchitecture)\devcon.exe">
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Production Release|x64'">true</DeploymentContent>
