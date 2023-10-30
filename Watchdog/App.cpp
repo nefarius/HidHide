@@ -112,6 +112,8 @@ public:
                                         serviceName, util::DeviceClassFilterPosition::Upper);
                 RemoveDeviceClassFilter(&GUID_DEVCLASS_XBOXCOMPOSITE,
                                         serviceName, util::DeviceClassFilterPosition::Upper);
+
+                continue;
             }
 
             // filter value or entry not present

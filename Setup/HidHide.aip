@@ -7,12 +7,12 @@
     <ROW Property="AI_BITMAP_DISPLAY_MODE" Value="0"/>
     <ROW Property="ALLUSERS" Value="1"/>
     <ROW Property="ARPCOMMENTS" Value="This installer database contains the logic and data required to install [|ProductName]." ValueLocId="*"/>
-    <ROW Property="ARPHELPLINK" Value="https://vigem.org/projects/HidHide/"/>
+    <ROW Property="ARPHELPLINK" Value="https://docs.nefarius.at/projects/HidHide/"/>
     <ROW Property="ARPNOMODIFY" MultiBuildValue="DefaultBuild:1"/>
     <ROW Property="ARPNOREPAIR" Value="1"/>
     <ROW Property="ARPPRODUCTICON" Value="Application.exe" Type="8"/>
-    <ROW Property="ARPURLINFOABOUT" Value="https://vigem.org/Community-Support/"/>
-    <ROW Property="ARPURLUPDATEINFO" Value="https://github.com/ViGEm/HidHide/releases"/>
+    <ROW Property="ARPURLINFOABOUT" Value="https://docs.nefarius.at/Community-Support/"/>
+    <ROW Property="ARPURLUPDATEINFO" Value="https://github.com/nefarius/HidHide/releases"/>
     <ROW Property="IAgree" Value="No" Type="4"/>
     <ROW Property="Manufacturer" Value="Nefarius Software Solutions e.U."/>
     <ROW Property="ProductCode" Value="1033:{C0B33147-9D04-4A70-A915-A641913C8B54} " Type="16"/>
@@ -274,7 +274,7 @@
     <ROW IniFile="DownloadsFolder" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="DownloadsFolder" Value="[CommonAppDataFolder][Manufacturer]\[ProductName]\updates\" Action="0" Component_="updater.exe"/>
     <ROW IniFile="Flags" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="Flags" Value="PerMachine" Action="0" Component_="updater.exe"/>
     <ROW IniFile="ID" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="ID" Value="[UpgradeCode]" Action="0" Component_="updater.exe"/>
-    <ROW IniFile="URL" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="URL" Value="https://updates.vigem.org/api/github/ViGEm/HidHide/updates" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="URL" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="URL" Value="https://aiu.api.nefarius.systems/api/github/ViGEm/HidHide/updates" Action="0" Component_="updater.exe"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
     <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
