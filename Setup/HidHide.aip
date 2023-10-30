@@ -52,6 +52,7 @@
     <ROW Component="HidHide.sys" ComponentId="{AA6173B6-0815-4B0E-BBB1-CA1299A51ACA}" Directory_="HidHide_Dir" Attributes="256" KeyPath="HidHide.sys_1" Type="0"/>
     <ROW Component="HidHideCLI.exe" ComponentId="{FEEC20CC-7370-4347-9A41-8DFD19FAC53D}" Directory_="x64_Dir" Attributes="256" KeyPath="HidHideCLI.exe"/>
     <ROW Component="HidHideClient.exe" ComponentId="{C3EC16D6-35D4-4479-812E-9CEA0346E2D8}" Directory_="x64_Dir" Attributes="256" KeyPath="HidHideClient.exe"/>
+    <ROW Component="HidHideWatchdog.exe" ComponentId="{42C955B2-C626-49ED-B24F-8AB91AB09D83}" Directory_="x64_Dir" Attributes="256" KeyPath="HidHideWatchdog.exe"/>
     <ROW Component="ProductInformation" ComponentId="{9BBA26D8-0EE7-4EA8-B2F3-6283DBAD7DDF}" Directory_="APPDIR" Attributes="260" KeyPath="Version"/>
     <ROW Component="hidhide.cat" ComponentId="{35CB06F9-C51D-4996-BBC9-4F000A66462D}" Directory_="HidHide_Dir" Attributes="0" KeyPath="hidhide.cat" Type="0"/>
     <ROW Component="hidhide_hid.cat" ComponentId="{140B90CF-C350-460A-939A-7DA0B8A8377C}" Directory_="HidHide_Dir" Attributes="0" KeyPath="LICENSE.rtf" Type="0"/>
@@ -82,6 +83,7 @@
     <ROW File="hidhide.cat" Component_="hidhide.cat" FileName="hidhide.cat" Attributes="0" SourcePath="..\drivers\x64\HidHide\hidhide.cat" SelfReg="false"/>
     <ROW File="HidHide.inf" Component_="hidhide.cat" FileName="HidHide.inf" Attributes="0" SourcePath="..\drivers\x64\HidHide\HidHide.inf" SelfReg="false"/>
     <ROW File="HidHide.man" Component_="HidHide.man" FileName="HidHide.man" Attributes="0" SourcePath="..\HidHide\HidHide.man" SelfReg="false"/>
+    <ROW File="HidHideWatchdog.exe" Component_="HidHideWatchdog.exe" FileName="HIDHID~3.EXE|HidHideWatchdog.exe" Attributes="0" SourcePath="..\artifacts\bin\Release\x64\HidHideWatchdog.exe" SelfReg="false"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.BootstrOptComponent">
     <ROW BootstrOptKey="GlobalOptions" DownloadFolder="[AppDataFolder][|Manufacturer]\[|ProductName]\prerequisites" Options="2"/>
@@ -257,6 +259,7 @@
     <ROW Feature_="MainFeature" Component_="updater.exe"/>
     <ROW Feature_="MainFeature" Component_="hidhide.cat"/>
     <ROW Feature_="MainFeature" Component_="HidHide.man"/>
+    <ROW Feature_="MainFeature" Component_="HidHideWatchdog.exe"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiIconsComponent">
     <ROW Name="Application.exe" SourcePath="..\HidHideCLI\src\Application.ico" Index="0"/>
@@ -341,6 +344,12 @@
     <ROW Registry="ProductVersion_1" Root="-1" Key="Software\Caphyon\Advanced Installer\Prereqs\[ProductCode]\[ProductVersion]" Name="\"/>
     <ROW Registry="Software" Root="-1" Key="Software" Name="\"/>
     <ROW Registry="Version" Root="-1" Key="Software\[Manufacturer]\[ProductName]" Name="Version" Value="[ProductVersion]" Component_="ProductInformation"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiServCtrlComponent">
+    <ROW ServiceControl="HidHideWatchdog.exe" Name="HidHideWatchdog.exe" Event="161" Wait="1" Component_="HidHideWatchdog.exe"/>
+  </COMPONENT>
+  <COMPONENT cid="caphyon.advinst.msicomp.MsiServInstComponent">
+    <ROW ServiceInstall="HidHideWatchdog.exe" Name="HidHideWatchdog.exe" DisplayName="HidHide Watchdog" ServiceType="16" StartType="2" ErrorControl="1" Component_="HidHideWatchdog.exe" Description="Makes sure that HidHide drivers are operational across reboots or system changes."/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiShortsComponent">
     <ROW Shortcut="HidHideConfigurationClient" Directory_="DesktopFolder" Name="HIDHID~1|HidHide Configuration Client" Component_="HidHideClient.exe" Target="[#HidHideClient.exe]" Hotkey="0" IconIndex="0" ShowCmd="1" WkDir="x64_Dir"/>
