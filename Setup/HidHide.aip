@@ -271,10 +271,10 @@
     <ROW IniFile="CheckFrequency" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="CheckFrequency" Value="2" Action="0" Component_="updater.exe"/>
     <ROW IniFile="CompanyName" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="CompanyName" Value="[Manufacturer]" Action="0" Component_="updater.exe"/>
     <ROW IniFile="DefaultCommandLine" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="DefaultCommandLine" Value="/checknow" Action="0" Component_="updater.exe"/>
-    <ROW IniFile="DownloadsFolder" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="DownloadsFolder" Value="[CommonAppDataFolder][Manufacturer]\[ProductName]\updates\" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="DownloadsFolder" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="DownloadsFolder" Value="[CommonAppDataFolder]\Nefarius Software Solutions\[|ProductName] [|ProductVersion]\updates" Action="0" Component_="updater.exe"/>
     <ROW IniFile="Flags" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="Flags" Value="PerMachine" Action="0" Component_="updater.exe"/>
     <ROW IniFile="ID" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="ID" Value="[UpgradeCode]" Action="0" Component_="updater.exe"/>
-    <ROW IniFile="URL" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="URL" Value="https://aiu.api.nefarius.systems/api/github/ViGEm/HidHide/updates" Action="0" Component_="updater.exe"/>
+    <ROW IniFile="URL" FileName="HIDHID~1.INI|HidHide_Updater.ini" DirProperty="APPDIR" Section="General" Key="URL" Value="https://aiu.api.nefarius.systems/api/github/nefarius/HidHide/updates" Action="0" Component_="updater.exe"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiInstExSeqComponent">
     <ROW Action="AI_DOWNGRADE" Condition="AI_NEWERPRODUCTFOUND AND (UILevel &lt;&gt; 5)" Sequence="210"/>
