@@ -20,6 +20,7 @@
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -69,10 +70,13 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_DIALOG_APPLICATION  ICON       "src\\Application.ico"
-IDI_ICON_BLACKLIST_LOCK_BLANK ICON "src\\LockBlank.ico"
-IDI_ICON_BLACKLIST_LOCK_OFF ICON   "src\\LockOff.ico"
-IDI_ICON_BLACKLIST_LOCK_ON ICON    "src\\LockOn.ico"
+IDR_DIALOG_APPLICATION  ICON                    "src\\Application.ico"
+
+IDI_ICON_BLACKLIST_LOCK_BLANK ICON                    "src\\LockBlank.ico"
+
+IDI_ICON_BLACKLIST_LOCK_OFF ICON                    "src\\LockOff.ico"
+
+IDI_ICON_BLACKLIST_LOCK_ON ICON                    "src\\LockOn.ico"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -109,7 +113,7 @@ BEGIN
     CONTROL         "xxx",IDC_CHECK_BLACKLIST_FILTER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,102,8,WS_EX_TRANSPARENT
     CONTROL         "xxx",IDC_CHECK_BLACKLIST_GAMING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,131,102,8,WS_EX_TRANSPARENT
     CONTROL         "xxx",IDC_CHECK_BLACKLIST_ENABLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,140,102,8,WS_EX_TRANSPARENT
-    LTEXT           "xxx",IDC_STATIC_BLACKLIST_GUIDANCE,112,131,237,12,0,WS_EX_TRANSPARENT
+    LTEXT           "xxx",IDC_STATIC_BLACKLIST_GUIDANCE,112,121,237,22,0,WS_EX_TRANSPARENT
 END
 
 
@@ -176,32 +180,46 @@ END
 
 STRINGTABLE
 BEGIN
-    IDS_STATIC_MESSAGEBOX_OK        "&Ok"
-    IDS_STATIC_MESSAGEBOX_CANCEL    "&Cancel"
-    IDS_STATIC_MESSAGEBOX_RETRY     "&Retry"
-    IDS_STATIC_MESSAGEBOX_IGNORE    "&Ignore"
-    IDS_STATIC_MESSAGEBOX_ABORT     "&Abort"
-    IDS_STATIC_MESSAGEBOX_YES       "&Yes"
-    IDS_STATIC_MESSAGEBOX_NO        "&No"
-    IDS_DIALOG_APPLICATION          "HidHide configuration client"
-    IDS_DIALOG_FILE_OPEN            "Identify the application that will be allowed to look through the cloak"
-    IDS_STATIC_FILE_OPEN_FILTER     "Applications |*.exe; *.com; *.bin|Libraries |*.dll; *.ocx|All Files |*.*||"
-    IDS_TAB_APPLICATION_HEADER_0    "Applications"
-    IDS_TAB_APPLICATION_HEADER_1    "Devices"
-    IDS_STATIC_WHITELIST_GUIDANCE   "List here the applications Hid Hide should allow to look through the cloak. Any pre-selected application is not found at the registered location."
-    IDS_BUTTON_WHITELIST_INSERT     "&+"
-    IDS_BUTTON_WHITELIST_DELETE     "&-"
-    IDS_CHECK_BLACKLIST_FILTER      "&Filter-out disconnected"
-    IDS_CHECK_BLACKLIST_GAMING      "&Gaming devices only"
-    IDS_CHECK_BLACKLIST_ENABLE      "&Enable device hiding"
-    IDS_STATIC_BLACKLIST_GUIDANCE   "Select one or more devices and press Enable to control the cloaking. RE-CONNECT the devices afterwards for changes to take effect."
-    IDS_CONTROL_DEVICE_NAME         "\\\\.\\HidHide"
-    IDS_HID_ATTRIBUTE_DENIED        "denied"
-    IDS_HID_ATTRIBUTE_ABSENT        "absent"
-    IDS_STATIC_MESSAGEBOX_PRESENT   "The Hid Hide control device can't be reached. When Hid Hide is just installed be sure to REBOOT first else inspect the status of the Nefarius Hid Hide driver under System Devices in the Device Manager and ensure it is properly loaded and enabled. Once corrected press Retry. When the issue can't be resolved press Cancel and re-install the Hid Hide software."
-    IDS_STATIC_MESSAGEBOX_IN_USE    "The Hid Hide control device can't be accessed. Be sure to close the HidHide command line interface or any other application. When the issue can't be resolved after a REBOOT press Cancel and re-install the Hid Hide software."
-    IDS_STATIC_MESSAGEBOX_EXCEPTION "Something unforeseen has happened which cannot be recovered from. Program execution has to be terminated. Sorry for the inconvenience."
-    IDS_CHECK_WHITELIST_INVERSE     "&Inverse application cloak"
+    IDS_STATIC_MESSAGEBOX_OK "&Ok"
+    IDS_STATIC_MESSAGEBOX_CANCEL "&Cancel"
+    IDS_STATIC_MESSAGEBOX_RETRY "&Retry"
+    IDS_STATIC_MESSAGEBOX_IGNORE "&Ignore"
+    IDS_STATIC_MESSAGEBOX_ABORT "&Abort"
+    IDS_STATIC_MESSAGEBOX_YES "&Yes"
+    IDS_STATIC_MESSAGEBOX_NO "&No"
+    IDS_DIALOG_APPLICATION  "HidHide configuration client"
+    IDS_DIALOG_FILE_OPEN    "Identify the application that will be allowed to look through the cloak"
+    IDS_STATIC_FILE_OPEN_FILTER 
+                            "Applications |*.exe; *.com; *.bin|Libraries |*.dll; *.ocx|All Files |*.*||"
+    IDS_TAB_APPLICATION_HEADER_0 "Applications"
+    IDS_TAB_APPLICATION_HEADER_1 "Devices"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_STATIC_WHITELIST_GUIDANCE 
+                            "List here the applications Hid Hide should allow to look through the cloak. Any pre-selected application is not found at the registered location."
+    IDS_BUTTON_WHITELIST_INSERT "&+"
+    IDS_BUTTON_WHITELIST_DELETE "&-"
+    IDS_CHECK_BLACKLIST_FILTER "&Filter-out disconnected"
+    IDS_CHECK_BLACKLIST_GAMING "&Gaming devices only"
+    IDS_CHECK_BLACKLIST_ENABLE "&Enable device hiding"
+    IDS_STATIC_BLACKLIST_GUIDANCE 
+                            "Select one or more devices and press Enable to control the cloaking. RE-CONNECT the devices afterwards for changes to take effect."
+    IDS_CONTROL_DEVICE_NAME "\\\\.\\HidHide"
+    IDS_HID_ATTRIBUTE_DENIED "denied"
+    IDS_HID_ATTRIBUTE_ABSENT "absent"
+    IDS_STATIC_MESSAGEBOX_PRESENT 
+                            "The Hid Hide control device can't be reached. When Hid Hide is just installed be sure to REBOOT first else inspect the status of the Nefarius Hid Hide driver under System Devices in the Device Manager and ensure it is properly loaded and enabled. Once corrected press Retry. When the issue can't be resolved press Cancel and re-install the Hid Hide software."
+    IDS_STATIC_MESSAGEBOX_IN_USE 
+                            "The Hid Hide control device can't be accessed. Be sure to close the HidHide command line interface or any other application. When the issue can't be resolved after a REBOOT press Cancel and re-install the Hid Hide software."
+    IDS_STATIC_MESSAGEBOX_EXCEPTION 
+                            "Something unforeseen has happened which cannot be recovered from. Program execution has to be terminated. Sorry for the inconvenience."
+    IDS_CHECK_WHITELIST_INVERSE "&Inverse application cloak"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_01             "Generic Desktop"
     IDS_PAGE_02             "Simulation Controls"
     IDS_PAGE_03             "VR Controls"
@@ -217,18 +235,46 @@ BEGIN
     IDS_PAGE_0D             "Digitizer"
     IDS_PABE_0E             "Haptic"
     IDS_PAGE_0F             "PID"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_10             "Unicode"
     IDS_PAGE_12             "Eye and Head Tracker"
     IDS_PAGE_14             "Auxiliary Display"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_20             "Sensor"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_40             "Medical Instrument"
     IDS_PAGE_41             "Braille Display"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_59             "Lighting And Illumination"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_8C             "Bar Code Scanner"
     IDS_PAGE_8D             "Scale"
     IDS_PAGE_8E             "Magnetic Stripe Reader"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_90             "Camera Control"
     IDS_PAGE_91             "Arcade"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_01_USAGE_01    "Pointer"
     IDS_PAGE_01_USAGE_02    "Mouse"
     IDS_PAGE_01_USAGE_04    "Joystick"
@@ -240,9 +286,17 @@ BEGIN
     IDS_PAGE_01_USAGE_0D    "Portable Device Control"
     IDS_PAGE_01_USAGE_0E    "System Multi-Axis Controller"
     IDS_PAGE_01_USAGE_0F    "Spatial Controller"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_01_USAGE_10    "Assistive Control"
     IDS_PAGE_01_USAGE_11    "Device Dock"
     IDS_PAGE_01_USAGE_12    "Dockable Device"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_01_USAGE_30    "X"
     IDS_PAGE_01_USAGE_31    "Y"
     IDS_PAGE_01_USAGE_32    "Z"
@@ -258,20 +312,52 @@ BEGIN
     IDS_PAGE_01_USAGE_3C    "Motion Wakeup"
     IDS_PAGE_01_USAGE_3D    "Start"
     IDS_PAGE_01_USAGE_3E    "Select"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_01_USAGE_80    "System Control"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_01_USAGE_96    "Thumbstick"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_01_USAGE_C0    "Sensor Zone"
     IDS_PAGE_01_USAGE_C5    "Chassis Enclosure"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_0C_USAGE_01    "Consumer Control"
     IDS_PAGE_0C_USAGE_02    "Numeric Key Pad"
     IDS_PAGE_0C_USAGE_03    "Programmable Buttons"
     IDS_PAGE_0C_USAGE_04    "Microphone"
     IDS_PAGE_0C_USAGE_05    "Headphone"
     IDS_PAGE_0C_USAGE_06    "Graphic Equalizer"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_0C_USAGE_36    "Function Buttons"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_0C_USAGE_80    "Selection"
     IDS_PAGE_0C_USAGE_87    "Media Selection"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_0C_USAGE_BA    "Select Disc"
+END
+
+STRINGTABLE
+BEGIN
     IDS_PAGE_0C_USAGE_F1    "Playback Speed"
 END
 
