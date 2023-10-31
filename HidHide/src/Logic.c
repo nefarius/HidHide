@@ -144,7 +144,9 @@ VOID OnDeviceFileCreate(WDFDEVICE wdfDevice, WDFREQUEST wdfRequest, WDFFILEOBJEC
     WDF_REQUEST_SEND_OPTIONS wdfRequestSendOptions;
     PDEVICE_CONTEXT          pDeviceContext;
     UNICODE_STRING           deviceInstancePath;
+    PEPROCESS                process;
     HANDLE                   processId;
+    ULONG                    sessionId;
     BOOLEAN                  accessDenied;
     BOOLEAN                  cacheHit;
     WDFMEMORY                wdfMemory;
@@ -162,15 +164,25 @@ VOID OnDeviceFileCreate(WDFDEVICE wdfDevice, WDFREQUEST wdfRequest, WDFFILEOBJEC
     // - The device instance path of device --> is the device mentioned on the black-list?
     // - The full load image of the client  --> is the caller on the white-list?
 
-    processId    = PsGetCurrentProcessId();
+    process = PsGetCurrentProcess();
+    processId = PsGetCurrentProcessId();
+    if (process != NULL)
+    {
+        sessionId = PsGetProcessSessionId(process);
+    }
+    else
+    {
+        sessionId = 0;
+    }
+
     accessDenied = FALSE;
-    if ((SYSTEM_PID != PROCESS_HANDLE_TO_PROCESS_ID(processId)) && (GetActive()) && (Blacklisted(&deviceInstancePath)))
+    if ((SYSTEM_PID != PROCESS_HANDLE_TO_PROCESS_ID(processId)) && (GetActive()) && (Blacklisted(&deviceInstancePath, sessionId)))
     {
         // When the service is active, and the process is not a system-process, and the device being accessed is on the black-list, then the final verdict comes from the white-list
         if (Whitelisted(processId, &cacheHit))
         {
             // Log the first-time that a white-listed application is granted access to a black-listed device
-            if (!cacheHit) LogEvent(ETW(Whitelisted), L"%ld", PROCESS_HANDLE_TO_PROCESS_ID(processId));
+            if (!cacheHit) LogEvent(ETW(Whitelisted), L"%ld (Session ID: %ld)", PROCESS_HANDLE_TO_PROCESS_ID(processId), sessionId);
         }
         else
         {
@@ -564,23 +576,65 @@ BOOLEAN Whitelisted(HANDLE processId, BOOLEAN* cacheHit)
     return GetInverse() ? !result : result;
 }
 
+void SplitDeviceData(PUNICODE_STRING input, PUNICODE_STRING deviceInstancePath, ULONG* sessionId)
+{
+    // Initialize delimiter as '!'
+    WCHAR delimiter = L'!';
+    USHORT delimiterPosition = 0;
+
+    // Search for the delimiter in the input string
+    for (USHORT i = 0; i < input->Length / sizeof(WCHAR); i++)
+    {
+        if (input->Buffer[i] == delimiter)
+        {
+            delimiterPosition = i;
+            break;
+        }
+    }
+
+    // Set deviceInstancePath to the portion of the input before the delimiter
+    deviceInstancePath->Buffer = input->Buffer;
+    deviceInstancePath->Length = (delimiterPosition > 0) ? (delimiterPosition * sizeof(WCHAR)) : (input->Length);
+    deviceInstancePath->MaximumLength = deviceInstancePath->Length;
+
+    // Set a default session ID
+    *sessionId = 0;
+
+    // We have a jail session filter to work with
+    if (delimiterPosition > 0)
+    {
+        // Set sessionIdString to the portion of the input after the delimiter
+        UNICODE_STRING sessionIdString;
+        sessionIdString.Buffer = &input->Buffer[delimiterPosition + 1]; // +1 to skip the delimiter
+        sessionIdString.Length = input->Length - ((delimiterPosition + 1) * sizeof(WCHAR));
+        sessionIdString.MaximumLength = sessionIdString.Length;
+
+        // Convert the sessionIdString to a ULONG
+        RtlUnicodeStringToInteger(&sessionIdString, 10, sessionId);
+    }
+}
+
 _Use_decl_annotations_
-BOOLEAN Blacklisted(PUNICODE_STRING deviceInstancePath)
+BOOLEAN Blacklisted(PUNICODE_STRING deviceInstancePath, ULONG sessionId)
 {
     TRACE_PERFORMANCE(L"");
 
     PCONTROL_DEVICE_CONTEXT pControlDeviceContext;
+    UNICODE_STRING          inputFilter;
     UNICODE_STRING          blacklistedDeviceInstancePath;
+    ULONG                   jailSessionId;
 
     WdfWaitLockAcquire(s_criticalSectionLock, NULL);
     pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
     for (ULONG index1 = 0, size1 = WdfCollectionGetCount(pControlDeviceContext->blacklistedDeviceInstancePaths); (index1 < size1); index1++)
     {
-        WdfStringGetUnicodeString(WdfCollectionGetItem(pControlDeviceContext->blacklistedDeviceInstancePaths, index1), &blacklistedDeviceInstancePath); // PASSIVE_LEVEL
+        WdfStringGetUnicodeString(WdfCollectionGetItem(pControlDeviceContext->blacklistedDeviceInstancePaths, index1), &inputFilter); // PASSIVE_LEVEL
+        SplitDeviceData(&inputFilter, &blacklistedDeviceInstancePath, &jailSessionId);
+
         if (0 == RtlCompareUnicodeString(&blacklistedDeviceInstancePath, deviceInstancePath, TRUE))
         {
             WdfWaitLockRelease(s_criticalSectionLock);
-            return (TRUE);
+            return (sessionId != 0 && jailSessionId != 0 && sessionId == jailSessionId ? FALSE : TRUE);
         }
     }
     WdfWaitLockRelease(s_criticalSectionLock);
