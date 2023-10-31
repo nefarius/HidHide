@@ -3,6 +3,9 @@
 // Logic.h
 #pragma once
 
+// Undocumented ntddk function that allows easy access to the session ID field in the opaque EPROCESS structure
+ULONG PsGetProcessSessionId(PEPROCESS process);
+
 #define DEVICE_HARDWARE_ID                                L"root\\HidHide"
 #define CONTROL_DEVICE_NT_DEVICE_NAME                     L"\\Device\\HidHide"
 #define CONTROL_DEVICE_DOS_DEVICE_NAME                    L"\\DosDevices\\HidHide"
@@ -160,7 +163,7 @@ BOOLEAN Whitelisted(_In_ HANDLE processId, _Out_ BOOLEAN* cacheHit);
 // Is this device instance on the blacklist?
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
-BOOLEAN Blacklisted(_In_ PUNICODE_STRING deviceInstancePath);
+BOOLEAN Blacklisted(_In_ PUNICODE_STRING deviceInstancePath, ULONG sessionId);
 
 // Get the whitelist in a multi-string format
 // When the supplied buffer is NULL, the method returns STATUS_SUCCESS and indicates the buffer size needed for the multi-string (incl. terminator)
