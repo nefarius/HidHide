@@ -26,6 +26,7 @@ class WatchdogTask : public Poco::Task
     {
         SC_HANDLE sch = nullptr;
         SC_HANDLE svc = nullptr;
+        DWORD error = ERROR_SUCCESS;
 
         __try
         {
@@ -36,7 +37,8 @@ class WatchdogTask : public Poco::Task
             );
             if (sch == nullptr)
             {
-                return GetLastError();
+                error = GetLastError();
+                __leave;
             }
 
             svc = OpenService(
@@ -46,7 +48,8 @@ class WatchdogTask : public Poco::Task
             );
             if (svc == nullptr)
             {
-                return GetLastError();
+                error = GetLastError();
+                __leave;
             }
 
             SERVICE_STATUS_PROCESS stat;
@@ -60,12 +63,14 @@ class WatchdogTask : public Poco::Task
             );
             if (ret == 0)
             {
-                return GetLastError();
+                error = GetLastError();
+                __leave;
             }
 
             serviceState = stat.dwCurrentState;
 
-            return ERROR_SUCCESS;
+            error = ERROR_SUCCESS;
+            __leave;
         }
         __finally
         {
@@ -75,7 +80,7 @@ class WatchdogTask : public Poco::Task
                 CloseServiceHandle(sch);
         }
 
-        return GetLastError();
+        return error;
     }
 
 public:
