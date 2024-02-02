@@ -5,6 +5,7 @@
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/win_eventlog_sink.h>
 
 #include <Poco/Task.h>
 #include <Poco/TaskManager.h>
@@ -188,7 +189,16 @@ int App::main(const std::vector<std::string>& args)
     const auto console = spdlog::stdout_color_mt("console");
     const auto err_logger = spdlog::stderr_color_mt("stderr");
 
-    set_default_logger(err_logger);
+    if (this->isInteractive())
+    {
+        set_default_logger(err_logger);
+    }
+    else
+    {
+        const auto event_log = std::make_shared<spdlog::sinks::win_eventlog_sink_mt>("HidHideWatchdog");
+        const auto event_logger = std::make_shared<spdlog::logger>("eventlog", event_log);
+        set_default_logger(event_logger);
+    }
 
     console->info("Application started");
 
