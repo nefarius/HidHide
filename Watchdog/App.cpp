@@ -23,6 +23,8 @@ DEFINE_GUID(GUID_DEVCLASS_XBOXCOMPOSITE,
 // 
 class WatchdogTask : public Poco::Task
 {
+    bool _isInteractive;
+
     static DWORD CheckServiceStatus(const std::wstring& serviceName, unsigned long& serviceState)
     {
         SC_HANDLE sch = nullptr;
@@ -85,14 +87,19 @@ class WatchdogTask : public Poco::Task
     }
 
 public:
-    explicit WatchdogTask(const std::string& name)
+    explicit WatchdogTask(const std::string& name, bool isInteractive)
         : Task(name)
     {
+        _isInteractive = isInteractive;
     }
 
     void runTask() override
     {
-        spdlog::get("console")->info("Started watchdog background thread");
+        const auto logger = _isInteractive
+                                ? spdlog::get("console")
+                                : spdlog::get("eventlog");
+
+        logger->info("Started watchdog background thread");
 
         do
         {
@@ -167,7 +174,7 @@ public:
         // sleep breaks on app termination
         while (!sleep(5000));
 
-        spdlog::get("console")->info("Stopping watchdog background thread");
+        logger->info("Stopping watchdog background thread");
     }
 };
 
@@ -207,7 +214,7 @@ int App::main(const std::vector<std::string>& args)
     if (is_admin)
     {
         Poco::TaskManager tm;
-        tm.start(new WatchdogTask("HidHideWatchdog"));
+        tm.start(new WatchdogTask("HidHideWatchdog", this->isInteractive()));
         waitForTerminationRequest();
         tm.cancelAll();
         tm.joinAll();
