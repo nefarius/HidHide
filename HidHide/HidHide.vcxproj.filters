@@ -71,9 +71,6 @@
     <None Include="ReinstallDriver.cmd">
       <Filter>Content Files</Filter>
     </None>
-    <None Include="$(WDKContentRoot)Tools\x$(PlatformArchitecture)\devcon.exe">
-      <Filter>Content Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="$(IntDir)HidHideETW.rc">
