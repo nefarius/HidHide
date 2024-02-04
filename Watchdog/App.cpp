@@ -3,9 +3,11 @@
 #include <initguid.h>
 #include <devguid.h>
 
+#pragma warning(disable: 26800)
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/win_eventlog_sink.h>
+#pragma warning(default: 26800)
 
 #include <Poco/Task.h>
 #include <Poco/TaskManager.h>
