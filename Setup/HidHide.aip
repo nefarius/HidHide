@@ -67,8 +67,6 @@
     <ROW Feature="HidHide" Feature_Parent="MainFeature" Title="HidHide" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0"/>
     <ROW Feature="HidHide_1" Feature_Parent="HidHide" Title="HidHide" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0"/>
     <ROW Feature="HidHide_HID" Feature_Parent="MainFeature" Title="HidHide_HID" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0"/>
-    <ROW Feature="HidHide_XBOX" Feature_Parent="HidHide_1" Title="HidHide_XBOX" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0"/>
-    <ROW Feature="HidHide_XNA" Feature_Parent="MainFeature" Title="HidHide_XNA" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0"/>
     <ROW Feature="MainFeature" Title="MainFeature" Description="Description" Display="1" Level="1" Directory_="APPDIR" Attributes="0"/>
     <ATTRIBUTE name="CurrentFeature" value="MainFeature"/>
   </COMPONENT>
@@ -152,8 +150,6 @@
     <ROW Feature_="HidHide" Level="0" Condition="((VersionNT &lt; 500) OR (NOT VersionNT))"/>
     <ROW Feature_="HidHide_1" Level="0" Condition="((VersionNT &lt; 500) OR (NOT VersionNT))"/>
     <ROW Feature_="HidHide_HID" Level="0" Condition="((VersionNT &lt; 500) OR (NOT VersionNT))"/>
-    <ROW Feature_="HidHide_XNA" Level="0" Condition="((VersionNT &lt; 500) OR (NOT VersionNT))"/>
-    <ROW Feature_="HidHide_XBOX" Level="0" Condition="((VersionNT &lt; 500) OR (NOT VersionNT))"/>
   </COMPONENT>
   <COMPONENT cid="caphyon.advinst.msicomp.MsiControlComponent">
     <ROW Dialog_="LicenseAgreementDlg" Control="AgreementText" Type="ScrollableText" X="20" Y="60" Width="330" Height="120" Attributes="7" Text="..\LICENSE.rtf" Order="400" TextLocId="Control.Text.LicenseAgreementDlg#AgreementText" MsiKey="LicenseAgreementDlg#AgreementText"/>
