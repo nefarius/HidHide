@@ -238,10 +238,10 @@
     <ROW Action="AddClassXBOX" Type="1106" Source="nefconw.exe" Target="--add-class-filter --position upper --service-name HidHide --class-guid 05f5cfe2-4733-4950-a6bb-07aad01a3a84"/>
     <ROW Action="AddClassXNA" Type="1106" Source="nefconw.exe" Target="--add-class-filter --position upper --service-name HidHide --class-guid d61ca365-5af4-4486-998b-9db4734c6ca3"/>
     <ROW Action="AddDeviceNode" Type="1106" Source="nefconw.exe" Target="--create-device-node --hardware-id root\HidHide --class-name System --class-guid 4D36E97D-E325-11CE-BFC1-08002BE10318"/>
-    <ROW Action="DeregisterUpdater" Type="1106" Source="nefarius_HidHide_Updater.exe" Target="--uninstall"/>
+    <ROW Action="DeregisterUpdater" Type="1106" Source="nefarius_HidHide_Updater.exe" Target="--uninstall --override-success-code 0"/>
     <ROW Action="InstallDriver" Type="1106" Source="nefconw.exe" Target="--install-driver --inf-path &quot;[HidHide_Dir]HidHide.inf&quot;"/>
     <ROW Action="InstallETWManifest" Type="98" Source="SystemFolder" Target="&quot;[System32Folder]\wevtutil.exe&quot; im &quot;[APPDIR]\HidHide.man&quot;"/>
-    <ROW Action="RegisterUpdater" Type="1042" Source="nefarius_HidHide_Updater.exe" Target="--install --override-success-code 0 --no-scheduled-task --log-level --log-to-file C:\ProgramData\hh_upd.log"/>
+    <ROW Action="RegisterUpdater" Type="1042" Source="nefarius_HidHide_Updater.exe" Target="--install --override-success-code 0"/>
     <ROW Action="RemoveClassHID" Type="1106" Source="nefconw.exe" Target="--remove-class-filter --position upper --service-name HidHide --class-guid 745a17a0-74d3-11d0-b6fe-00a0c90f57da"/>
     <ROW Action="RemoveClassXBOX" Type="1106" Source="nefconw.exe" Target="--remove-class-filter --position upper --service-name HidHide --class-guid 05f5cfe2-4733-4950-a6bb-07aad01a3a84"/>
     <ROW Action="RemoveClassXNA" Type="1106" Source="nefconw.exe" Target="--remove-class-filter --position upper --service-name HidHide --class-guid d61ca365-5af4-4486-998b-9db4734c6ca3"/>
