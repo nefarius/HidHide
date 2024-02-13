@@ -89,7 +89,7 @@ class WatchdogTask : public Poco::Task
     }
 
 public:
-    explicit WatchdogTask(const std::string& name, bool isInteractive)
+    explicit WatchdogTask(const std::string& name, const bool isInteractive)
         : Task(name)
     {
         _isInteractive = isInteractive;
@@ -196,24 +196,24 @@ void App::uninitialize()
 int App::main(const std::vector<std::string>& args)
 {
     const auto console = spdlog::stdout_color_mt("console");
-    const auto err_logger = spdlog::stderr_color_mt("stderr");
+    const auto errLogger = spdlog::stderr_color_mt("stderr");
 
     if (this->isInteractive())
     {
-        set_default_logger(err_logger);
+        set_default_logger(errLogger);
     }
     else
     {
-        const auto event_log = std::make_shared<spdlog::sinks::win_eventlog_sink_mt>("HidHideWatchdog");
-        const auto event_logger = std::make_shared<spdlog::logger>("eventlog", event_log);
-        set_default_logger(event_logger);
+        const auto eventLog = std::make_shared<spdlog::sinks::win_eventlog_sink_mt>("HidHideWatchdog");
+        const auto eventLogger = std::make_shared<spdlog::logger>("eventlog", eventLog);
+        set_default_logger(eventLogger);
     }
 
     console->info("Application started");
 
-    const bool is_admin = util::IsAdmin();
+    const bool isAdmin = util::IsAdmin();
 
-    if (is_admin)
+    if (isAdmin)
     {
         Poco::TaskManager tm;
         tm.start(new WatchdogTask("HidHideWatchdog", this->isInteractive()));
@@ -223,10 +223,10 @@ int App::main(const std::vector<std::string>& args)
     }
     else
     {
-        err_logger->error("App need administrative permissions to run");
+        errLogger->error("App need administrative permissions to run");
     }
 
     console->info("Exiting application");
 
-    return is_admin ? EXIT_OK : EXIT_TEMPFAIL;
+    return isAdmin ? EXIT_OK : EXIT_TEMPFAIL;
 }

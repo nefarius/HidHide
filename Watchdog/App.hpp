@@ -1,6 +1,7 @@
 #ifndef POCO_WINDOWS_SERVICE_APP_H
 #define POCO_WINDOWS_SERVICE_APP_H
 
+#define _SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING
 
 #include <Poco/Util/ServerApplication.h>
 
