@@ -278,6 +278,9 @@ namespace
                 // The device is currently not present hence we can't query its details
                 result.usage = HidHide::StringTable(IDS_HID_ATTRIBUTE_ABSENT);
                 return (result);
+            case ERROR_PATH_NOT_FOUND:
+                // The symbolic link could not be opened
+                return (result);
             default:
                 THROW_WIN32_LAST_ERROR;
             }
