@@ -67,12 +67,12 @@ bool util::AddDeviceClassFilter(const GUID* classGuid, const std::wstring& filte
         //
         // Filter not there yet, add
         // 
-        if (std::find(filters.begin(), filters.end(), filterName) == filters.end())
+        if (std::ranges::find(filters, filterName) == filters.end())
         {
             filters.emplace_back(filterName);
         }
 
-        const std::vector<wchar_t> multiString = winreg::detail::BuildMultiString(filters);
+        const std::vector<wchar_t> multiString = winreg::winreg_internal::BuildMultiString(filters);
 
         const auto& dataSize = multiString.size() * sizeof(wchar_t);
 
@@ -103,7 +103,7 @@ bool util::AddDeviceClassFilter(const GUID* classGuid, const std::wstring& filte
     {
         filters.emplace_back(filterName);
 
-        const std::vector<wchar_t> multiString = winreg::detail::BuildMultiString(filters);
+        const std::vector<wchar_t> multiString = winreg::winreg_internal::BuildMultiString(filters);
 
         const auto dataSize = multiString.size() * sizeof(wchar_t);
 
@@ -196,7 +196,7 @@ bool util::RemoveDeviceClassFilter(const GUID* classGuid, const std::wstring& fi
             len = wcslen(&temp[index]);
         }
 
-        const std::vector<wchar_t> multiString = winreg::detail::BuildMultiString(filters);
+        const std::vector<wchar_t> multiString = winreg::winreg_internal::BuildMultiString(filters);
 
         const auto dataSize = multiString.size() * sizeof(wchar_t);
 

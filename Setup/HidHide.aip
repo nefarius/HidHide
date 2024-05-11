@@ -15,10 +15,10 @@
     <ROW Property="ARPURLUPDATEINFO" Value="https://github.com/nefarius/HidHide/releases"/>
     <ROW Property="IAgree" Value="No" Type="4"/>
     <ROW Property="Manufacturer" Value="Nefarius Software Solutions e.U."/>
-    <ROW Property="ProductCode" Value="1033:{0B3F1B3F-98BC-4A84-8F71-DDEC7FD6A45B} " Type="16"/>
+    <ROW Property="ProductCode" Value="1033:{89B7AB56-588E-4061-9F3C-79C64AA0CE6C} " Type="16"/>
     <ROW Property="ProductLanguage" Value="1033"/>
     <ROW Property="ProductName" Value="HidHide"/>
-    <ROW Property="ProductVersion" Value="1.5.212" Options="32"/>
+    <ROW Property="ProductVersion" Value="1.5.224" Options="32"/>
     <ROW Property="REBOOT" MultiBuildValue="DefaultBuild:Force"/>
     <ROW Property="SecureCustomProperties" Value="OLDPRODUCTS;AI_NEWERPRODUCTFOUND;UPGRADE_1"/>
     <ROW Property="UpgradeCode" Value="{8822CC70-E2A5-4CB7-8F14-E27101150A1D}"/>
