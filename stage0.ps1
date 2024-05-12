@@ -104,6 +104,8 @@ function Get-AppVeyorArtifacts
     }
 }
 
+Remove-Item -Recurse -Force ".\artifacts\bin"
+
 # Download x64 binaries
 Get-AppVeyorArtifacts -Account "nefarius" -Project "HidHide" -Path $Path -Token $Token -Branch $BuildVersion #-JobName "Platform: x64"
 
