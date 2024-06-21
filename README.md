@@ -1,10 +1,12 @@
-# HidHide
+# <img src="assets/hidhide-128x128.png" align="left" />HidHide
 
 [![Build status](https://ci.appveyor.com/api/projects/status/s3t4ffx5fnfw5g65/branch/master?svg=true)](https://ci.appveyor.com/project/nefarius/hidhide/branch/master)
 [![GitHub All Releases](https://img.shields.io/github/downloads/nefarius/HidHide/total)](https://somsubhra.github.io/github-release-stats/?username=nefarius&repository=HidHide)
 [![Chocolatey package](https://img.shields.io/chocolatey/dt/hidhide?color=blue&label=chocolatey)](https://community.chocolatey.org/packages/hidhide)
 ![GitHub issues by-label](https://img.shields.io/github/issues/nefarius/HidHide/bug)
 ![GitHub issues by-label](https://img.shields.io/github/issues/nefarius/HidHide/enhancement)
+
+Gaming Input Peripherals Device Firewall for Windows.
 
 ## Introduction
 
