@@ -9,5 +9,5 @@ jobs:
     steps:
       - uses: vedantmgoyal2009/winget-releaser@v2
         with:
-          identifier: nefarius.HidHide
+          identifier: ViGEm.HidHide
           token: ${{ secrets.WINGET_TOKEN }}
