@@ -1,4 +1,4 @@
-name: Publish to WinGet
+name: Publish to Winget
 on:
   release:
     types: [released]
@@ -9,5 +9,6 @@ jobs:
     steps:
       - uses: vedantmgoyal2009/winget-releaser@v2
         with:
-          identifier: nefarius.HidHide
+          identifier: Nefarius.HidHide
+          installers-regex: '\.exe$'
           token: ${{ secrets.WINGET_TOKEN }}
