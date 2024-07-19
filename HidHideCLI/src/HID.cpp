@@ -266,7 +266,8 @@ namespace
         auto const deviceObject{ CloseHandlePtr(::CreateFileW(symbolicLink.c_str(), GENERIC_READ, (FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE), nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr), &::CloseHandle) };
         if (INVALID_HANDLE_VALUE == deviceObject.get())
         {
-            switch (::GetLastError())
+            const DWORD win32Error = ::GetLastError();
+            switch (win32Error)
             {
             case ERROR_ACCESS_DENIED:
                 // The device is opened exclusively and in use hence we can't interact with it
@@ -280,6 +281,9 @@ namespace
                 return (result);
             case ERROR_PATH_NOT_FOUND:
                 // The symbolic link could not be opened
+                return (result);
+            case ERROR_GEN_FAILURE:
+                // The device is in a non-responsive state
                 return (result);
             default:
                 THROW_WIN32_LAST_ERROR;
