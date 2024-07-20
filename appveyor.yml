@@ -5,9 +5,12 @@ configuration: Release
 skip_commits:
   files:
     - '**/*.md'
+test: off
 platform:
 - x64
 install:
+# manifest mode takes forever to build each commit so use global copy instead
+- cmd: vcpkg install poco:%PLATFORM%-windows-static spdlog:%PLATFORM%-windows-static winreg:%PLATFORM%-windows-static
 - ps: Setup-VS2022
 build:
   project: $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
