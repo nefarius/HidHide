@@ -12,6 +12,8 @@ install:
 # manifest mode takes forever to build each commit so use global copy instead
 - cmd: vcpkg install poco:%PLATFORM%-windows-static spdlog:%PLATFORM%-windows-static winreg:%PLATFORM%-windows-static
 - ps: Setup-VS2022
+before_build:
+- cmd: nuget restore
 build:
   project: $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
 after_build:
