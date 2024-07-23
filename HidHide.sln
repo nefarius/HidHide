@@ -29,8 +29,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		stage0.ps1 = stage0.ps1
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HidHideInstaller", "HidHideInstaller\HidHideInstaller.csproj", "{A765E9AA-6CCD-4ECE-A982-F319B8108860}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -141,24 +139,6 @@ Global
 		{7123D882-1C64-45F7-AE84-D43202121E7E}.Release|x64.Build.0 = Release|x64
 		{7123D882-1C64-45F7-AE84-D43202121E7E}.Release|x86.ActiveCfg = Release|Win32
 		{7123D882-1C64-45F7-AE84-D43202121E7E}.Release|x86.Build.0 = Release|Win32
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Debug|x64.Build.0 = Debug|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Debug|x86.Build.0 = Debug|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Production Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Production Release|Any CPU.Build.0 = Release|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Production Release|x64.ActiveCfg = Release|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Production Release|x64.Build.0 = Release|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Production Release|x86.ActiveCfg = Release|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Production Release|x86.Build.0 = Release|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Release|x64.ActiveCfg = Release|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Release|x64.Build.0 = Release|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Release|x86.ActiveCfg = Release|Any CPU
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -169,7 +149,6 @@ Global
 		{44CE58CD-7B06-4585-8F46-CC7564481912} = {FD0CCC62-DADB-444B-8537-DB24E05B7438}
 		{912E13E7-684B-4B88-8A79-F76288895389} = {17DC743D-7643-4120-B5B3-DEBC37D54934}
 		{7123D882-1C64-45F7-AE84-D43202121E7E} = {70F1DF4F-9AC5-47DB-BEB9-BB40D294B0EE}
-		{A765E9AA-6CCD-4ECE-A982-F319B8108860} = {17DC743D-7643-4120-B5B3-DEBC37D54934}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9BF879AE-7AFD-476A-8B94-F1C666D3F789}

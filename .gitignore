@@ -368,3 +368,6 @@ HidHideClient/RC*
 /Setup
 vcpkg_installed
 *.msi
+/.idea
+HidHideInstaller/wix
+HidHideInstaller/**/*.g.wxs
