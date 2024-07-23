@@ -367,3 +367,4 @@ HidHideClient/RC*
 *.aps
 /Setup
 vcpkg_installed
+*.msi

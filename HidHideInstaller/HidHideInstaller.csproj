@@ -13,10 +13,13 @@
     <None Remove="*.wxs" />
     <None Remove="*.wixpdb" />
     <None Remove="*.wixobj" />
+    <None Remove="App.config" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="WixSharp_wix4" Version="2.1.2" />
+    <PackageReference Include="WixSharp" Version="1.25.2" />
+    <PackageReference Include="WixSharp.bin" Version="1.25.2" />
+    <PackageReference Include="WixSharp.wix.bin" Version="3.14.0.1" />
   </ItemGroup>
 
   <ItemGroup>

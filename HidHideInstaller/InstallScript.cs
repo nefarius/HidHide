@@ -11,7 +11,7 @@ namespace Nefarius.HidHide.Setup
 		{
 			var project = new ManagedProject("MyProduct",
 							 new Dir(@"%ProgramFiles%\My Company\My Product",
-								 new File("Program.cs")));
+								 new File("InstallScript.cs")));
 
 			project.GUID = new Guid("6fe30b47-2577-43ad-9095-1861ba25889b");
 
