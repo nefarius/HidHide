@@ -13,7 +13,9 @@ namespace Nefarius.HidHide.Setup
 							 new Dir(@"%ProgramFiles%\My Company\My Product",
 								 new File("InstallScript.cs")));
 
-			project.GUID = new Guid("6fe30b47-2577-43ad-9095-1861ba25889b");
+			project.Platform = Platform.x64;
+
+			project.GUID = new Guid("FE535A74-4501-40CA-9E9E-8DCA6B122095");
 
 			project.ManagedUI = ManagedUI.Empty;    //no standard UI dialogs
 			project.ManagedUI = ManagedUI.Default;  //all standard UI dialogs
