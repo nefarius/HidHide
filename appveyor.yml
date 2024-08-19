@@ -2,6 +2,9 @@ version: 1.5.{build}.0
 build_cloud: WIN-LKR467JS4GL
 image: Windows
 configuration: Release
+branches:
+  only:
+    - master
 skip_commits:
   files:
     - '**/*.md'
