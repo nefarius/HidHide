@@ -180,7 +180,7 @@ int App::main(const std::vector<std::string>& args)
 
     const auto isAdmin = nefarius::winapi::security::IsAppRunningAsAdminMode();
 
-    if (isAdmin)
+    if (isAdmin.value_or(false))
     {
         Poco::TaskManager tm;
         tm.start(new WatchdogTask("HidHideWatchdog", this->isInteractive()));
