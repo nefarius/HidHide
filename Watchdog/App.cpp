@@ -178,22 +178,30 @@ int App::main(const std::vector<std::string>& args)
 
     console->info("Application started");
 
+#if !defined(_DEBUG)
     const auto isAdmin = nefarius::winapi::security::IsAppRunningAsAdminMode();
 
     if (isAdmin.value_or(false))
     {
+#endif
         Poco::TaskManager tm;
         tm.start(new WatchdogTask("HidHideWatchdog", this->isInteractive()));
         waitForTerminationRequest();
         tm.cancelAll();
         tm.joinAll();
+#if !defined(_DEBUG)
     }
     else
     {
         errLogger->error("App need administrative permissions to run");
     }
+#endif
 
     console->info("Exiting application");
 
+#if !defined(_DEBUG)
     return isAdmin ? EXIT_OK : EXIT_TEMPFAIL;
+#else
+    return EXIT_OK;
+#endif
 }
