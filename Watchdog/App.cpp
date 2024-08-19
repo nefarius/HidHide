@@ -102,8 +102,8 @@ public:
             }
 
             // filter value or entry not present
-            if (HasDeviceClassFilter(&GUID_DEVCLASS_HIDCLASS, serviceName,
-                                     nefarius::devcon::DeviceClassFilterPosition::Upper).value_or(false))
+            if (!HasDeviceClassFilter(&GUID_DEVCLASS_HIDCLASS, serviceName,
+                                      nefarius::devcon::DeviceClassFilterPosition::Upper).value_or(false))
             {
                 logger->warn("Filter missing for HIDClass, adding");
 
@@ -115,8 +115,8 @@ public:
             }
 
             // filter value or entry not present
-            if (HasDeviceClassFilter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName,
-                                     nefarius::devcon::DeviceClassFilterPosition::Upper).value_or(false))
+            if (!HasDeviceClassFilter(&GUID_DEVCLASS_XNACOMPOSITE, serviceName,
+                                      nefarius::devcon::DeviceClassFilterPosition::Upper).value_or(false))
             {
                 logger->warn("Filter missing for XnaComposite, adding");
 
@@ -128,8 +128,8 @@ public:
             }
 
             // filter value or entry not present
-            if (HasDeviceClassFilter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName,
-                                     nefarius::devcon::DeviceClassFilterPosition::Upper).value_or(false))
+            if (!HasDeviceClassFilter(&GUID_DEVCLASS_XBOXCOMPOSITE, serviceName,
+                                      nefarius::devcon::DeviceClassFilterPosition::Upper).value_or(false))
             {
                 logger->warn("Filter missing for XboxComposite, adding");
 
@@ -182,15 +182,15 @@ int App::main(const std::vector<std::string>& args)
     const auto isAdmin = nefarius::winapi::security::IsAppRunningAsAdminMode();
 
     if (isAdmin.value_or(false))
-    {
 #endif
+    {
         Poco::TaskManager tm;
         tm.start(new WatchdogTask("HidHideWatchdog", this->isInteractive()));
         waitForTerminationRequest();
         tm.cancelAll();
         tm.joinAll();
-#if !defined(_DEBUG)
     }
+#if !defined(_DEBUG)
     else
     {
         errLogger->error("App need administrative permissions to run");
