@@ -205,6 +205,7 @@
   <ItemGroup>
     <ClInclude Include="App.hpp" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="resource1.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".editorconfig" />
@@ -213,7 +214,11 @@
     <None Include="vcpkg.json" />
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="AppIcon.rc" />
     <ResourceCompile Include="Watchdog.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="favicon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
