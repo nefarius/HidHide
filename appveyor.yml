@@ -13,7 +13,8 @@ platform:
 - x64
 install:
 # manifest mode takes forever to build each commit so use global copy instead
-- cmd: vcpkg install poco:%PLATFORM%-windows-static spdlog:%PLATFORM%-windows-static winreg:%PLATFORM%-windows-static
+#- cmd: vcpkg install poco:%PLATFORM%-windows-static spdlog:%PLATFORM%-windows-static winreg:%PLATFORM%-windows-static
+- cmd: mklink /J "%APPVEYOR_BUILD_FOLDER%\Watchdog\vcpkg_installed" "C:\tools\build-cache\HidHide\Watchdog\vcpkg_installed\%PLATFORM%"
 - ps: Setup-VS2022
 build:
   project: $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
