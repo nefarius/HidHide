@@ -40,6 +40,7 @@
     <None Include="vcpkg.json" />
     <None Include=".editorconfig" />
     <None Include="README.md" />
+    <None Include="vcpkg-configuration.json" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Watchdog.rc">
