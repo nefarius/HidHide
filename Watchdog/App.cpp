@@ -2,6 +2,7 @@
 #include <initguid.h>
 #include <devguid.h>
 
+#include <variant>
 #include <expected>
 
 #include <nefarius/neflib/MiscWinApi.hpp>
