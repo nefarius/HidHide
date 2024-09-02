@@ -2,6 +2,9 @@ version: 1.5.{build}.0
 build_cloud: WIN-LKR467JS4GL
 image: Windows
 configuration: Release
+branches:
+  only:
+    - master
 skip_commits:
   files:
     - '**/*.md'
@@ -9,8 +12,8 @@ test: off
 platform:
 - x64
 install:
-# manifest mode takes forever to build each commit so use global copy instead
-- cmd: vcpkg install poco:%PLATFORM%-windows-static spdlog:%PLATFORM%-windows-static winreg:%PLATFORM%-windows-static
+# this junction points to a RAM disk on the CI server significantly speeding up building dependencies
+- cmd: mklink /J "%APPVEYOR_BUILD_FOLDER%\Watchdog\vcpkg_installed" "C:\tools\build-cache\HidHide\Watchdog\vcpkg_installed\%PLATFORM%"
 - ps: Setup-VS2022
 build:
   project: $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
