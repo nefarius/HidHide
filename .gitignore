@@ -371,3 +371,4 @@ vcpkg_installed
 /.idea
 HidHideInstaller/wix
 HidHideInstaller/**/*.g.wxs
+*.g.cs

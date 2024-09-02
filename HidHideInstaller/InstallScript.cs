@@ -3,7 +3,7 @@ using System.Windows.Forms;
 using WixSharp;
 using WixSharp.Forms;
 
-namespace Nefarius.HidHide.Installer
+namespace Nefarius.HidHide.Setup
 {
     internal class InstallScript
     {

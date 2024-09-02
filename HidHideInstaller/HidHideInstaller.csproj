@@ -1,11 +1,19 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net472</TargetFramework>
-    <RootNamespace>Nefarius.HidHide.Installer</RootNamespace>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>Nefarius.HidHide.Setup</RootNamespace>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   
+  <PropertyGroup>
+    <SetupVersion Condition="'$(SetupVersion)' == ''">3.0.0</SetupVersion>
+  </PropertyGroup>
+  <Target Name="GenerateBuildVariableFile" BeforeTargets="BeforeBuild">
+    <WriteLinesToFile File="GeneratedBuildVariables.g.cs" Lines="namespace Nefarius.HidHide.Setup { public static class BuildVariables { public const string SetupVersion = &quot;$(SetupVersion)&quot;%3B } }" Overwrite="true" />
+  </Target>
+
   <ItemGroup>
     <None Remove="*.msi" />
     <None Remove="*.exe" />
