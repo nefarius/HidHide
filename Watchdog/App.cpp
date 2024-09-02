@@ -4,6 +4,7 @@
 
 #include <variant>
 #include <expected>
+#include <format>
 
 #include <nefarius/neflib/MiscWinApi.hpp>
 #include <nefarius/neflib/ClassFilter.hpp>
