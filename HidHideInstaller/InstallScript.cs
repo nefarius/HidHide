@@ -30,32 +30,31 @@ namespace Nefarius.HidHide.Setup;
 
 internal class InstallScript
 {
+    public const string ProductName = "HidHide";
+    
     private static void Main()
     {
         Version version = Version.Parse(BuildVariables.SetupVersion);
 
-        ManagedProject project = new ManagedProject("MyProduct",
-            new Dir(@"%ProgramFiles%\My Company\My Product",
+        ManagedProject project = new ManagedProject(ProductName,
+            new Dir(@"%ProgramFiles%\Nefarius Software Solutions\HidHide",
                 new File("InstallScript.cs")))
         {
-            GUID = new Guid("57F3646E-E9AB-4AA5-BD4E-2A4E01DDAD94"),
-            ManagedUI = ManagedUI.Empty, //no standard UI dialogs
+            GUID = new Guid("8822CC70-E2A5-4CB7-8F14-E27101150A1D"),
             Version = version,
             Platform = Platform.x64,
             WildCardDedup = Project.UniqueFileNameDedup,
-            MajorUpgradeStrategy = MajorUpgradeStrategy.Default
+            MajorUpgradeStrategy = MajorUpgradeStrategy.Default,
+            CAConfigFile = "CustomActions.config",
+            OutFileName = $"Nefarius_HidHide_Drivers_x64_v{version}",
         };
-
-        project.ManagedUI = ManagedUI.Default; //all standard UI dialogs
 
         //custom set of standard UI dialogs
         project.ManagedUI = new ManagedUI();
 
         project.ManagedUI.InstallDialogs.Add(Dialogs.Welcome)
             .Add(Dialogs.Licence)
-            .Add(Dialogs.SetupType)
             .Add(Dialogs.Features)
-            .Add(Dialogs.InstallDir)
             .Add(Dialogs.Progress)
             .Add(Dialogs.Exit);
 
@@ -82,9 +81,11 @@ internal class InstallScript
         project.DefaultRefAssemblies.Add(typeof(JsonSerializer).Assembly.Location);
         project.DefaultRefAssemblies.Add(typeof(Binder).Assembly.Location);
 
-
-        //project.SourceBaseDir = "<input dir path>";
-        //project.OutDir = "<output dir path>";
+        project.ControlPanelInfo.ProductIcon = @"..\HidHideClient\src\Application.ico";
+        project.ControlPanelInfo.Manufacturer = "Nefarius Software Solutions e.U.";
+        project.ControlPanelInfo.HelpLink = "https://docs.nefarius.at/Community-Support/";
+        project.ControlPanelInfo.UrlInfoAbout = "https://github.com/nefarius/HidHide";
+        project.ControlPanelInfo.NoModify = true;
 
         project.MajorUpgradeStrategy.PreventDowngradingVersions.OnlyDetect = false;
 
