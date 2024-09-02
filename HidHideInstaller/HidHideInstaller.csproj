@@ -2,9 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net48</TargetFramework>
-    <RootNamespace>Nefarius.HidHide.Setup</RootNamespace>
-    <LangVersion>latest</LangVersion>
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>Nefarius.HidHide.Installer</RootNamespace>
   </PropertyGroup>
   
   <ItemGroup>
@@ -13,17 +12,18 @@
     <None Remove="*.wxs" />
     <None Remove="*.wixpdb" />
     <None Remove="*.wixobj" />
-    <None Remove="App.config" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="WixSharp" Version="1.25.3" />
-    <PackageReference Include="WixSharp.bin" Version="1.25.3" />
-    <PackageReference Include="WixSharp.wix.bin" Version="3.14.1" />
+    <PackageReference Include="WixSharp_wix4" Version="2.1.2" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="cd .\&#xD;&#xA;set ide=true&#xD;&#xA;&quot;$(TargetPath)&quot;" />
+  </Target>
 
 </Project>
