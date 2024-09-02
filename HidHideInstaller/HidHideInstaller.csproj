@@ -8,7 +8,7 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <SetupVersion Condition="'$(SetupVersion)' == ''">3.0.0</SetupVersion>
+    <SetupVersion Condition="'$(SetupVersion)' == ''">1.0.0</SetupVersion>
   </PropertyGroup>
   <Target Name="GenerateBuildVariableFile" BeforeTargets="BeforeBuild">
     <WriteLinesToFile File="GeneratedBuildVariables.g.cs" Lines="namespace Nefarius.HidHide.Setup { public static class BuildVariables { public const string SetupVersion = &quot;$(SetupVersion)&quot;%3B } }" Overwrite="true" />
@@ -24,6 +24,13 @@
 
   <ItemGroup>
     <PackageReference Include="WixSharp_wix4" Version="2.1.2" />
+    <PackageReference Include="CliWrap" Version="3.6.6" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageReference Include="Nefarius.Utilities.DeviceManagement" Version="3.23.0" />
   </ItemGroup>
 
   <ItemGroup>
