@@ -47,10 +47,9 @@ internal class InstallScript
             MajorUpgradeStrategy = MajorUpgradeStrategy.Default,
             CAConfigFile = "CustomActions.config",
             OutFileName = $"Nefarius_HidHide_Drivers_x64_v{version}",
+            //custom set of standard UI dialogs
+            ManagedUI = new ManagedUI()
         };
-
-        //custom set of standard UI dialogs
-        project.ManagedUI = new ManagedUI();
 
         project.ManagedUI.InstallDialogs.Add(Dialogs.Welcome)
             .Add(Dialogs.Licence)
@@ -84,6 +83,7 @@ internal class InstallScript
         project.ControlPanelInfo.ProductIcon = @"..\HidHideClient\src\Application.ico";
         project.ControlPanelInfo.Manufacturer = "Nefarius Software Solutions e.U.";
         project.ControlPanelInfo.HelpLink = "https://docs.nefarius.at/Community-Support/";
+        project.ControlPanelInfo.UrlUpdateInfo = "https://github.com/nefarius/HidHide/releases";
         project.ControlPanelInfo.UrlInfoAbout = "https://github.com/nefarius/HidHide";
         project.ControlPanelInfo.NoModify = true;
 
