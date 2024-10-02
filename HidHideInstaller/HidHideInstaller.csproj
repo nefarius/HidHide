@@ -23,6 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Nefarius.Utilities.WixSharp" Version="1.0.0" />
     <PackageReference Include="WixSharp_wix4" Version="2.4.0" />
     <PackageReference Include="CliWrap" Version="3.6.6" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />

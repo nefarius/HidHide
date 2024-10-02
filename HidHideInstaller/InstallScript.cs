@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 
 using CliWrap;
 
-using System.Windows.Forms;
-
 using Nefarius.Utilities.DeviceManagement.PnP;
 
 
@@ -18,7 +16,8 @@ using WixSharp.Forms;
 
 using File = WixSharp.File;
 
-using System.Collections.Generic;
+using Nefarius.Utilities.WixSharp.Util;
+
 using WixToolset.Dtf.WindowsInstaller;
 
 namespace Nefarius.HidHide.Setup;
@@ -50,7 +49,7 @@ internal class InstallScript
         ManagedProject project = new(ProductName,
             new Dir(@"%ProgramFiles%\Nefarius Software Solutions\HidHide",
                 // driver binaries
-                new Dir(driversFeature, "drivers") { Dirs = GetSubDirectories(driversFeature, DriversRoot).ToArray() },
+                new Dir(driversFeature, "drivers") { Dirs = WixExt.GetSubDirectories(driversFeature, DriversRoot).ToArray() },
                 // manifest files
                 new Dir(driversFeature, ManifestsDir,
                     new File(driversFeature, @"..\HidHide\HidHide.man")
@@ -158,27 +157,6 @@ internal class InstallScript
         {
             CustomActions.UninstallDrivers(e.Session);
         }
-    }
-
-    /// <summary>
-    ///     Recursively resolves all subdirectories and their containing files.
-    /// </summary>
-    private static List<Dir> GetSubDirectories(Feature feature, string directory)
-    {
-        List<Dir> subDirectoryInfosCollection = new();
-
-        foreach (string subDirectory in Directory.GetDirectories(directory))
-        {
-            string subDirectoryName = subDirectory.Remove(0, subDirectory.LastIndexOf('\\') + 1);
-            Dir newDir =
-                new(feature, subDirectoryName, new Files(feature, subDirectory + @"\*.*")) { Name = subDirectoryName };
-            subDirectoryInfosCollection.Add(newDir);
-
-            // Recursively traverse nested directories
-            GetSubDirectories(feature, subDirectory);
-        }
-
-        return subDirectoryInfosCollection;
     }
 }
 
