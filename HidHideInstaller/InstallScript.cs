@@ -1,19 +1,12 @@
 ﻿#nullable enable
 using System;
 using System.Buffers;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using CliWrap;
-using CliWrap.Buffered;
 
 using System.Windows.Forms;
 
@@ -30,25 +23,33 @@ namespace Nefarius.HidHide.Setup;
 
 internal class InstallScript
 {
-    public const string ProductName = "HidHide";
-    
+    public const string ProductName = "Nefarius HidHide";
+
     private static void Main()
     {
         Version version = Version.Parse(BuildVariables.SetupVersion);
 
-        ManagedProject project = new ManagedProject(ProductName,
+        ManagedProject project = new(ProductName,
             new Dir(@"%ProgramFiles%\Nefarius Software Solutions\HidHide",
                 new File("InstallScript.cs")))
         {
             GUID = new Guid("8822CC70-E2A5-4CB7-8F14-E27101150A1D"),
-            Version = version,
-            Platform = Platform.x64,
-            WildCardDedup = Project.UniqueFileNameDedup,
-            MajorUpgradeStrategy = MajorUpgradeStrategy.Default,
             CAConfigFile = "CustomActions.config",
             OutFileName = $"Nefarius_HidHide_Drivers_x64_v{version}",
             //custom set of standard UI dialogs
-            ManagedUI = new ManagedUI()
+            ManagedUI = new ManagedUI(),
+            Version = version,
+            Platform = Platform.x64,
+            WildCardDedup = Project.UniqueFileNameDedup,
+            // TODO: finish me
+            BackgroundImage = "left-banner.png",
+            BannerImage = "top-banner.png",
+            MajorUpgrade = new MajorUpgrade
+            {
+                Schedule = UpgradeSchedule.afterInstallInitialize,
+                DowngradeErrorMessage =
+                    "A later version of [ProductName] is already installed. Setup will now exit."
+            }
         };
 
         project.ManagedUI.InstallDialogs.Add(Dialogs.Welcome)
@@ -66,6 +67,8 @@ internal class InstallScript
         project.BeforeInstall += Msi_BeforeInstall;
         project.AfterInstall += Msi_AfterInstall;
 
+        #region Embed types of dependencies
+
         // embed types of Nefarius.Utilities.DeviceManagement
         project.DefaultRefAssemblies.Add(typeof(Devcon).Assembly.Location);
         // embed types of CliWrap
@@ -80,6 +83,10 @@ internal class InstallScript
         project.DefaultRefAssemblies.Add(typeof(JsonSerializer).Assembly.Location);
         project.DefaultRefAssemblies.Add(typeof(Binder).Assembly.Location);
 
+        #endregion
+
+        #region Control Panel
+
         project.ControlPanelInfo.ProductIcon = @"..\HidHideClient\src\Application.ico";
         project.ControlPanelInfo.Manufacturer = "Nefarius Software Solutions e.U.";
         project.ControlPanelInfo.HelpLink = "https://docs.nefarius.at/Community-Support/";
@@ -87,7 +94,7 @@ internal class InstallScript
         project.ControlPanelInfo.UrlInfoAbout = "https://github.com/nefarius/HidHide";
         project.ControlPanelInfo.NoModify = true;
 
-        project.MajorUpgradeStrategy.PreventDowngradingVersions.OnlyDetect = false;
+        #endregion
 
         project.ResolveWildCards();
 
