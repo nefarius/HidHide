@@ -3,8 +3,6 @@ using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -14,7 +12,6 @@ using System.Windows.Forms;
 
 using Nefarius.Utilities.DeviceManagement.PnP;
 
-using Newtonsoft.Json;
 
 using WixSharp;
 using WixSharp.Forms;
@@ -137,10 +134,6 @@ internal class InstallScript
         project.DefaultRefAssemblies.Add(typeof(Unsafe).Assembly.Location);
         project.DefaultRefAssemblies.Add(typeof(BuffersExtensions).Assembly.Location);
         project.DefaultRefAssemblies.Add(typeof(ArrayPool<>).Assembly.Location);
-        // embed types for web calls
-        project.DefaultRefAssemblies.Add(typeof(WebClient).Assembly.Location);
-        project.DefaultRefAssemblies.Add(typeof(JsonSerializer).Assembly.Location);
-        project.DefaultRefAssemblies.Add(typeof(Binder).Assembly.Location);
 
         #endregion
 
