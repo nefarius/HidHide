@@ -19,6 +19,7 @@ using WixSharp.Forms;
 using File = WixSharp.File;
 
 using System.Collections.Generic;
+using WixToolset.Dtf.WindowsInstaller;
 
 namespace Nefarius.HidHide.Setup;
 
@@ -119,9 +120,7 @@ internal class InstallScript
             .Add(Dialogs.Progress)
             .Add(Dialogs.Exit);
 
-        project.Load += Msi_Load;
-        project.BeforeInstall += Msi_BeforeInstall;
-        project.AfterInstall += Msi_AfterInstall;
+        project.AfterInstall += ProjectOnAfterInstall;
 
         #region Embed types of dependencies
 
@@ -153,6 +152,14 @@ internal class InstallScript
         project.BuildMsi();
     }
 
+    private static void ProjectOnAfterInstall(SetupEventArgs e)
+    {
+        if (e.IsUninstalling)
+        {
+            CustomActions.UninstallDrivers(e.Session);
+        }
+    }
+
     /// <summary>
     ///     Recursively resolves all subdirectories and their containing files.
     /// </summary>
@@ -173,28 +180,12 @@ internal class InstallScript
 
         return subDirectoryInfosCollection;
     }
+}
 
-    private static void Msi_Load(SetupEventArgs e)
+public static class CustomActions
+{
+    public static bool UninstallDrivers(Session session)
     {
-        if (!e.IsUISupressed && !e.IsUninstalling)
-        {
-            MessageBox.Show(e.ToString(), "Load");
-        }
-    }
-
-    private static void Msi_BeforeInstall(SetupEventArgs e)
-    {
-        if (!e.IsUISupressed && !e.IsUninstalling)
-        {
-            MessageBox.Show(e.ToString(), "BeforeInstall");
-        }
-    }
-
-    private static void Msi_AfterInstall(SetupEventArgs e)
-    {
-        if (!e.IsUISupressed && !e.IsUninstalling)
-        {
-            MessageBox.Show(e.ToString(), "AfterExecute");
-        }
+        return false;
     }
 }
