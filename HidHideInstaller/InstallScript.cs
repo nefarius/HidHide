@@ -100,6 +100,7 @@ internal class InstallScript
             Platform = Platform.x64,
             WildCardDedup = Project.UniqueFileNameDedup,
             DefaultFeature = driversFeature,
+            LicenceFile = "EULA.rtf",
             BackgroundImage = "left-banner.png",
             BannerImage = "top-banner.png",
             MajorUpgrade = new MajorUpgrade
