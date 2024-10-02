@@ -23,13 +23,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="WixSharp_wix4" Version="2.1.2" />
+    <PackageReference Include="WixSharp_wix4" Version="2.4.0" />
     <PackageReference Include="CliWrap" Version="3.6.6" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
-    <PackageReference Include="Nefarius.Utilities.DeviceManagement" Version="3.23.0" />
+    <PackageReference Include="Nefarius.Utilities.DeviceManagement" Version="4.0.1" />
   </ItemGroup>
 
   <ItemGroup>
