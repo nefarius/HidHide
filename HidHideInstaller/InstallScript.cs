@@ -1,6 +1,8 @@
 ﻿#nullable enable
 using System;
 using System.Buffers;
+using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -19,19 +21,75 @@ using WixSharp.Forms;
 
 using File = WixSharp.File;
 
+using System.Collections.Generic;
+
 namespace Nefarius.HidHide.Setup;
 
 internal class InstallScript
 {
     public const string ProductName = "Nefarius HidHide";
+    public const string DriversRoot = @"..\drivers";
+    public const string ManifestsDir = "manifests";
+    public const string ArtifactsDir = @"..\artifacts\bin\Release";
 
     private static void Main()
     {
         Version version = Version.Parse(BuildVariables.SetupVersion);
 
+        string driverPath = Path.Combine(DriversRoot, @"x64\HidHide\HidHide.sys");
+        Version driverVersion = Version.Parse(FileVersionInfo.GetVersionInfo(driverPath).FileVersion);
+
+        Console.WriteLine($"Setup version: {version}");
+        Console.WriteLine($"Driver version: {driverVersion}");
+
+        Feature driversFeature = new("HidHide Core Components", true, false)
+        {
+            Description = "Installs the Nefarius HidHide software. " +
+                          "This is a mandatory core component and can't be de-selected.",
+            Display = FeatureDisplay.expand
+        };
+
         ManagedProject project = new(ProductName,
             new Dir(@"%ProgramFiles%\Nefarius Software Solutions\HidHide",
-                new File("InstallScript.cs")))
+                // driver binaries
+                new Dir(driversFeature, "drivers") { Dirs = GetSubDirectories(driversFeature, DriversRoot).ToArray() },
+                // manifest files
+                new Dir(driversFeature, ManifestsDir,
+                    new File(driversFeature, @"..\HidHide\HidHide.man")
+                ),
+                // updater
+                new File(driversFeature, "nefarius_HidHide_Updater.exe"),
+                // x64 utilities
+                new Dir(new Id("x64apps"), "x64",
+                    // cfg UI
+                    new File(driversFeature, Path.Combine(ArtifactsDir, "x64", "HidHideClient.exe"),
+                        new FileShortcut("HidHide Configuration Client") { WorkingDirectory = "[x64apps]" }),
+                    // CLI
+                    new File(driversFeature, Path.Combine(ArtifactsDir, "x64", "HidHideCLI.exe"))
+                ),
+                // start menu shortcuts
+                new Dir(@"%ProgramMenu%\Nefarius Software Solutions\HidHide",
+                    new ExeFileShortcut("Uninstall HidHide", "[System64Folder]msiexec.exe", "/x [ProductCode]"),
+                    new ExeFileShortcut("HidHide Configuration Client", @"[x64apps]\HidHideClient.exe", "")
+                    {
+                        WorkingDirectory = "[x64apps]"
+                    }
+                )
+            ),
+            // registry values
+            new RegKey(driversFeature, RegistryHive.LocalMachine,
+                $@"Software\Nefarius Software Solutions e.U.\{ProductName}",
+                new RegValue("Path", "[INSTALLDIR]") { Win64 = true },
+                new RegValue("Version", version.ToString()) { Win64 = true },
+                new RegValue("DriverVersion", driverVersion.ToString()) { Win64 = true }
+            ) { Win64 = true },
+            // registry values for backwards compatibility (updater)
+            new RegKey(driversFeature, RegistryHive.LocalMachine,
+                @"Software\Nefarius Software Solutions e.U.\HidHide",
+                new RegValue("Path", "[INSTALLDIR]") { Win64 = true },
+                new RegValue("Version", version.ToString()) { Win64 = true }
+            ) { Win64 = true }
+        )
         {
             GUID = new Guid("8822CC70-E2A5-4CB7-8F14-E27101150A1D"),
             CAConfigFile = "CustomActions.config",
@@ -41,7 +99,7 @@ internal class InstallScript
             Version = version,
             Platform = Platform.x64,
             WildCardDedup = Project.UniqueFileNameDedup,
-            // TODO: finish me
+            DefaultFeature = driversFeature,
             BackgroundImage = "left-banner.png",
             BannerImage = "top-banner.png",
             MajorUpgrade = new MajorUpgrade
@@ -99,6 +157,27 @@ internal class InstallScript
         project.ResolveWildCards();
 
         project.BuildMsi();
+    }
+
+    /// <summary>
+    ///     Recursively resolves all subdirectories and their containing files.
+    /// </summary>
+    private static List<Dir> GetSubDirectories(Feature feature, string directory)
+    {
+        List<Dir> subDirectoryInfosCollection = new();
+
+        foreach (string subDirectory in Directory.GetDirectories(directory))
+        {
+            string subDirectoryName = subDirectory.Remove(0, subDirectory.LastIndexOf('\\') + 1);
+            Dir newDir =
+                new(feature, subDirectoryName, new Files(feature, subDirectory + @"\*.*")) { Name = subDirectoryName };
+            subDirectoryInfosCollection.Add(newDir);
+
+            // Recursively traverse nested directories
+            GetSubDirectories(feature, subDirectory);
+        }
+
+        return subDirectoryInfosCollection;
     }
 
     private static void Msi_Load(SetupEventArgs e)

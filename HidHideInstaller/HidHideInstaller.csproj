@@ -8,7 +8,7 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <SetupVersion Condition="'$(SetupVersion)' == ''">1.0.0</SetupVersion>
+    <SetupVersion Condition="'$(SetupVersion)' == ''">1.6.0</SetupVersion>
   </PropertyGroup>
   <Target Name="GenerateBuildVariableFile" BeforeTargets="BeforeBuild">
     <WriteLinesToFile File="GeneratedBuildVariables.g.cs" Lines="namespace Nefarius.HidHide.Setup { public static class BuildVariables { public const string SetupVersion = &quot;$(SetupVersion)&quot;%3B } }" Overwrite="true" />
