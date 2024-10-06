@@ -132,6 +132,7 @@ internal class InstallScript
         project.DefaultRefAssemblies.Add(typeof(Unsafe).Assembly.Location);
         project.DefaultRefAssemblies.Add(typeof(BuffersExtensions).Assembly.Location);
         project.DefaultRefAssemblies.Add(typeof(ArrayPool<>).Assembly.Location);
+        project.DefaultRefAssemblies.Add(typeof(WixExt).Assembly.Location);
 
         #endregion
 
