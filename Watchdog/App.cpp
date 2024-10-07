@@ -5,6 +5,7 @@
 #include <variant>
 #include <expected>
 #include <format>
+#include <iostream>
 
 #include <nefarius/neflib/MiscWinApi.hpp>
 #include <nefarius/neflib/ClassFilter.hpp>
@@ -17,6 +18,23 @@
 
 #include <Poco/Task.h>
 #include <Poco/TaskManager.h>
+
+#include <Poco/Net/HTTPServer.h>
+#include <Poco/Net/HTTPRequestHandler.h>
+#include <Poco/Net/HTTPRequestHandlerFactory.h>
+#include <Poco/Net/HTTPServerRequest.h>
+#include <Poco/Net/HTTPServerResponse.h>
+#include <Poco/Net/ServerSocket.h>
+#include <Poco/Net/HTTPServerParams.h>
+#include <Poco/JSON/Object.h>
+#include <Poco/JSON/Stringifier.h>
+#include <Poco/Timestamp.h>
+
+using namespace Poco;
+using namespace Poco::Net;
+using namespace Poco::JSON;
+using namespace Poco::Util;
+
 
 // XnaComposite
 DEFINE_GUID(GUID_DEVCLASS_XNACOMPOSITE,
@@ -149,6 +167,62 @@ public:
     }
 };
 
+class ETWRequestHandler : public HTTPRequestHandler
+{
+public:
+    void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) override
+    {
+        response.setContentType("application/json");
+        response.setStatus(HTTPResponse::HTTP_OK);
+
+        // Create a JSON response
+        Object::Ptr jsonResponse = new Object();
+        jsonResponse->set("message", "Hello from POCO HTTP Server");
+        jsonResponse->set("timestamp", Timestamp().epochTime());
+
+        // Send the JSON response
+        std::ostream& out = response.send();
+        Stringifier::stringify(jsonResponse, out);
+    }
+};
+
+class ETWRequestHandlerFactory : public HTTPRequestHandlerFactory
+{
+public:
+    HTTPRequestHandler* createRequestHandler(const HTTPServerRequest& request) override
+    {
+        return new ETWRequestHandler;
+    }
+};
+
+class WebServerTask : public Poco::Task
+{
+public:
+    WebServerTask(const std::string& name) : Task(name)
+    {
+    }
+
+    void runTask() override
+    {
+        ServerSocket serverSocket(8080);
+        HTTPServerParams::Ptr params = new HTTPServerParams;
+        params->setMaxQueued(100);
+        params->setMaxThreads(4);
+
+        HTTPServer server(new ETWRequestHandlerFactory(), serverSocket, params);
+        server.start();
+
+        while (!sleep(1000))
+        {
+            if (isCancelled())
+            {
+                server.stop();
+                break;
+            }
+        }
+    }
+};
+
 void App::initialize(Application& self)
 {
     Application::initialize(self);
@@ -187,7 +261,10 @@ int App::main(const std::vector<std::string>& args)
 #endif
     {
         Poco::TaskManager tm;
+        // filter driver watchdog
         tm.start(new WatchdogTask("HidHideWatchdog", this->isInteractive()));
+        // ETW session web server
+        tm.start(new WebServerTask("HidHideWebServer"));
         waitForTerminationRequest();
         tm.cancelAll();
         tm.joinAll();
