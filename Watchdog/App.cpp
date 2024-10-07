@@ -183,6 +183,23 @@ public:
             return;
         }
 
+        switch (request.getMethod())
+        {
+            // get session details
+        case HTTPRequest::HTTP_GET:
+            return;
+            // start/create session
+        case HTTPRequest::HTTP_POST:
+            return;
+            // stop/remove session
+        case HTTPRequest::HTTP_DELETE:
+            return;
+        default:
+            response.setStatus(HTTPResponse::HTTP_METHOD_NOT_ALLOWED);
+            response.send();
+            return;
+        }
+
         response.setContentType("application/json");
         response.setStatus(HTTPResponse::HTTP_OK);
 
