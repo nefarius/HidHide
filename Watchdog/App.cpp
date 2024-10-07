@@ -1,6 +1,9 @@
 #include "App.hpp"
 #include <initguid.h>
 #include <devguid.h>
+#include <evntrace.h>
+#include <tdh.h>
+#include <strsafe.h>
 
 #include <variant>
 #include <expected>
@@ -173,6 +176,13 @@ class ETWRequestHandler : public HTTPRequestHandler
 public:
     void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) override
     {
+        if (request.getURI() != "/api/etw/session")
+        {
+            response.setStatus(HTTPResponse::HTTP_NOT_FOUND);
+            response.send();
+            return;
+        }
+
         response.setContentType("application/json");
         response.setStatus(HTTPResponse::HTTP_OK);
 
