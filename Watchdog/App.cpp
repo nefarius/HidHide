@@ -25,6 +25,7 @@
 #include <Poco/Net/HTTPServerRequest.h>
 #include <Poco/Net/HTTPServerResponse.h>
 #include <Poco/Net/ServerSocket.h>
+#include <Poco/Net/SocketAddress.h>
 #include <Poco/Net/HTTPServerParams.h>
 #include <Poco/JSON/Object.h>
 #include <Poco/JSON/Stringifier.h>
@@ -197,20 +198,33 @@ public:
 
 class WebServerTask : public Poco::Task
 {
+    bool _isInteractive;
+
 public:
-    WebServerTask(const std::string& name) : Task(name)
+    explicit WebServerTask(const std::string& name, const bool isInteractive)
+        : Task(name)
     {
+        _isInteractive = isInteractive;
     }
 
     void runTask() override
     {
-        ServerSocket serverSocket(8080);
+        const auto logger = _isInteractive
+                                ? spdlog::get("console")
+                                : spdlog::get("eventlog");
+
+        logger->info("Starting web server background thread");
+
+        SocketAddress sa("127.0.0.1", 34501);
+        ServerSocket serverSocket(sa);
         HTTPServerParams::Ptr params = new HTTPServerParams;
         params->setMaxQueued(100);
         params->setMaxThreads(4);
 
         HTTPServer server(new ETWRequestHandlerFactory(), serverSocket, params);
         server.start();
+
+        logger->info("Started web server");
 
         while (!sleep(1000))
         {
@@ -220,6 +234,8 @@ public:
                 break;
             }
         }
+
+        logger->info("Stopping web server background thread");
     }
 };
 
@@ -264,7 +280,7 @@ int App::main(const std::vector<std::string>& args)
         // filter driver watchdog
         tm.start(new WatchdogTask("HidHideWatchdog", this->isInteractive()));
         // ETW session web server
-        tm.start(new WebServerTask("HidHideWebServer"));
+        tm.start(new WebServerTask("HidHideWebServer", this->isInteractive()));
         waitForTerminationRequest();
         tm.cancelAll();
         tm.joinAll();
