@@ -1,3 +1,4 @@
+rem DEPRECATED
 @echo off
 rem (c) Eric Korff de Gidts
 rem SPDX-License-Identifier: MIT
