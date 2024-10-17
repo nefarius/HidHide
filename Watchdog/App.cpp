@@ -171,6 +171,9 @@ public:
     }
 };
 
+//
+// REST API /api/etw/session handler
+// 
 class ETWRequestHandler : public HTTPRequestHandler
 {
 public:
