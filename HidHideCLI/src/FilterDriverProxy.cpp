@@ -11,10 +11,10 @@ namespace
 {
     typedef std::unique_ptr<std::remove_pointer<HANDLE>::type, decltype(&::CloseHandle)> CloseHandlePtr;
 
-    // The Hid Hide I/O control custom device type (range 32768 .. 65535)
+    // The HidHide I/O control custom device type (range 32768 .. 65535)
     constexpr auto IoControlDeviceType{ 32769u };
 
-    // The Hid Hide I/O control codes
+    // The HidHide I/O control codes
     constexpr auto IOCTL_GET_WHITELIST { CTL_CODE(IoControlDeviceType, 2048, METHOD_BUFFERED, FILE_READ_DATA) };
     constexpr auto IOCTL_SET_WHITELIST { CTL_CODE(IoControlDeviceType, 2049, METHOD_BUFFERED, FILE_READ_DATA) };
     constexpr auto IOCTL_GET_BLACKLIST { CTL_CODE(IoControlDeviceType, 2050, METHOD_BUFFERED, FILE_READ_DATA) };

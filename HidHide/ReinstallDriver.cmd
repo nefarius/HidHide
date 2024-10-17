@@ -5,7 +5,7 @@ rem ReinstallDriver.cmd
 rem
 rem Command script requiring administrator rights used for testing purposes at target environment
 rem Mount the Visual Studio build output directory as network share and execute this script on the target environment
-rem In order to install and/or update the Nefarius Hid Hide filter device driver
+rem In order to install and/or update the Nefarius HidHide filter device driver
 rem
 
 rem we have to options and per default for the jenkens test job we will deploy the test environment using the installer
@@ -34,7 +34,7 @@ echo Uninstalling the old driver
 ".\devcon.exe" /r remove "root\HidHide"
 del "%windir%\INF\SetupApi.dev.log" > NUL
 
-echo Updating Nefarius Hid Hide filter device driver
+echo Updating Nefarius HidHide filter device driver
 if not exist "C:\Program Files\Nefarius"         mkdir "C:\Program Files\Nefarius"
 if not exist "C:\Program Files\Nefarius\HidHide" mkdir "C:\Program Files\Nefarius\HidHide"
 copy "HidHide\HidHide.cat"   "C:\Program Files\Nefarius\HidHide" /Y > NUL
@@ -43,7 +43,7 @@ copy "HidHide\HidHide.inf"   "C:\Program Files\Nefarius\HidHide" /Y > NUL
 copy "HidHide.man"           "C:\Program Files\Nefarius\HidHide" /Y > NUL
 copy "HidHide.wprp"          "C:\Program Files\Nefarius\HidHide" /Y > NUL
 
-echo Updating Nefarius Hid Hide client
+echo Updating Nefarius HidHide client
 if not exist "C:\Program Files\Nefarius\HidHideClient" mkdir "C:\Program Files\Nefarius\HidHideClient"
 copy "HidHideClient.exe"     "C:\Program Files\Nefarius\HidHideClient" /Y > NUL
 

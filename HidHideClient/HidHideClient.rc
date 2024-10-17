@@ -198,7 +198,7 @@ END
 STRINGTABLE
 BEGIN
     IDS_STATIC_WHITELIST_GUIDANCE 
-                            "List here the applications Hid Hide should allow to look through the cloak. Any pre-selected application is not found at the registered location."
+                            "List here the applications HidHide should allow to look through the cloak. Any pre-selected application is not found at the registered location."
     IDS_BUTTON_WHITELIST_INSERT "&+"
     IDS_BUTTON_WHITELIST_DELETE "&-"
     IDS_CHECK_BLACKLIST_FILTER "&Filter-out disconnected"
@@ -210,9 +210,9 @@ BEGIN
     IDS_HID_ATTRIBUTE_DENIED "denied"
     IDS_HID_ATTRIBUTE_ABSENT "absent"
     IDS_STATIC_MESSAGEBOX_PRESENT 
-                            "The Hid Hide control device can't be reached. When Hid Hide is just installed be sure to REBOOT first else inspect the status of the Nefarius Hid Hide driver under System Devices in the Device Manager and ensure it is properly loaded and enabled. Once corrected press Retry. When the issue can't be resolved press Cancel and re-install the Hid Hide software."
+                            "The HidHide control device can't be reached. When HidHide is just installed be sure to REBOOT first else inspect the status of the Nefarius HidHide driver under System Devices in the Device Manager and ensure it is properly loaded and enabled. Once corrected press Retry. When the issue can't be resolved press Cancel and re-install the HidHide software."
     IDS_STATIC_MESSAGEBOX_IN_USE 
-                            "The Hid Hide control device can't be accessed. Be sure to close the HidHide command line interface or any other application. When the issue can't be resolved after a REBOOT press Cancel and re-install the Hid Hide software."
+                            "The HidHide control device can't be accessed. Be sure to close the HidHide command line interface or any other application. When the issue can't be resolved after a REBOOT press Cancel and re-install the HidHide software."
     IDS_STATIC_MESSAGEBOX_EXCEPTION 
                             "Something unforeseen has happened which cannot be recovered from. Program execution has to be terminated. Sorry for the inconvenience."
     IDS_CHECK_WHITELIST_INVERSE "&Inverse application cloak"
