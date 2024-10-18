@@ -1,6 +1,7 @@
 #include "App.hpp"
 #include <initguid.h>
 #include <devguid.h>
+#include <winevt.h>
 #include <evntrace.h>
 #include <tdh.h>
 #include <strsafe.h>
@@ -186,18 +187,19 @@ public:
             return;
         }
 
-        switch (request.getMethod())
+        const auto& method = request.getMethod();
+
+        if (method == HTTPRequest::HTTP_GET)
         {
-            // get session details
-        case HTTPRequest::HTTP_GET:
-            return;
-            // start/create session
-        case HTTPRequest::HTTP_POST:
-            return;
-            // stop/remove session
-        case HTTPRequest::HTTP_DELETE:
-            return;
-        default:
+        }
+        else if (method == HTTPRequest::HTTP_POST)
+        {
+        }
+        else if (method == HTTPRequest::HTTP_DELETE)
+        {
+        }
+        else
+        {
             response.setStatus(HTTPResponse::HTTP_METHOD_NOT_ALLOWED);
             response.send();
             return;

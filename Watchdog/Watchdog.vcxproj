@@ -125,7 +125,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>tdh.lib
+      <AdditionalDependencies>wevtapi.lib;tdh.lib
 ;advapi32.lib
 ;Ws2_32.lib;setupapi.lib;Iphlpapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -147,7 +147,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>tdh.lib
+      <AdditionalDependencies>wevtapi.lib;tdh.lib
 ;advapi32.lib
 ;Ws2_32.lib;setupapi.lib;Iphlpapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -166,7 +166,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>tdh.lib
+      <AdditionalDependencies>wevtapi.lib;tdh.lib
 ;advapi32.lib
 ;Ws2_32.lib;setupapi.lib;Iphlpapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -197,7 +197,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>tdh.lib
+      <AdditionalDependencies>wevtapi.lib;tdh.lib
 ;advapi32.lib
 ;Ws2_32.lib;setupapi.lib;Iphlpapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
