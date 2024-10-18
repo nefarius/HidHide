@@ -12,4 +12,6 @@
 namespace etw::utils
 {
     std::expected<void, nefarius::utilities::Win32Error> SetLogEnabled(LPCWSTR channel, bool enabled);
+
+    std::expected<void, nefarius::utilities::Win32Error> StartSession();
 }

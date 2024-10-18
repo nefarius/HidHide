@@ -315,8 +315,10 @@ int App::main(const std::vector<std::string>& args)
         Poco::TaskManager tm;
         // filter driver watchdog
         tm.start(new WatchdogTask("HidHideWatchdog", this->isInteractive()));
+#if defined(EXPERIMENTAL)
         // ETW session web server
         tm.start(new WebServerTask("HidHideWebServer", this->isInteractive()));
+#endif
         waitForTerminationRequest();
         tm.cancelAll();
         tm.joinAll();
