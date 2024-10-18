@@ -41,7 +41,7 @@ NTSTATUS LogRegisterProviders()
 {
     NTSTATUS ntstatus;
 
-    ntstatus = EventRegisterNefarius_Hid_Hide(); // PASSIVE_LEVEL
+    ntstatus = EventRegisterNefarius_HidHide(); // PASSIVE_LEVEL
     if (!NT_SUCCESS(ntstatus)) DBG_AND_RETURN_NTSTATUS("EventRegister logging", ntstatus);
     ntstatus = EventRegisterNefarius_Drivers_HidHide();
     if (!NT_SUCCESS(ntstatus)) DBG_AND_RETURN_NTSTATUS("EventRegister tracing", ntstatus);
@@ -61,7 +61,7 @@ NTSTATUS LogUnregisterProviders()
 
     ntstatus = EventUnregisterNefarius_Drivers_HidHide(); // PASSIVE_LEVEL
     if (!NT_SUCCESS(ntstatus)) DBG_AND_RETURN_NTSTATUS("EventRegister tracing", ntstatus);
-    ntstatus = EventUnregisterNefarius_Hid_Hide();
+    ntstatus = EventUnregisterNefarius_HidHide();
     if (!NT_SUCCESS(ntstatus)) DBG_AND_RETURN_NTSTATUS("EventRegister logging", ntstatus);
 
     return (ntstatus);
