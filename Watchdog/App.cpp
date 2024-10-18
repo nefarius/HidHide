@@ -189,15 +189,19 @@ public:
 
         const auto& method = request.getMethod();
 
+        // get session details
         if (method == HTTPRequest::HTTP_GET)
         {
         }
+        // start/create session
         else if (method == HTTPRequest::HTTP_POST)
         {
         }
+        // stop/remove session
         else if (method == HTTPRequest::HTTP_DELETE)
         {
         }
+        // unsupported
         else
         {
             response.setStatus(HTTPResponse::HTTP_METHOD_NOT_ALLOWED);
