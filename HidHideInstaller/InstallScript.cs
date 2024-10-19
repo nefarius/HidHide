@@ -115,7 +115,6 @@ internal class InstallScript
             ManagedUI = new ManagedUI(),
             Version = version,
             Platform = Platform.x64,
-            WildCardDedup = Project.UniqueFileNameDedup,
             DefaultFeature = driversFeature,
             LicenceFile = "EULA.rtf",
             BackgroundImage = "left-banner.png",
@@ -166,8 +165,6 @@ internal class InstallScript
         project.ControlPanelInfo.NoModify = true;
 
         #endregion
-
-        project.ResolveWildCards();
 
         project.BuildMsi();
     }
