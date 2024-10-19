@@ -4,14 +4,14 @@
 // SPDX-License-Identifier: MIT
 // HidHideCLI.wprp
 -->
-<WindowsPerformanceRecorder Version="1.0" Company="Nefarius" Copyright="(C) Nefarius" Author="Nefarius Hid Hide CLI">
+<WindowsPerformanceRecorder Version="1.0" Company="Nefarius" Copyright="(C) Nefarius" Author="Nefarius HidHide CLI">
   <Profiles>
     <EventCollector Id="WpaEventCollector" Name="WpaEventCollector">
       <BufferSize Value="1024"/>
       <Buffers Value="200"/>
     </EventCollector>
     <EventProvider Id="WpaEventProvider" Name="Nefarius-Drivers-HidHideCLI"/>
-    <Profile Id="WpaEventSource.Verbose.File" Name="WpaEventSource" Description="Nefarius Hid Hide CLI" LoggingMode="File" DetailLevel="Verbose">
+    <Profile Id="WpaEventSource.Verbose.File" Name="WpaEventSource" Description="Nefarius HidHide CLI" LoggingMode="File" DetailLevel="Verbose">
       <Collectors>
         <EventCollectorId Value="WpaEventCollector">
           <EventProviders>
@@ -20,6 +20,6 @@
         </EventCollectorId>
       </Collectors>
     </Profile>
-    <Profile Id="WpaEventSource.Verbose.Memory" Name="WpaEventSource" Description="Nefarius Hid Hide CLI" Base="WpaEventSource.Verbose.File" LoggingMode="Memory" DetailLevel="Verbose"/>
+    <Profile Id="WpaEventSource.Verbose.Memory" Name="WpaEventSource" Description="Nefarius HidHide CLI" Base="WpaEventSource.Verbose.File" LoggingMode="Memory" DetailLevel="Verbose"/>
   </Profiles>
 </WindowsPerformanceRecorder>

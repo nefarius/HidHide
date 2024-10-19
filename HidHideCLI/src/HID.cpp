@@ -272,7 +272,7 @@ namespace
             case ERROR_ACCESS_DENIED:
                 // The device is opened exclusively and in use hence we can't interact with it
             case ERROR_SHARING_VIOLATION:
-                // The device is (most-likely) cloaked by Hid Hide itself while its client application isn't on the white-list
+                // The device is (most-likely) cloaked by HidHide itself while its client application isn't on the white-list
                 result.usage = HidHide::StringTable(IDS_HID_ATTRIBUTE_DENIED);
                 return (result);
             case ERROR_FILE_NOT_FOUND:

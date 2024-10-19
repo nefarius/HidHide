@@ -12,7 +12,7 @@
     <events>
       <provider
         symbol="EtwProviderLogging"
-        name="Nefarius Hid Hide CLI"
+        name="Nefarius HidHide CLI"
         guid="{E3DF118F-1AFC-4630-9F03-6C6F73848738}"
         resourceFileName="%ProgramFiles%\Nefarius\HidHideCLI\HidHideCLI.exe"
         messageFileName="%ProgramFiles%\Nefarius\HidHideCLI\HidHideCLI.exe">
@@ -100,8 +100,8 @@
         <string id="EtwKeywordPerformance" value="Performance"/>
         <string id="EtwKeywordDebugging"   value="Debugging"/>
         <string id="EtwEventLogTrace"      value="%1&#009;%2&#009;%3&#009;%4%5"/>
-        <string id="EtwEventLogStarted"    value="Hid Hide CLI version %4%5 started"/>
-        <string id="EtwEventLogStopped"    value="Hid Hide CLI stopped %4%5"/>
+        <string id="EtwEventLogStarted"    value="HidHide CLI version %4%5 started"/>
+        <string id="EtwEventLogStopped"    value="HidHide CLI stopped %4%5"/>
         <string id="EtwEventLogException"  value="Exception at &quot;%1&quot; line %2 %3 %4%5"/>
       </stringTable>
     </resources>
