@@ -14,8 +14,8 @@
         symbol="EtwProviderLogging"
         name="Nefarius HidHide CLI"
         guid="{E3DF118F-1AFC-4630-9F03-6C6F73848738}"
-        resourceFileName="%ProgramFiles%\Nefarius\HidHideCLI\HidHideCLI.exe"
-        messageFileName="%ProgramFiles%\Nefarius\HidHideCLI\HidHideCLI.exe">
+        resourceFileName="%ProgramFiles%\Nefarius Software Solutions\HidHide\HidHideCLI.exe"
+        messageFileName="%ProgramFiles%\Nefarius Software Solutions\HidHide\HidHideCLI.exe">
         <channels>
           <importChannel symbol="EtwChannelLogging" chid="APPLICATION" name="Application"/>
         </channels>
@@ -41,8 +41,8 @@
         symbol="EtwProviderTracing"
         name="Nefarius-Drivers-HidHideCLI"
         guid="{54C5B24F-321D-46B0-BD2E-79FDF7BAB7AC}"
-        resourceFileName="%ProgramFiles%\Nefarius\HidHideCLI\HidHideCLI.exe"
-        messageFileName="%ProgramFiles%\Nefarius\HidHideCLI\HidHideCLI.exe">
+        resourceFileName="%ProgramFiles%\Nefarius Software Solutions\HidHide\HidHideCLI.exe"
+        messageFileName="%ProgramFiles%\Nefarius Software Solutions\HidHide\HidHideCLI.exe">
         <channels>
           <channel symbol="EtwChannelTracing" name="Nefarius-Drivers-HidHideCLI/Diagnostic" type="Analytic" enabled="true">
             <logging>

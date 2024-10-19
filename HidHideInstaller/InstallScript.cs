@@ -1,4 +1,6 @@
 ﻿#nullable enable
+
+
 using System;
 using System.Buffers;
 using System.Diagnostics;
@@ -9,16 +11,14 @@ using System.Threading.Tasks;
 using CliWrap;
 
 using Nefarius.Utilities.DeviceManagement.PnP;
-
+using Nefarius.Utilities.WixSharp.Util;
 
 using WixSharp;
 using WixSharp.Forms;
 
-using File = WixSharp.File;
-
-using Nefarius.Utilities.WixSharp.Util;
-
 using WixToolset.Dtf.WindowsInstaller;
+
+using File = WixSharp.File;
 
 namespace Nefarius.HidHide.Setup;
 
@@ -49,27 +49,39 @@ internal class InstallScript
         ManagedProject project = new(ProductName,
             new Dir(@"%ProgramFiles%\Nefarius Software Solutions\HidHide",
                 // driver binaries
-                new Dir(driversFeature, "drivers") { Dirs = WixExt.GetSubDirectories(driversFeature, DriversRoot).ToArray() },
+                new Dir(driversFeature, "drivers")
+                {
+                    Dirs = WixExt.GetSubDirectories(driversFeature, DriversRoot).ToArray()
+                },
                 // manifest files
                 new Dir(driversFeature, ManifestsDir,
-                    new File(driversFeature, @"..\HidHide\HidHide.man")
+                    // driver
+                    new File(driversFeature, @"..\HidHide\HidHide.man"),
+                    // CLI
+                    new File(driversFeature, @"..\HidHideCLI\HidHideCLI.man"),
+                    // cfg UI
+                    new File(driversFeature, @"..\HidHideClient\HidHideClient.man")
                 ),
                 // updater
                 new File(driversFeature, "nefarius_HidHide_Updater.exe"),
-                // x64 utilities
-                new Dir(new Id("x64apps"), "x64",
-                    // cfg UI
-                    new File(driversFeature, Path.Combine(ArtifactsDir, "x64", "HidHideClient.exe"),
-                        new FileShortcut("HidHide Configuration Client") { WorkingDirectory = "[x64apps]" }),
-                    // CLI
-                    new File(driversFeature, Path.Combine(ArtifactsDir, "x64", "HidHideCLI.exe"))
-                ),
+                // x64 cfg UI
+                new File(driversFeature, Path.Combine(ArtifactsDir, "x64", "HidHideClient.exe"),
+                    new FileShortcut("HidHide Configuration Client") { WorkingDirectory = "[INSTALLDIR]" })
+                {
+                    Condition = new Condition("VersionNT64 AND NOT IS_ARM64")
+                },
+                // x64 CLI
+                new File(driversFeature, Path.Combine(ArtifactsDir, "x64", "HidHideCLI.exe"))
+                {
+                    Condition = new Condition("VersionNT64 AND NOT IS_ARM64")
+                },
+                // TODO: add ARM64 binaries
                 // start menu shortcuts
                 new Dir(@"%ProgramMenu%\Nefarius Software Solutions\HidHide",
                     new ExeFileShortcut("Uninstall HidHide", "[System64Folder]msiexec.exe", "/x [ProductCode]"),
-                    new ExeFileShortcut("HidHide Configuration Client", @"[x64apps]\HidHideClient.exe", "")
+                    new ExeFileShortcut("HidHide Configuration Client", @"[INSTALLDIR]HidHideClient.exe", "")
                     {
-                        WorkingDirectory = "[x64apps]"
+                        WorkingDirectory = "[INSTALLDIR]"
                     }
                 )
             ),
@@ -85,7 +97,15 @@ internal class InstallScript
                 @"Software\Nefarius Software Solutions e.U.\HidHide",
                 new RegValue("Path", "[INSTALLDIR]") { Win64 = true },
                 new RegValue("Version", version.ToString()) { Win64 = true }
-            ) { Win64 = true }
+            ) { Win64 = true },
+            // ARM64 detection action
+            new ManagedAction(
+                CustomActions.DetectArm64,
+                Return.check,
+                When.Before,
+                Step.LaunchConditions,
+                Condition.Always
+            )
         )
         {
             GUID = new Guid("8822CC70-E2A5-4CB7-8F14-E27101150A1D"),
@@ -163,6 +183,17 @@ internal class InstallScript
 
 public static class CustomActions
 {
+    [CustomAction]
+    public static ActionResult DetectArm64(Session session)
+    {
+        if (ArchitectureInfo.IsArm64)
+        {
+            session["IS_ARM64"] = "1";
+        }
+
+        return ActionResult.Success;
+    }
+
     public static bool UninstallDrivers(Session session)
     {
         return false;
