@@ -36,7 +36,7 @@ NTSTATUS WINAPI LogRegisterProviders() noexcept
 {
     try
     {
-        EventRegisterNefarius_Hid_Hide_CLI();
+        EventRegisterNefarius_HidHide_CLI();
         EventRegisterNefarius_Drivers_HidHideCLI();
 
         // The define for BldProductVersion is passed from the project file to the source code via a define
@@ -56,7 +56,7 @@ NTSTATUS WINAPI LogUnregisterProviders() noexcept
     {
         ::LogEvent(ETW(Stopped), L"");
         EventUnregisterNefarius_Drivers_HidHideCLI();
-        EventUnregisterNefarius_Hid_Hide_CLI();
+        EventUnregisterNefarius_HidHide_CLI();
         return (STATUS_SUCCESS);
     }
     catch (...)

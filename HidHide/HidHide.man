@@ -12,7 +12,7 @@
     <events>
       <provider
         symbol="EtwProviderLogging"
-        name="Nefarius Hid Hide"
+        name="Nefarius HidHide"
         guid="{6DA3FFA4-AB7D-40E2-B50C-C4B41BBA36E3}"
         resourceFileName="%WinDir%\System32\drivers\HidHide.sys"
         messageFileName="%WinDir%\System32\drivers\HidHide.sys">
