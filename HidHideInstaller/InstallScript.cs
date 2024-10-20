@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 using CliWrap;
 
@@ -171,6 +172,15 @@ internal class InstallScript
 
     private static void ProjectOnAfterInstall(SetupEventArgs e)
     {
+        if (e.IsInstalling && !string.IsNullOrEmpty(e.Session["UPGRADINGPRODUCTCODE"]))
+        {
+            MessageBox.Show("Upgrading from a previous version.");
+        }
+        else if (e.IsInstalling)
+        {
+            MessageBox.Show("Performing a fresh installation.");
+        }
+
         if (e.IsUninstalling)
         {
             CustomActions.UninstallDrivers(e.Session);
