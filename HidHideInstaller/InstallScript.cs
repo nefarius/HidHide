@@ -15,6 +15,7 @@ using Nefarius.Utilities.DeviceManagement.PnP;
 using Nefarius.Utilities.WixSharp.Util;
 
 using WixSharp;
+using WixSharp.CommonTasks;
 using WixSharp.Forms;
 
 using WixToolset.Dtf.WindowsInstaller;
@@ -106,6 +107,20 @@ internal class InstallScript
                 When.Before,
                 Step.LaunchConditions,
                 Condition.Always
+            ),
+            new ManagedAction(
+                CustomActions.SetCustomActionData,
+                Return.check,
+                When.Before,
+                Step.InstallInitialize,
+                Condition.Always
+            ),
+            new ManagedAction(
+                CustomActions.CheckIfUpgrading,
+                Return.check,
+                When.Before,
+                Step.RemoveFiles,
+                Condition.Installed
             )
         )
         {
@@ -127,6 +142,8 @@ internal class InstallScript
                     "A later version of [ProductName] is already installed. Setup will now exit."
             }
         };
+
+        project.AddProperty(new Property("HH_DRIVER_VERSION", driverVersion.ToString()));
 
         project.ManagedUI.InstallDialogs.Add(Dialogs.Welcome)
             .Add(Dialogs.Licence)
@@ -172,18 +189,16 @@ internal class InstallScript
 
     private static void ProjectOnAfterInstall(SetupEventArgs e)
     {
-        if (e.IsInstalling && !string.IsNullOrEmpty(e.Session["UPGRADINGPRODUCTCODE"]))
+        try
         {
-            MessageBox.Show("Upgrading from a previous version.");
+            if (e.IsUninstalling)
+            {
+                CustomActions.UninstallDrivers(e.Session);
+            }
         }
-        else if (e.IsInstalling)
+        catch (Exception ex)
         {
-            MessageBox.Show("Performing a fresh installation.");
-        }
-
-        if (e.IsUninstalling)
-        {
-            CustomActions.UninstallDrivers(e.Session);
+            e.Session.Log($"{nameof(ProjectOnAfterInstall)} FTL: {ex}");
         }
     }
 }
@@ -196,6 +211,36 @@ public static class CustomActions
         if (ArchitectureInfo.IsArm64)
         {
             session["IS_ARM64"] = "1";
+        }
+
+        return ActionResult.Success;
+    }
+
+    [CustomAction]
+    public static ActionResult SetCustomActionData(Session session)
+    {
+        // Set data into CustomActionData for the deferred custom action
+        session["CustomActionData"] = "HH_DRIVER_VERSION=" + session["HH_DRIVER_VERSION"];
+        session.Log("Setting CustomActionData for deferred action: " + session["CustomActionData"]);
+        return ActionResult.Success;
+    }
+
+    [CustomAction]
+    public static ActionResult CheckIfUpgrading(Session session)
+    {
+        // The UPGRADINGPRODUCTCODE property is set when the uninstall is part of an upgrade.
+        string upgradingProductCode = session["UPGRADINGPRODUCTCODE"];
+        if (!string.IsNullOrEmpty(upgradingProductCode))
+        {
+            session.Log("Uninstallation is part of an upgrade.");
+            // You can add any logic you need to handle during the upgrade.
+            string customProperty = session["CustomActionData"];
+            session.Log("Received property from new version: " + customProperty);
+        }
+        else
+        {
+            session.Log("Uninstallation is not part of an upgrade.");
+            // Handle normal uninstallation here.
         }
 
         return ActionResult.Success;
