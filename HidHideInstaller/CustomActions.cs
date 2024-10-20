@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Windows.Forms;
 
 using Nefarius.Utilities.DeviceManagement.Drivers;
 using Nefarius.Utilities.DeviceManagement.Extensions;
@@ -52,13 +53,12 @@ public static class CustomActions
         if (!string.IsNullOrEmpty(upgradingProductCode))
         {
             session.Log("Uninstallation is part of an upgrade.");
-            // You can add any logic you need to handle during the upgrade.
-            string customProperty = session["CustomActionData"];
-            session.Log("Received property from new version: " + customProperty);
-
+            
             try
             {
-                Version newDriverVersion = Version.Parse(customProperty.Split('=')[1]);
+                Version newDriverVersion = Version.Parse(session.CustomActionData[HhDriverVersion]);
+
+                session.Log($"Included driver version: {newDriverVersion}");
 
                 // found at least one active device driver instance
                 if (Devcon.FindByInterfaceGuid(InstallScript.HidHideInterfaceGuid, out PnPDevice device))
@@ -77,6 +77,10 @@ public static class CustomActions
                         }
                     }
                 }
+                else
+                {
+                    session.Log("No active driver found, continuing as fresh installation");
+                }
             }
             catch (Exception ex)
             {
@@ -86,12 +90,15 @@ public static class CustomActions
         else
         {
             session.Log("Uninstallation is not part of an upgrade.");
-            // Handle normal uninstallation here.
+            // Nothing to do here since this Action is not elevated
         }
 
         return ActionResult.Success;
     }
 
+    /// <summary>
+    ///     Elevated driver removal actions.
+    /// </summary>
     public static bool UninstallDrivers(Session session)
     {
         if (bool.Parse(session.CustomActionData[DoNotTouchDriver]))
