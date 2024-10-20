@@ -205,6 +205,9 @@ internal class InstallScript
 
 public static class CustomActions
 {
+    /// <summary>
+    ///     Helper action to set IS_ARM64 if we are on an ARM64 machine.
+    /// </summary>
     [CustomAction]
     public static ActionResult DetectArm64(Session session)
     {
@@ -216,6 +219,9 @@ public static class CustomActions
         return ActionResult.Success;
     }
 
+    /// <summary>
+    ///     Helper action to pass along the HH_DRIVER_VERSION property to <see cref="CheckIfUpgrading"/>.
+    /// </summary>
     [CustomAction]
     public static ActionResult SetCustomActionData(Session session)
     {
