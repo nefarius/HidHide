@@ -1,13 +1,10 @@
 ﻿#nullable enable
-
-
 using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 using CliWrap;
 
@@ -17,8 +14,6 @@ using Nefarius.Utilities.WixSharp.Util;
 using WixSharp;
 using WixSharp.CommonTasks;
 using WixSharp.Forms;
-
-using WixToolset.Dtf.WindowsInstaller;
 
 using File = WixSharp.File;
 
@@ -30,6 +25,8 @@ internal class InstallScript
     public const string DriversRoot = @"..\drivers";
     public const string ManifestsDir = "manifests";
     public const string ArtifactsDir = @"..\artifacts\bin\Release";
+
+    public static Guid HidHideInterfaceGuid = new("{0C320FF7-BD9B-42B6-BDAF-49FEB9C91649}");
 
     private static void Main()
     {
@@ -143,7 +140,20 @@ internal class InstallScript
             }
         };
 
-        project.AddProperty(new Property("HH_DRIVER_VERSION", driverVersion.ToString()));
+        // passes along packaged driver version through session
+        project.AddProperty(new Property(CustomActions.HhDriverVersion, driverVersion.ToString()));
+        // passes boolean flag whether to not change the driver
+        project.AddProperty(new Property(CustomActions.DoNotTouchDriver, false.ToString()));
+
+        // elevated actions and events need these properties
+        project.DefaultDeferredProperties += $",{CustomActions.HhDriverVersion},{CustomActions.DoNotTouchDriver}";
+
+        #region Fixes for setups < v1.6.x
+
+        // suppresses reboot dialogs from removing older versions
+        project.AddProperty(new Property("REBOOT", "ReallySuppress"));
+
+        #endregion
 
         project.ManagedUI.InstallDialogs.Add(Dialogs.Welcome)
             .Add(Dialogs.Licence)
@@ -200,60 +210,5 @@ internal class InstallScript
         {
             e.Session.Log($"{nameof(ProjectOnAfterInstall)} FTL: {ex}");
         }
-    }
-}
-
-public static class CustomActions
-{
-    /// <summary>
-    ///     Helper action to set IS_ARM64 if we are on an ARM64 machine.
-    /// </summary>
-    [CustomAction]
-    public static ActionResult DetectArm64(Session session)
-    {
-        if (ArchitectureInfo.IsArm64)
-        {
-            session["IS_ARM64"] = "1";
-        }
-
-        return ActionResult.Success;
-    }
-
-    /// <summary>
-    ///     Helper action to pass along the HH_DRIVER_VERSION property to <see cref="CheckIfUpgrading"/>.
-    /// </summary>
-    [CustomAction]
-    public static ActionResult SetCustomActionData(Session session)
-    {
-        // Set data into CustomActionData for the deferred custom action
-        session["CustomActionData"] = "HH_DRIVER_VERSION=" + session["HH_DRIVER_VERSION"];
-        session.Log("Setting CustomActionData for deferred action: " + session["CustomActionData"]);
-        return ActionResult.Success;
-    }
-
-    [CustomAction]
-    public static ActionResult CheckIfUpgrading(Session session)
-    {
-        // The UPGRADINGPRODUCTCODE property is set when the uninstall is part of an upgrade.
-        string upgradingProductCode = session["UPGRADINGPRODUCTCODE"];
-        if (!string.IsNullOrEmpty(upgradingProductCode))
-        {
-            session.Log("Uninstallation is part of an upgrade.");
-            // You can add any logic you need to handle during the upgrade.
-            string customProperty = session["CustomActionData"];
-            session.Log("Received property from new version: " + customProperty);
-        }
-        else
-        {
-            session.Log("Uninstallation is not part of an upgrade.");
-            // Handle normal uninstallation here.
-        }
-
-        return ActionResult.Success;
-    }
-
-    public static bool UninstallDrivers(Session session)
-    {
-        return false;
     }
 }
