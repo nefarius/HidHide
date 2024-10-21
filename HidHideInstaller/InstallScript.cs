@@ -105,6 +105,7 @@ internal class InstallScript
                 Step.LaunchConditions,
                 Condition.Always
             ),
+            // passing around of custom properties
             new ManagedAction(
                 CustomActions.SetCustomActionData,
                 Return.check,
@@ -112,13 +113,26 @@ internal class InstallScript
                 Step.InstallInitialize,
                 Condition.Always
             ),
+            // older to new version transition checks
             new ManagedAction(
                 CustomActions.CheckIfUpgrading,
                 Return.check,
                 When.Before,
                 Step.RemoveFiles,
                 Condition.Installed
+            ),
+            // install drivers
+            new ElevatedManagedAction(
+                CustomActions.InstallDrivers,
+                Return.check,
+                When.After,
+                Step.InstallFiles,
+                Condition.NOT_Installed
             )
+            {
+                // elevated actions and events need these properties
+                UsesProperties = $"{CustomActions.HhDriverVersion},{CustomActions.DoNotTouchDriver}"
+            }
         )
         {
             GUID = new Guid("8822CC70-E2A5-4CB7-8F14-E27101150A1D"),

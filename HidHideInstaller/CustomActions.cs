@@ -96,6 +96,29 @@ public static class CustomActions
     }
 
     /// <summary>
+    ///     Put install logic here.
+    /// </summary>
+    /// <remarks>Requires elevated permissions.</remarks>
+    [CustomAction]
+    public static ActionResult InstallDrivers(Session session)
+    {
+        if (bool.Parse(session.CustomActionData[DoNotTouchDriver]))
+        {
+            session.Log("Skipping driver installation requested");
+        }
+        else
+        {
+            session.Log("!!! Would now install driver");
+
+            // TODO: implement me!
+        }
+
+        // TODO: implement me!
+
+        return ActionResult.Success;
+    }
+
+    /// <summary>
     ///     Elevated driver removal actions.
     /// </summary>
     public static bool UninstallDrivers(Session session)
