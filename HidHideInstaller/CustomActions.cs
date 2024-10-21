@@ -10,11 +10,14 @@ using WixToolset.Dtf.WindowsInstaller;
 
 namespace Nefarius.HidHide.Setup;
 
-public static class CustomActions
+public static class CustomProperties
 {
     public static readonly string DoNotTouchDriver = "DO_NOT_TOUCH_DRIVER";
     public static readonly string HhDriverVersion = "HH_DRIVER_VERSION";
+}
 
+public static class CustomActions
+{
     /// <summary>
     ///     Helper action to set IS_ARM64 if we are on an ARM64 machine.
     /// </summary>
@@ -36,7 +39,7 @@ public static class CustomActions
     public static ActionResult SetCustomActionData(Session session)
     {
         // Set data into CustomActionData for the deferred custom action
-        session["CustomActionData"] = $"{HhDriverVersion}=" + session[HhDriverVersion];
+        session["CustomActionData"] = $"{CustomProperties.HhDriverVersion}=" + session[CustomProperties.HhDriverVersion];
         session.Log("Setting CustomActionData for deferred action: " + session["CustomActionData"]);
         return ActionResult.Success;
     }
@@ -55,7 +58,7 @@ public static class CustomActions
             
             try
             {
-                Version newDriverVersion = Version.Parse(session.CustomActionData[HhDriverVersion]);
+                Version newDriverVersion = Version.Parse(session.CustomActionData[CustomProperties.HhDriverVersion]);
 
                 session.Log($"Included driver version: {newDriverVersion}");
 
@@ -72,7 +75,7 @@ public static class CustomActions
                         {
                             session.Log("Driver is recent, flagging as do-not-touch");
                             // do not remove and re-create if the shipped version is not newer than what is active
-                            session[DoNotTouchDriver] = true.ToString();
+                            session[CustomProperties.DoNotTouchDriver] = true.ToString();
                         }
                     }
                 }
@@ -102,7 +105,7 @@ public static class CustomActions
     [CustomAction]
     public static ActionResult InstallDrivers(Session session)
     {
-        if (bool.Parse(session.CustomActionData[DoNotTouchDriver]))
+        if (bool.Parse(session.CustomActionData[CustomProperties.DoNotTouchDriver]))
         {
             session.Log("Skipping driver installation requested");
         }
@@ -123,7 +126,7 @@ public static class CustomActions
     /// </summary>
     public static bool UninstallDrivers(Session session)
     {
-        if (bool.Parse(session.CustomActionData[DoNotTouchDriver]))
+        if (bool.Parse(session.CustomActionData[CustomProperties.DoNotTouchDriver]))
         {
             session.Log("Skipping driver removal requested");
             return false;

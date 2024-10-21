@@ -131,7 +131,7 @@ internal class InstallScript
             )
             {
                 // elevated actions and events need these properties
-                UsesProperties = $"{CustomActions.HhDriverVersion},{CustomActions.DoNotTouchDriver}"
+                UsesProperties = $"{CustomProperties.HhDriverVersion},{CustomProperties.DoNotTouchDriver}"
             }
         )
         {
@@ -155,12 +155,14 @@ internal class InstallScript
         };
 
         // passes along packaged driver version through session
-        project.AddProperty(new Property(CustomActions.HhDriverVersion, driverVersion.ToString()));
+        project.AddProperty(new Property(CustomProperties.HhDriverVersion, driverVersion.ToString()));
         // passes boolean flag whether to not change the driver
-        project.AddProperty(new Property(CustomActions.DoNotTouchDriver, false.ToString()));
+        project.AddProperty(new Property(CustomProperties.DoNotTouchDriver, false.ToString()));
 
         // elevated actions and events need these properties
-        project.DefaultDeferredProperties += $",{CustomActions.HhDriverVersion},{CustomActions.DoNotTouchDriver}";
+        project.DefaultDeferredProperties += $",{CustomProperties.HhDriverVersion},{CustomProperties.DoNotTouchDriver}";
+
+        project.AfterInstall += ProjectOnAfterInstall;
 
         #region Fixes for setups < v1.6.x
 
@@ -168,6 +170,8 @@ internal class InstallScript
         project.AddProperty(new Property("REBOOT", "ReallySuppress"));
 
         #endregion
+
+        #region Dialogs
 
         project.ManagedUI.InstallDialogs.Add(Dialogs.Welcome)
             .Add(Dialogs.Licence)
@@ -180,7 +184,7 @@ internal class InstallScript
             .Add(Dialogs.Progress)
             .Add(Dialogs.Exit);
 
-        project.AfterInstall += ProjectOnAfterInstall;
+        #endregion
 
         #region Embed types of dependencies
 
