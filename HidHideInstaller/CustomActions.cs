@@ -1,6 +1,5 @@
 ﻿#nullable enable
 using System;
-using System.Windows.Forms;
 
 using Nefarius.Utilities.DeviceManagement.Drivers;
 using Nefarius.Utilities.DeviceManagement.Extensions;
