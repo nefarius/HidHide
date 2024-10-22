@@ -108,7 +108,13 @@ public static class CustomActions
     [CustomAction]
     public static ActionResult InstallDrivers(Session session)
     {
-        if (bool.Parse(session.CustomActionData[CustomProperties.DoNotTouchDriver]))
+        // driver was marked as present and recent on bootstrap
+        bool doNotTouch = bool.Parse(session.CustomActionData[CustomProperties.DoNotTouchDriver]);
+        // make sure driver still exists since an older setup might have executed the removal actions
+        bool driverExists = Devcon.FindByInterfaceGuid(HidHideDriver.HidHideInterfaceGuid, out _);
+
+        // driver present and recent, nothing to do
+        if (driverExists && doNotTouch)
         {
             session.Log("Skipping driver installation requested");
             return ActionResult.Success;
@@ -163,14 +169,39 @@ public static class CustomActions
     /// </summary>
     public static bool UninstallDrivers(Session session)
     {
-        if (bool.Parse(session.CustomActionData[CustomProperties.DoNotTouchDriver]))
+        bool doNotTouch = bool.Parse(session.CustomActionData[CustomProperties.DoNotTouchDriver]);
+        bool rebootRequired = false;
+
+        if (doNotTouch)
         {
             session.Log("Skipping driver removal requested");
             return false;
         }
 
-        session.Log("!!! Would uninstall now");
+        session.Log("Running driver removal logic");
 
-        return false;
+        try
+        {
+            DeviceClassFilters.RemoveUpper(DeviceClassIds.HumanInterfaceDevices, HidHideDriver.HidHideServiceName);
+            DeviceClassFilters.RemoveUpper(DeviceClassIds.XnaComposite, HidHideDriver.HidHideServiceName);
+            DeviceClassFilters.RemoveUpper(DeviceClassIds.XboxComposite, HidHideDriver.HidHideServiceName);
+        }
+        catch (Exception ex)
+        {
+            session.Log($"FTL: class filter updates failed: {ex}");
+        }
+
+        if (Devcon.FindByInterfaceGuid(HidHideDriver.HidHideInterfaceGuid, out PnPDevice device))
+        {
+            session.Log($"Removing device node {device}");
+            device.Uninstall(out rebootRequired);
+            session.Log("Device node removed");
+        }
+        else
+        {
+            session.Log("No device instance to remove found");
+        }
+
+        return rebootRequired;
     }
 }
