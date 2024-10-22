@@ -25,9 +25,7 @@ internal class InstallScript
     public const string DriversRoot = @"..\drivers";
     public const string ManifestsDir = "manifests";
     public const string ArtifactsDir = @"..\artifacts\bin\Release";
-
-    public static Guid HidHideInterfaceGuid = new("{0C320FF7-BD9B-42B6-BDAF-49FEB9C91649}");
-
+    
     private static void Main()
     {
         Version version = Version.Parse(BuildVariables.SetupVersion);
@@ -132,7 +130,11 @@ internal class InstallScript
             {
                 // elevated actions and events need these properties
                 UsesProperties = $"{CustomProperties.HhDriverVersion},{CustomProperties.DoNotTouchDriver}"
-            }
+            },
+            // custom reboot prompt message
+            new Error("9000",
+                "Driver installation succeeded but a reboot is required to be fully operational. " +
+                "After the setup is finished, please reboot the system before using the software.")
         )
         {
             GUID = new Guid("8822CC70-E2A5-4CB7-8F14-E27101150A1D"),

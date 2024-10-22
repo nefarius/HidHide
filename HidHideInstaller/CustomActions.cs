@@ -1,7 +1,9 @@
 ﻿#nullable enable
 using System;
+using System.IO;
 
 using Nefarius.Utilities.DeviceManagement.Drivers;
+using Nefarius.Utilities.DeviceManagement.Exceptions;
 using Nefarius.Utilities.DeviceManagement.Extensions;
 using Nefarius.Utilities.DeviceManagement.PnP;
 using Nefarius.Utilities.WixSharp.Util;
@@ -39,7 +41,8 @@ public static class CustomActions
     public static ActionResult SetCustomActionData(Session session)
     {
         // Set data into CustomActionData for the deferred custom action
-        session["CustomActionData"] = $"{CustomProperties.HhDriverVersion}=" + session[CustomProperties.HhDriverVersion];
+        session["CustomActionData"] =
+            $"{CustomProperties.HhDriverVersion}=" + session[CustomProperties.HhDriverVersion];
         session.Log("Setting CustomActionData for deferred action: " + session["CustomActionData"]);
         return ActionResult.Success;
     }
@@ -55,7 +58,7 @@ public static class CustomActions
         if (!string.IsNullOrEmpty(upgradingProductCode))
         {
             session.Log("Uninstallation is part of an upgrade.");
-            
+
             try
             {
                 Version newDriverVersion = Version.Parse(session.CustomActionData[CustomProperties.HhDriverVersion]);
@@ -63,7 +66,7 @@ public static class CustomActions
                 session.Log($"Included driver version: {newDriverVersion}");
 
                 // found at least one active device driver instance
-                if (Devcon.FindByInterfaceGuid(InstallScript.HidHideInterfaceGuid, out PnPDevice device))
+                if (Devcon.FindByInterfaceGuid(HidHideDriver.HidHideInterfaceGuid, out PnPDevice device))
                 {
                     DriverMeta? driver = device.GetCurrentDriver();
 
@@ -108,15 +111,49 @@ public static class CustomActions
         if (bool.Parse(session.CustomActionData[CustomProperties.DoNotTouchDriver]))
         {
             session.Log("Skipping driver installation requested");
+            return ActionResult.Success;
         }
-        else
+
+        session.Log("Starting driver installation");
+
+        DirectoryInfo installDir = new(session.CustomActionData["INSTALLDIR"]);
+        string driversDir = Path.Combine(installDir.FullName, "drivers", ArchitectureInfo.PlatformShortName, "HidHide");
+        string infPath = Path.Combine(driversDir, "HidHide.inf");
+
+        if (!Devcon.Create(HidHideDriver.HidHideClassName, HidHideDriver.HidHideClassGuid,
+                HidHideDriver.HidHideHardwareId))
         {
-            session.Log("!!! Would now install driver");
-
-            // TODO: implement me!
+            session.Log($"Device node creation failed, win32Error: {Win32Exception.GetMessageFor()}");
+            return ActionResult.Failure;
         }
 
-        // TODO: implement me!
+        if (!Devcon.Install(infPath, out bool rebootRequired))
+        {
+            session.Log($"Driver installation failed, win32Error: {Win32Exception.GetMessageFor()}");
+            return ActionResult.Failure;
+        }
+
+        try
+        {
+            DeviceClassFilters.AddUpper(DeviceClassIds.HumanInterfaceDevices, HidHideDriver.HidHideServiceName);
+            DeviceClassFilters.AddUpper(DeviceClassIds.XnaComposite, HidHideDriver.HidHideServiceName);
+            DeviceClassFilters.AddUpper(DeviceClassIds.XboxComposite, HidHideDriver.HidHideServiceName);
+        }
+        catch (Exception ex)
+        {
+            session.Log($"FTL: class filter updates failed: {ex}");
+            return ActionResult.Failure;
+        }
+
+        if (rebootRequired)
+        {
+            Record record = new(1);
+            record[1] = "9000";
+
+            session.Message(
+                InstallMessage.User | (InstallMessage)MessageButtons.OK | (InstallMessage)MessageIcon.Information,
+                record);
+        }
 
         return ActionResult.Success;
     }
