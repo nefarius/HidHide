@@ -1,6 +1,8 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 using Nefarius.Utilities.DeviceManagement.Drivers;
 using Nefarius.Utilities.DeviceManagement.Exceptions;
@@ -124,7 +126,7 @@ public static class CustomActions
 
         DirectoryInfo installDir = new(session.CustomActionData["INSTALLDIR"]);
         string driversDir = Path.Combine(installDir.FullName, "drivers", ArchitectureInfo.PlatformShortName, "HidHide");
-        string infPath = Path.Combine(driversDir, "HidHide.inf");
+        string infPath = Path.Combine(driversDir, HidHideDriver.HidHideInfName);
 
         if (!Devcon.Create(HidHideDriver.HidHideClassName, HidHideDriver.HidHideClassGuid,
                 HidHideDriver.HidHideHardwareId))
@@ -200,6 +202,22 @@ public static class CustomActions
         else
         {
             session.Log("No device instance to remove found");
+        }
+
+        List<string> allDriverPackages = DriverStore.ExistingDrivers.ToList();
+
+        foreach (string driverPackage in allDriverPackages.Where(p =>
+                     p.Contains(HidHideDriver.HidHideInfName, StringComparison.OrdinalIgnoreCase)))
+        {
+            try
+            {
+                session.Log($"Removing driver package {driverPackage}");
+                DriverStore.RemoveDriver(driverPackage);
+            }
+            catch (Exception ex)
+            {
+                session.Log($"Removal of HidHide package {driverPackage} failed with error {ex}");
+            }
         }
 
         return rebootRequired;

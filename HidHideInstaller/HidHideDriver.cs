@@ -15,4 +15,6 @@ public static class HidHideDriver
     public static Guid HidHideClassGuid = DeviceClassIds.System;
 
     public const string HidHideServiceName = "HidHide";
+
+    public const string HidHideInfName = "HidHide.inf";
 }
