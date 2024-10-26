@@ -4,11 +4,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using CliWrap;
+
 using Nefarius.Utilities.DeviceManagement.Drivers;
 using Nefarius.Utilities.DeviceManagement.Exceptions;
 using Nefarius.Utilities.DeviceManagement.Extensions;
 using Nefarius.Utilities.DeviceManagement.PnP;
 using Nefarius.Utilities.WixSharp.Util;
+
+using WixSharp;
 
 using WixToolset.Dtf.WindowsInstaller;
 
@@ -222,4 +226,122 @@ public static class CustomActions
 
         return rebootRequired;
     }
+
+    #region ETW Manifests
+
+    /// <summary>
+    ///     Installs the ETW manifests
+    /// </summary>
+    /// <remarks>Requires elevated permissions.</remarks>
+    [CustomAction]
+    public static ActionResult InstallManifest(Session session)
+    {
+        DirectoryInfo installDir = new(session.Property("INSTALLDIR"));
+        string driverManifest = Path.Combine(installDir.FullName, InstallScript.ManifestsDir, "HidHide.man");
+        string cliManifest = Path.Combine(installDir.FullName, InstallScript.ManifestsDir, "HidHideCLI.man");
+        string clientManifest = Path.Combine(installDir.FullName, InstallScript.ManifestsDir, "HidHideClient.man");
+
+        CommandResult? driverManifestResult = Cli.Wrap("wevtutil")
+            .WithArguments(builder => builder
+                .Add("im")
+                .Add(driverManifest)
+            )
+            .WithValidation(CommandResultValidation.None)
+            .ExecuteAsync()
+            .GetAwaiter()
+            .GetResult();
+
+        session.Log(
+            $"HidHide manifest import {(driverManifestResult.IsSuccess ? "succeeded" : "failed")}, " +
+            $"exit code: {driverManifestResult.ExitCode}");
+
+        CommandResult? cliManifestResult = Cli.Wrap("wevtutil")
+            .WithArguments(builder => builder
+                .Add("im")
+                .Add(cliManifest)
+            )
+            .WithValidation(CommandResultValidation.None)
+            .ExecuteAsync()
+            .GetAwaiter()
+            .GetResult();
+
+        session.Log(
+            $"HidHideCLI manifest import {(cliManifestResult.IsSuccess ? "succeeded" : "failed")}, " +
+            $"exit code: {cliManifestResult.ExitCode}");
+
+        CommandResult? clientManifestResult = Cli.Wrap("wevtutil")
+            .WithArguments(builder => builder
+                .Add("im")
+                .Add(clientManifest)
+            )
+            .WithValidation(CommandResultValidation.None)
+            .ExecuteAsync()
+            .GetAwaiter()
+            .GetResult();
+
+        session.Log(
+            $"HidHideClient manifest import {(clientManifestResult.IsSuccess ? "succeeded" : "failed")}, " +
+            $"exit code: {clientManifestResult.ExitCode}");
+
+        return ActionResult.Success;
+    }
+
+    /// <summary>
+    ///     Uninstalls the ETW manifests.
+    /// </summary>
+    /// <remarks>Requires elevated permissions.</remarks>
+    [CustomAction]
+    public static ActionResult UninstallManifest(Session session)
+    {
+        DirectoryInfo installDir = new(session.Property("INSTALLDIR"));
+        string driverManifest = Path.Combine(installDir.FullName, InstallScript.ManifestsDir, "HidHide.man");
+        string cliManifest = Path.Combine(installDir.FullName, InstallScript.ManifestsDir, "HidHideCLI.man");
+        string clientManifest = Path.Combine(installDir.FullName, InstallScript.ManifestsDir, "HidHideClient.man");
+
+        CommandResult? driverManifestResult = Cli.Wrap("wevtutil")
+            .WithArguments(builder => builder
+                .Add("um")
+                .Add(driverManifest)
+            )
+            .WithValidation(CommandResultValidation.None)
+            .ExecuteAsync()
+            .GetAwaiter()
+            .GetResult();
+
+        session.Log(
+            $"HidHide manifest removal {(driverManifestResult.IsSuccess ? "succeeded" : "failed")}, " +
+            $"exit code: {driverManifestResult.ExitCode}");
+
+        CommandResult? cliManifestResult = Cli.Wrap("wevtutil")
+            .WithArguments(builder => builder
+                .Add("um")
+                .Add(cliManifest)
+            )
+            .WithValidation(CommandResultValidation.None)
+            .ExecuteAsync()
+            .GetAwaiter()
+            .GetResult();
+
+        session.Log(
+            $"HidHideCLI manifest removal {(cliManifestResult.IsSuccess ? "succeeded" : "failed")}, " +
+            $"exit code: {cliManifestResult.ExitCode}");
+
+        CommandResult? clientManifestResult = Cli.Wrap("wevtutil")
+            .WithArguments(builder => builder
+                .Add("um")
+                .Add(clientManifest)
+            )
+            .WithValidation(CommandResultValidation.None)
+            .ExecuteAsync()
+            .GetAwaiter()
+            .GetResult();
+
+        session.Log(
+            $"HidHideClient manifest removal {(clientManifestResult.IsSuccess ? "succeeded" : "failed")}, " +
+            $"exit code: {clientManifestResult.ExitCode}");
+
+        return ActionResult.Success;
+    }
+
+    #endregion
 }

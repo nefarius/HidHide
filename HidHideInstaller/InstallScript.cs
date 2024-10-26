@@ -131,6 +131,18 @@ internal class InstallScript
                 // elevated actions and events need these properties
                 UsesProperties = $"{CustomProperties.HhDriverVersion},{CustomProperties.DoNotTouchDriver}"
             },
+            // install manifests
+            new ElevatedManagedAction(CustomActions.InstallManifest, Return.check,
+                When.After,
+                Step.InstallFiles,
+                Condition.NOT_Installed
+            ),
+            // remove manifests
+            new ElevatedManagedAction(CustomActions.UninstallManifest, Return.check,
+                When.Before,
+                Step.RemoveFiles,
+                Condition.Installed
+            ),
             // custom reboot prompt message
             new Error("9000",
                 "Driver installation succeeded but a reboot is required to be fully operational. " +
