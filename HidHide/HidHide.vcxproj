@@ -103,7 +103,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;NDEBUG;_NO_CRT_STDIO_INLINE;%(BldParameters);ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>POOL_NX_OPTIN=1;_WIN64;_AMD64_;AMD64;NDEBUG;_NO_CRT_STDIO_INLINE;%(BldParameters);ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
@@ -124,7 +124,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;NDEBUG;_NO_CRT_STDIO_INLINE;%(BldParameters);ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>POOL_NX_OPTIN=1;_WIN64;_AMD64_;AMD64;NDEBUG;_NO_CRT_STDIO_INLINE;%(BldParameters);ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
@@ -145,7 +145,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>_WIN64;_AMD64_;AMD64;NDEBUG;_NO_CRT_STDIO_INLINE;%(BldParameters);ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>POOL_NX_OPTIN=1;_WIN64;_AMD64_;AMD64;NDEBUG;_NO_CRT_STDIO_INLINE;%(BldParameters);ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>

@@ -28,7 +28,7 @@ typedef struct _PROCESSIDTREE
 PPROCESSIDTREE s_ProcessIdToFullLoadImageNameMappingTree = NULL;
 
 // Unique memory pool tag for the tree
-#define CONFIG_TAG '1gaT'
+#define CONFIG_TAG 'fCHH'
 
 // Insert the new node in the tree
 // On success, the tree takes ownership of the node and its cleanup
@@ -174,7 +174,9 @@ _Use_decl_annotations_
     NTSTATUS       ntstatus;
 
     // Bail out when memory allocation failed
-    temp = ExAllocatePoolZero(NonPagedPool, sizeof(*temp), CONFIG_TAG);
+#pragma warning(disable: 4996)
+    temp = ExAllocatePoolWithTag(NonPagedPoolNx, sizeof(*temp), CONFIG_TAG);
+#pragma warning(default: 4996)
     if (NULL == temp) LOG_AND_RETURN_NTSTATUS(L"ExAllocatePoolWithTag", STATUS_NO_MEMORY);
 
     // Ensure that the left and right pointers are NULL and the string is terminated
@@ -705,7 +707,7 @@ NTSTATUS HidHideDeviceInstancePath(WDFDEVICE wdfDevice, WDFSTRING* deviceInstanc
     WDF_DEVICE_PROPERTY_DATA_INIT(&wdfDevicePropertyData, &DEVPKEY_Device_InstanceId);
     WDF_OBJECT_ATTRIBUTES_INIT(&wdfObjectAttributes);
     wdfObjectAttributes.ParentObject = wdfDevice;
-    ntstatus = WdfDeviceAllocAndQueryPropertyEx(wdfDevice, &wdfDevicePropertyData, NonPagedPool, &wdfObjectAttributes, &wdfMemory, &devPropType);
+    ntstatus = WdfDeviceAllocAndQueryPropertyEx(wdfDevice, &wdfDevicePropertyData, NonPagedPoolNx, &wdfObjectAttributes, &wdfMemory, &devPropType);
     if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfDeviceAllocAndQueryPropertyEx", ntstatus);
     if (DEVPROP_TYPE_STRING != devPropType)
     {
