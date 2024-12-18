@@ -19,8 +19,8 @@ build:
   parallel: true
   verbosity: minimal
 build_script:
-- ps: msbuild /p:Configuration="Release" /p:Platform="x64" $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
-- ps: msbuild /p:Configuration="Release" /p:Platform="ARM64" $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
+- cmd: msbuild /p:Configuration="Release" /p:Platform="x64" "%APPVEYOR_BUILD_FOLDER%\%APPVEYOR_PROJECT_NAME%.sln"
+- cmd: msbuild /p:Configuration="Release" /p:Platform="ARM64" "%APPVEYOR_BUILD_FOLDER%\%APPVEYOR_PROJECT_NAME%.sln"
 after_build:
 - cmd: makecab.exe /f HidHide_%PLATFORM%.ddf
 artifacts:
