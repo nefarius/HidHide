@@ -9,7 +9,7 @@
 #include "Logging.h"
 
 // Unique memory pool tag for buffers
-#define LOGIC_TAG '2gaT'
+#define LOGIC_TAG 'oLHH'
 
 // The control device is created first and should be deleted last after having release the driver resources
 // Releasing the control device is required else the driver will never unload
