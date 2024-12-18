@@ -9,7 +9,7 @@
 #include "Logging.h"
 
 // Unique memory pool tag for buffers
-#define LOGIC_TAG '2gaT'
+#define LOGIC_TAG 'oLHH'
 
 // The control device is created first and should be deleted last after having release the driver resources
 // Releasing the control device is required else the driver will never unload
@@ -193,7 +193,7 @@ VOID OnDeviceFileCreate(WDFDEVICE wdfDevice, WDFREQUEST wdfRequest, WDFFILEOBJEC
         // Trace the first-time the device instance path is challenged, in support of the message above
         if (!cacheHit)
         {
-            ntstatus = WdfMemoryCreate(WDF_NO_OBJECT_ATTRIBUTES, NonPagedPool, LOGIC_TAG, sizeof(WCHAR) * ((size_t)deviceInstancePath.Length + 1), &wdfMemory, &buffer);
+            ntstatus = WdfMemoryCreate(WDF_NO_OBJECT_ATTRIBUTES, NonPagedPoolNx, LOGIC_TAG, sizeof(WCHAR) * ((size_t)deviceInstancePath.Length + 1), &wdfMemory, &buffer);
             if (NT_SUCCESS(ntstatus)) ntstatus = RtlStringCchCopyUnicodeStringEx(buffer, ((size_t)deviceInstancePath.Length + 1), &deviceInstancePath, NULL, NULL, STRSAFE_NO_TRUNCATION);
             if (NT_SUCCESS(ntstatus)) TRACE_ALWAYS(buffer);
             WdfObjectDelete(wdfMemory);
