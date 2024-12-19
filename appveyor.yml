@@ -10,7 +10,7 @@ skip_commits:
     - '**/*.md'
 test: off
 platform:
-- x64
+- x64 # ARM64 is built in the same job
 install:
 # this junction points to a RAM disk on the CI server significantly speeding up building dependencies
 - cmd: mklink /J "%APPVEYOR_BUILD_FOLDER%\Watchdog\vcpkg_installed" "C:\tools\build-cache\HidHide\Watchdog\vcpkg_installed\%PLATFORM%"
