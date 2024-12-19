@@ -9,10 +9,10 @@
 .Set CompressionType=MSZIP
 .Set Cabinet=on
 .Set Compress=on
-; x86
-.Set CabinetNameTemplate=HidHide_x86.cab
-.Set DestinationDir=HidHide_x86
+; ARM64
+.Set CabinetNameTemplate=HidHide_ARM64.cab
+.Set DestinationDir=HidHide_ARM64
 LICENSE.rtf
-bin\Release\x86\HidHide.pdb
-bin\Release\x86\HidHide\HidHide.inf
-bin\Release\x86\HidHide\HidHide.sys
+bin\Release\ARM64\HidHide.pdb
+bin\Release\ARM64\HidHide\HidHide.inf
+bin\Release\ARM64\HidHide\HidHide.sys

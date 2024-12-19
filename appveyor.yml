@@ -16,9 +16,14 @@ install:
 - cmd: mklink /J "%APPVEYOR_BUILD_FOLDER%\Watchdog\vcpkg_installed" "C:\tools\build-cache\HidHide\Watchdog\vcpkg_installed\%PLATFORM%"
 - ps: Setup-VS2022
 build:
-  project: $(APPVEYOR_BUILD_FOLDER)\$(APPVEYOR_PROJECT_NAME).sln
+  parallel: true
+  verbosity: minimal
+build_script:
+- cmd: msbuild /p:Configuration="Release" /p:Platform="x64" "%APPVEYOR_BUILD_FOLDER%\%APPVEYOR_PROJECT_NAME%.sln"
+- cmd: msbuild /p:Configuration="Release" /p:Platform="ARM64" "%APPVEYOR_BUILD_FOLDER%\%APPVEYOR_PROJECT_NAME%.sln"
 after_build:
-- cmd: makecab.exe /f HidHide_%PLATFORM%.ddf
+- cmd: makecab.exe /f HidHide_x64.ddf
+- cmd: makecab.exe /f HidHide_ARM64.ddf
 artifacts:
 - path: 'bin**\$(APPVEYOR_PROJECT_NAME)\*.inf'
 - path: 'bin**\$(APPVEYOR_PROJECT_NAME)\*.sys'

@@ -9,7 +9,7 @@ Param(
     [Switch]$NoSigning
 ) #end param
 
-$signTool = "C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\signtool.exe"
+$signTool = "$(wdkwhere)\signtool.exe"
 $timestampUrl = "http://timestamp.digicert.com"
 $certName = "Nefarius Software Solutions e.U."
 
@@ -107,13 +107,11 @@ function Get-AppVeyorArtifacts
 Remove-Item -Recurse -Force ".\artifacts\bin"
 
 # Download x64 binaries
-Get-AppVeyorArtifacts -Account "nefarius" -Project "HidHide" -Path $Path -Token $Token -Branch $BuildVersion #-JobName "Platform: x64"
-
-# Download x86 binaries
-#Get-AppVeyorArtifacts -Account "nefarius" -Project "HidHide" -Path $Path -Token $Token -Branch $BuildVersion -JobName "Platform: x86"
+Get-AppVeyorArtifacts -Account "nefarius" -Project "HidHide" -Path $Path -Token $Token -Branch $BuildVersion
 
 # List of files to sign
 $files =    "`".\artifacts\bin\Release\x64\*.exe`" " +
+            "`".\artifacts\bin\Release\ARM64\*.exe`" " +
             "`".\artifacts\disk1\*.cab`" "
 
 if ($NoSigning -eq $false) {
@@ -122,5 +120,5 @@ if ($NoSigning -eq $false) {
 }
 
 # Print helper job names for sign portal
-#"HidHide x86 v$BuildVersion $(Get-Date -Format "dd.MM.yyyy")"
 "HidHide x64 v$BuildVersion $(Get-Date -Format "dd.MM.yyyy")"
+"HidHide ARM64 v$BuildVersion $(Get-Date -Format "dd.MM.yyyy")"
