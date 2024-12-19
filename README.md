@@ -97,7 +97,9 @@ Don't assume exclusive ownership of the configuration settings as a recovery typ
 
 ## Bugs & Features
 
-Found a bug and want it fixed? Feel free to open a detailed issue on the [GitHub issue tracker](../../issues)!
+~~Found a bug and want it fixed? Feel free to open a detailed issue on the [GitHub issue tracker](../../issues)!~~
+
+There is currently no capacity for any majopr works on HidHide, if you wish to see this change, consider contributing.
 
 *HidHide* provides both logging and tracing. Logging can be found the *Event Viewer* under *Windows Logs* and *System*.
 Tracing can be found under *Applications and Services Logs* and *Nefarius* after enabling *Show Analytic and Debug Logs*.
@@ -119,7 +121,13 @@ Please respect that the GitHub issue tracker isn't a help desk. [Look at the com
 
 ## Donations
 
+> From creator Eric
+
 Creating a utility like this requires time and dedication. Should you like to express your gratitude, consider a pledge
 for a game I'm rather fond of; the biggest crowd funded game currently in development *Star Citizen*. Be sure to apply a
 referral code at account creation as it gives a bit more in-game currency and can't be applied later on. My referral code
 is *STAR-K6S5-KPY7* should you seek one. Have fun and see you in the verse!
+
+> From maintainer Nefarius
+
+You can find all my donation options [over here](https://docs.nefarius.at/Donations/)!
