@@ -101,6 +101,10 @@ Don't assume exclusive ownership of the configuration settings as a recovery typ
 
 There is currently no capacity for any majopr works on HidHide, if you wish to see this change, consider contributing.
 
+Contact us [through Discord](https://discord.nefarius.at/)!
+
+---
+
 *HidHide* provides both logging and tracing. Logging can be found the *Event Viewer* under *Windows Logs* and *System*.
 Tracing can be found under *Applications and Services Logs* and *Nefarius* after enabling *Show Analytic and Debug Logs*.
 Extended tracing is available but switched off per default for performance reasons. Tracing is controlled using the *wevtutil* utility
