@@ -99,7 +99,7 @@ Don't assume exclusive ownership of the configuration settings as a recovery typ
 
 ~~Found a bug and want it fixed? Feel free to open a detailed issue on the [GitHub issue tracker](../../issues)!~~
 
-There is currently no capacity for any majopr works on HidHide, if you wish to see this change, consider contributing.
+There is currently no capacity for any major works on HidHide, if you wish to see this change, consider contributing.
 
 Contact us [through Discord](https://discord.nefarius.at/)!
 
