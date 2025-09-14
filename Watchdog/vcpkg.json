@@ -5,7 +5,14 @@
   "license": "MIT",
   "supports": "!(arm | uwp)",
   "dependencies": [
-    "poco",
+    {
+      "name": "poco",
+      "features": [
+        "util",
+        "net",
+        "json"
+      ]
+    },
     "spdlog",
     "winreg",
     "neflib",
