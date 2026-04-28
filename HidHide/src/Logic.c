@@ -87,6 +87,7 @@ VOID OnSystemProcessChange(HANDLE parentId, HANDLE processId, BOOLEAN create)
     if (FALSE == create)
     {
         HidHideProcessIdUnregister(s_criticalSectionLock, processId);
+        SessionBlacklistCleanupForPid(processId);
     }
 }
 
@@ -261,6 +262,7 @@ NTSTATUS OnControlDeviceCreate(WDFDEVICE wdfControlDevice)
     pControlDeviceContext = ControlDeviceGetContext(wdfControlDevice);
     pControlDeviceContext->numberOfDevicesCreated = 0;
     pControlDeviceContext->shutdownPending = FALSE;
+    InitializeListHead(&pControlDeviceContext->sessionBlacklistHead);
 
     // Query the multi-string property containing the white-listed full image names
     DECLARE_CONST_UNICODE_STRING(whitelistedFullImageNames, DRIVER_PROPERTY_WHITELISTED_FULL_IMAGE_NAMES);
@@ -340,6 +342,12 @@ NTSTATUS OnControlDeviceIoDeviceControl(WDFDEVICE wdfControlDevice, WDFQUEUE wdf
         break;
     case IOCTL_SET_WLINVERSE:
         return (OnControlDeviceIoSetInverse(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
+        break;
+    case IOCTL_ADD_SESSION_BLACKLIST:
+        return (OnControlDeviceIoAddSessionBlacklist(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
+        break;
+    case IOCTL_CLR_SESSION_BLACKLIST:
+        return (OnControlDeviceIoClearSessionBlacklist(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
         break;
     default:
         LOG_AND_RETURN_NTSTATUS(L"OnControlDeviceIoDeviceControl", STATUS_INVALID_PARAMETER);
@@ -565,6 +573,104 @@ NTSTATUS OnControlDeviceIoSetInverse(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQue
 }
 
 _Use_decl_annotations_
+NTSTATUS OnControlDeviceIoAddSessionBlacklist(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQueue, WDFREQUEST wdfRequest, size_t outputBufferLength, size_t inputBufferLength, ULONG ioControlCode)
+{
+    TRACE_ALWAYS(L"");
+    UNREFERENCED_PARAMETER(wdfControlDevice);
+    UNREFERENCED_PARAMETER(wdfQueue);
+    UNREFERENCED_PARAMETER(ioControlCode);
+
+    LPWSTR   buffer;
+    NTSTATUS ntstatus;
+    HANDLE   callerPid;
+
+    if (0 != outputBufferLength) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+    if (0 == inputBufferLength)  LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+
+    ntstatus = WdfRequestRetrieveInputBuffer(wdfRequest, inputBufferLength, &buffer, NULL);
+    if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfRequestRetrieveInputBuffer", ntstatus);
+
+    callerPid = PsGetCurrentProcessId();
+
+    PCONTROL_DEVICE_CONTEXT pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
+
+    // Walk the multi-string input and create a session entry per device instance path
+    LPWSTR current = buffer;
+    while (*current != L'\0')
+    {
+        UNICODE_STRING path;
+        RtlInitUnicodeString(&path, current);
+
+        PSESSION_BLACKLIST_ENTRY entry = (PSESSION_BLACKLIST_ENTRY)ExAllocatePoolWithTag(NonPagedPool, sizeof(SESSION_BLACKLIST_ENTRY), 'lBSH');
+        if (NULL == entry) LOG_AND_RETURN_NTSTATUS(L"ExAllocatePoolWithTag", STATUS_INSUFFICIENT_RESOURCES);
+
+        ntstatus = WdfStringCreate(&path, WDF_NO_OBJECT_ATTRIBUTES, &entry->deviceInstancePath);
+        if (!NT_SUCCESS(ntstatus))
+        {
+            ExFreePoolWithTag(entry, 'lBSH');
+            LOG_AND_RETURN_NTSTATUS(L"WdfStringCreate", ntstatus);
+        }
+
+        entry->ownerPid = callerPid;
+
+        WdfWaitLockAcquire(s_criticalSectionLock, NULL);
+        InsertTailList(&pControlDeviceContext->sessionBlacklistHead, &entry->listEntry);
+        WdfWaitLockRelease(s_criticalSectionLock);
+
+        current += wcslen(current) + 1;
+    }
+
+    WdfRequestCompleteWithInformation(wdfRequest, STATUS_SUCCESS, inputBufferLength);
+    return (STATUS_SUCCESS);
+}
+
+_Use_decl_annotations_
+NTSTATUS OnControlDeviceIoClearSessionBlacklist(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQueue, WDFREQUEST wdfRequest, size_t outputBufferLength, size_t inputBufferLength, ULONG ioControlCode)
+{
+    TRACE_ALWAYS(L"");
+    UNREFERENCED_PARAMETER(wdfControlDevice);
+    UNREFERENCED_PARAMETER(wdfQueue);
+    UNREFERENCED_PARAMETER(inputBufferLength);
+    UNREFERENCED_PARAMETER(ioControlCode);
+
+    if (0 != outputBufferLength) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+
+    SessionBlacklistCleanupForPid(PsGetCurrentProcessId());
+
+    WdfRequestCompleteWithInformation(wdfRequest, STATUS_SUCCESS, 0);
+    return (STATUS_SUCCESS);
+}
+
+VOID SessionBlacklistCleanupForPid(HANDLE processId)
+{
+    TRACE_PERFORMANCE(L"");
+
+    if (NULL == s_wdfControlDevice) return;
+
+    PCONTROL_DEVICE_CONTEXT pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
+
+    WdfWaitLockAcquire(s_criticalSectionLock, NULL);
+
+    PLIST_ENTRY entry = pControlDeviceContext->sessionBlacklistHead.Flink;
+    while (entry != &pControlDeviceContext->sessionBlacklistHead)
+    {
+        PSESSION_BLACKLIST_ENTRY sbe = CONTAINING_RECORD(entry, SESSION_BLACKLIST_ENTRY, listEntry);
+        PLIST_ENTRY next = entry->Flink;
+
+        if (sbe->ownerPid == processId)
+        {
+            RemoveEntryList(entry);
+            WdfObjectDelete(sbe->deviceInstancePath);
+            ExFreePoolWithTag(sbe, 'lBSH');
+        }
+
+        entry = next;
+    }
+
+    WdfWaitLockRelease(s_criticalSectionLock);
+}
+
+_Use_decl_annotations_
 BOOLEAN Whitelisted(HANDLE processId, BOOLEAN* cacheHit)
 {
     TRACE_PERFORMANCE(L"");
@@ -626,6 +732,8 @@ BOOLEAN Blacklisted(PUNICODE_STRING deviceInstancePath, ULONG sessionId)
 
     WdfWaitLockAcquire(s_criticalSectionLock, NULL);
     pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
+
+    // Check persistent blacklist
     for (ULONG index1 = 0, size1 = WdfCollectionGetCount(pControlDeviceContext->blacklistedDeviceInstancePaths); (index1 < size1); index1++)
     {
         WdfStringGetUnicodeString(WdfCollectionGetItem(pControlDeviceContext->blacklistedDeviceInstancePaths, index1), &inputFilter); // PASSIVE_LEVEL
@@ -637,6 +745,23 @@ BOOLEAN Blacklisted(PUNICODE_STRING deviceInstancePath, ULONG sessionId)
             return (sessionId != 0 && jailSessionId != 0 && sessionId == jailSessionId ? FALSE : TRUE);
         }
     }
+
+    // Check session (process-lifetime) blacklist
+    PLIST_ENTRY entry = pControlDeviceContext->sessionBlacklistHead.Flink;
+    while (entry != &pControlDeviceContext->sessionBlacklistHead)
+    {
+        PSESSION_BLACKLIST_ENTRY sbe = CONTAINING_RECORD(entry, SESSION_BLACKLIST_ENTRY, listEntry);
+        WdfStringGetUnicodeString(sbe->deviceInstancePath, &inputFilter);
+
+        if (0 == RtlCompareUnicodeString(&inputFilter, deviceInstancePath, TRUE))
+        {
+            WdfWaitLockRelease(s_criticalSectionLock);
+            return (TRUE);
+        }
+
+        entry = entry->Flink;
+    }
+
     WdfWaitLockRelease(s_criticalSectionLock);
 
     return (FALSE);
