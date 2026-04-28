@@ -75,8 +75,9 @@ VOID OnControlDeviceContextCleanup(WDFOBJECT wdfControlDeviceObject)
     PCONTROL_DEVICE_CONTEXT pControlDeviceContext = ControlDeviceGetContext(wdfControlDeviceObject);
 
     // Drain any remaining session blacklist entries left over at driver unload.
-    // s_criticalSectionLock is a child of the control device and is still live during its cleanup callback.
-    WdfWaitLockAcquire(s_criticalSectionLock, NULL);
+    // s_criticalSectionLock is a child of the control device and is still live during its cleanup
+    // callback, but guard against the case where WdfWaitLockCreate failed and left it NULL.
+    if (NULL != s_criticalSectionLock) WdfWaitLockAcquire(s_criticalSectionLock, NULL);
     PLIST_ENTRY entry = pControlDeviceContext->sessionBlacklistHead.Flink;
     while (entry != &pControlDeviceContext->sessionBlacklistHead)
     {
@@ -87,7 +88,7 @@ VOID OnControlDeviceContextCleanup(WDFOBJECT wdfControlDeviceObject)
         ExFreePoolWithTag(sbe, 'lBSH');
         entry = next;
     }
-    WdfWaitLockRelease(s_criticalSectionLock);
+    if (NULL != s_criticalSectionLock) WdfWaitLockRelease(s_criticalSectionLock);
 }
 
 _Use_decl_annotations_
@@ -599,10 +600,17 @@ NTSTATUS OnControlDeviceIoAddSessionBlacklist(WDFDEVICE wdfControlDevice, WDFQUE
     HANDLE   callerPid;
 
     if (0 != outputBufferLength) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
-    if (0 == inputBufferLength)  LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+    // MULTI_SZ must be at least two null WCHAR terminators (4 bytes) and a whole number of WCHARs
+    if (inputBufferLength < (2 * sizeof(WCHAR)))        LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+    if (0 != (inputBufferLength % sizeof(WCHAR)))       LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
 
     ntstatus = WdfRequestRetrieveInputBuffer(wdfRequest, inputBufferLength, &buffer, NULL);
     if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfRequestRetrieveInputBuffer", ntstatus);
+
+    // Verify the buffer ends with a double-NUL as required by MULTI_SZ format
+    size_t totalChars = inputBufferLength / sizeof(WCHAR);
+    if ((buffer[totalChars - 1] != L'\0') || (buffer[totalChars - 2] != L'\0'))
+        LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
 
     callerPid = PsGetCurrentProcessId();
 
@@ -614,7 +622,6 @@ NTSTATUS OnControlDeviceIoAddSessionBlacklist(WDFDEVICE wdfControlDevice, WDFQUE
     InitializeListHead(&localHead);
     ntstatus = STATUS_SUCCESS;
 
-    size_t totalChars = inputBufferLength / sizeof(WCHAR);
     LPWSTR current = buffer;
 
     while ((size_t)(current - buffer) < totalChars && *current != L'\0')
@@ -689,7 +696,7 @@ NTSTATUS OnControlDeviceIoClearSessionBlacklist(WDFDEVICE wdfControlDevice, WDFQ
     UNREFERENCED_PARAMETER(inputBufferLength);
     UNREFERENCED_PARAMETER(ioControlCode);
 
-    if (0 != outputBufferLength) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+    if ((0 != outputBufferLength) || (0 != inputBufferLength)) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
 
     SessionBlacklistCleanupForPid(PsGetCurrentProcessId());
 
