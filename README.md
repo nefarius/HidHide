@@ -1,3 +1,10 @@
+> [!WARNING]
+> **No other official website exists** for this project besides this GitHub repository (github.com/nefarius/HidHide) and sites hosted on `*.nefarius.at` (e.g. docs.nefarius.at, discord.nefarius.at).
+>
+> **Anyone claiming otherwise is a scammer and a fraud.** Do not trust other websites, download links, or people claiming to represent this project. Please be wary and only use the sources listed above.
+
+---
+
 # <img src="assets/hidhide-128x128.png" align="left" />HidHide
 
 [![Build status](https://ci.appveyor.com/api/projects/status/s3t4ffx5fnfw5g65/branch/master?svg=true)](https://ci.appveyor.com/project/nefarius/hidhide/branch/master)
