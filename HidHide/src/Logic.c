@@ -71,9 +71,24 @@ _Use_decl_annotations_
 VOID OnControlDeviceContextCleanup(WDFOBJECT wdfControlDeviceObject)
 {
     TRACE_ALWAYS(L"");
-    UNREFERENCED_PARAMETER(wdfControlDeviceObject);
 
-    // No specific action needed for this device driver but we like the tracing for tracing purposes
+    PCONTROL_DEVICE_CONTEXT pControlDeviceContext = ControlDeviceGetContext(wdfControlDeviceObject);
+
+    // Drain any remaining session blacklist entries left over at driver unload.
+    // s_criticalSectionLock is a child of the control device and is still live during its cleanup
+    // callback, but guard against the case where WdfWaitLockCreate failed and left it NULL.
+    if (NULL != s_criticalSectionLock) WdfWaitLockAcquire(s_criticalSectionLock, NULL);
+    PLIST_ENTRY entry = pControlDeviceContext->sessionBlacklistHead.Flink;
+    while (entry != &pControlDeviceContext->sessionBlacklistHead)
+    {
+        PSESSION_BLACKLIST_ENTRY sbe = CONTAINING_RECORD(entry, SESSION_BLACKLIST_ENTRY, listEntry);
+        PLIST_ENTRY next = entry->Flink;
+        RemoveEntryList(entry);
+        WdfObjectDelete(sbe->deviceInstancePath);
+        ExFreePoolWithTag(sbe, 'lBSH');
+        entry = next;
+    }
+    if (NULL != s_criticalSectionLock) WdfWaitLockRelease(s_criticalSectionLock);
 }
 
 _Use_decl_annotations_
@@ -87,6 +102,7 @@ VOID OnSystemProcessChange(HANDLE parentId, HANDLE processId, BOOLEAN create)
     if (FALSE == create)
     {
         HidHideProcessIdUnregister(s_criticalSectionLock, processId);
+        SessionBlacklistCleanupForPid(processId);
     }
 }
 
@@ -261,6 +277,7 @@ NTSTATUS OnControlDeviceCreate(WDFDEVICE wdfControlDevice)
     pControlDeviceContext = ControlDeviceGetContext(wdfControlDevice);
     pControlDeviceContext->numberOfDevicesCreated = 0;
     pControlDeviceContext->shutdownPending = FALSE;
+    InitializeListHead(&pControlDeviceContext->sessionBlacklistHead);
 
     // Query the multi-string property containing the white-listed full image names
     DECLARE_CONST_UNICODE_STRING(whitelistedFullImageNames, DRIVER_PROPERTY_WHITELISTED_FULL_IMAGE_NAMES);
@@ -340,6 +357,12 @@ NTSTATUS OnControlDeviceIoDeviceControl(WDFDEVICE wdfControlDevice, WDFQUEUE wdf
         break;
     case IOCTL_SET_WLINVERSE:
         return (OnControlDeviceIoSetInverse(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
+        break;
+    case IOCTL_ADD_SESSION_BLACKLIST:
+        return (OnControlDeviceIoAddSessionBlacklist(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
+        break;
+    case IOCTL_CLR_SESSION_BLACKLIST:
+        return (OnControlDeviceIoClearSessionBlacklist(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
         break;
     default:
         LOG_AND_RETURN_NTSTATUS(L"OnControlDeviceIoDeviceControl", STATUS_INVALID_PARAMETER);
@@ -565,6 +588,159 @@ NTSTATUS OnControlDeviceIoSetInverse(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQue
 }
 
 _Use_decl_annotations_
+NTSTATUS OnControlDeviceIoAddSessionBlacklist(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQueue, WDFREQUEST wdfRequest, size_t outputBufferLength, size_t inputBufferLength, ULONG ioControlCode)
+{
+    TRACE_ALWAYS(L"");
+    UNREFERENCED_PARAMETER(wdfControlDevice);
+    UNREFERENCED_PARAMETER(wdfQueue);
+    UNREFERENCED_PARAMETER(ioControlCode);
+
+    LPWSTR                  buffer;
+    NTSTATUS                ntstatus;
+    HANDLE                  callerPid;
+    size_t                  totalChars;
+    LIST_ENTRY              localHead;
+    LPWSTR                  current;
+    PCONTROL_DEVICE_CONTEXT pControlDeviceContext;
+
+    if (0 != outputBufferLength) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+    // MULTI_SZ must be at least two null WCHAR terminators (4 bytes) and a whole number of WCHARs
+    if (inputBufferLength < (2 * sizeof(WCHAR)))  LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+    if (0 != (inputBufferLength % sizeof(WCHAR))) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+
+    ntstatus = WdfRequestRetrieveInputBuffer(wdfRequest, inputBufferLength, &buffer, NULL);
+    if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfRequestRetrieveInputBuffer", ntstatus);
+
+    // Verify the buffer ends with a double-NUL as required by MULTI_SZ format
+    totalChars = inputBufferLength / sizeof(WCHAR);
+    if ((buffer[totalChars - 1] != L'\0') || (buffer[totalChars - 2] != L'\0'))
+        LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+
+    callerPid             = PsGetCurrentProcessId();
+    pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
+
+    // Build all entries into a local list before touching the global list.
+    // This makes the operation atomic: either all entries are committed or none are.
+    InitializeListHead(&localHead);
+    ntstatus = STATUS_SUCCESS;
+    current  = buffer;
+
+    while ((size_t)(current - buffer) < totalChars && *current != L'\0')
+    {
+        size_t remaining = totalChars - (size_t)(current - buffer);
+        size_t len = wcsnlen(current, remaining);
+        if (len >= remaining)
+        {
+            // Malformed multi-string: no null terminator within buffer bounds
+            ntstatus = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
+        UNICODE_STRING path;
+        path.Buffer = current;
+        path.Length = (USHORT)(len * sizeof(WCHAR));
+        path.MaximumLength = path.Length + sizeof(WCHAR);
+
+        PSESSION_BLACKLIST_ENTRY entry = (PSESSION_BLACKLIST_ENTRY)ExAllocatePoolWithTag(NonPagedPool, sizeof(SESSION_BLACKLIST_ENTRY), 'lBSH');
+        if (NULL == entry)
+        {
+            ntstatus = STATUS_INSUFFICIENT_RESOURCES;
+            break;
+        }
+
+        ntstatus = WdfStringCreate(&path, WDF_NO_OBJECT_ATTRIBUTES, &entry->deviceInstancePath);
+        if (!NT_SUCCESS(ntstatus))
+        {
+            ExFreePoolWithTag(entry, 'lBSH');
+            break;
+        }
+
+        entry->ownerPid = callerPid;
+        InsertTailList(&localHead, &entry->listEntry);
+
+        current += len + 1;
+    }
+
+    if (!NT_SUCCESS(ntstatus))
+    {
+        // Free all locally built entries — nothing has been committed to the global list
+        PLIST_ENTRY le = localHead.Flink;
+        while (le != &localHead)
+        {
+            PSESSION_BLACKLIST_ENTRY sbe = CONTAINING_RECORD(le, SESSION_BLACKLIST_ENTRY, listEntry);
+            le = le->Flink;
+            RemoveEntryList(&sbe->listEntry);
+            WdfObjectDelete(sbe->deviceInstancePath);
+            ExFreePoolWithTag(sbe, 'lBSH');
+        }
+        LOG_AND_RETURN_NTSTATUS(L"OnControlDeviceIoAddSessionBlacklist", ntstatus);
+    }
+
+    // Splice local list into global list under lock — O(1), no allocations inside critical section
+    if (!IsListEmpty(&localHead))
+    {
+        WdfWaitLockAcquire(s_criticalSectionLock, NULL);
+        AppendTailList(&pControlDeviceContext->sessionBlacklistHead, &localHead);
+        WdfWaitLockRelease(s_criticalSectionLock);
+    }
+
+    WdfRequestCompleteWithInformation(wdfRequest, STATUS_SUCCESS, inputBufferLength);
+    return (STATUS_SUCCESS);
+}
+
+_Use_decl_annotations_
+NTSTATUS OnControlDeviceIoClearSessionBlacklist(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQueue, WDFREQUEST wdfRequest, size_t outputBufferLength, size_t inputBufferLength, ULONG ioControlCode)
+{
+    TRACE_ALWAYS(L"");
+    UNREFERENCED_PARAMETER(wdfControlDevice);
+    UNREFERENCED_PARAMETER(wdfQueue);
+    UNREFERENCED_PARAMETER(inputBufferLength);
+    UNREFERENCED_PARAMETER(ioControlCode);
+
+    if ((0 != outputBufferLength) || (0 != inputBufferLength)) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+
+    SessionBlacklistCleanupForPid(PsGetCurrentProcessId());
+
+    WdfRequestCompleteWithInformation(wdfRequest, STATUS_SUCCESS, 0);
+    return (STATUS_SUCCESS);
+}
+
+_Use_decl_annotations_
+VOID SessionBlacklistCleanupForPid(HANDLE processId)
+{
+    TRACE_PERFORMANCE(L"");
+
+    PCONTROL_DEVICE_CONTEXT  pControlDeviceContext;
+    PLIST_ENTRY              entry;
+    PSESSION_BLACKLIST_ENTRY sbe;
+    PLIST_ENTRY              next;
+
+    if (NULL == s_wdfControlDevice) return;
+
+    pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
+
+    WdfWaitLockAcquire(s_criticalSectionLock, NULL);
+
+    entry = pControlDeviceContext->sessionBlacklistHead.Flink;
+    while (entry != &pControlDeviceContext->sessionBlacklistHead)
+    {
+        sbe  = CONTAINING_RECORD(entry, SESSION_BLACKLIST_ENTRY, listEntry);
+        next = entry->Flink;
+
+        if (sbe->ownerPid == processId)
+        {
+            RemoveEntryList(entry);
+            WdfObjectDelete(sbe->deviceInstancePath);
+            ExFreePoolWithTag(sbe, 'lBSH');
+        }
+
+        entry = next;
+    }
+
+    WdfWaitLockRelease(s_criticalSectionLock);
+}
+
+_Use_decl_annotations_
 BOOLEAN Whitelisted(HANDLE processId, BOOLEAN* cacheHit)
 {
     TRACE_PERFORMANCE(L"");
@@ -619,13 +795,17 @@ BOOLEAN Blacklisted(PUNICODE_STRING deviceInstancePath, ULONG sessionId)
 {
     TRACE_PERFORMANCE(L"");
 
-    PCONTROL_DEVICE_CONTEXT pControlDeviceContext;
-    UNICODE_STRING          inputFilter;
-    UNICODE_STRING          blacklistedDeviceInstancePath;
-    ULONG                   jailSessionId;
+    PCONTROL_DEVICE_CONTEXT  pControlDeviceContext;
+    UNICODE_STRING           inputFilter;
+    UNICODE_STRING           blacklistedDeviceInstancePath;
+    ULONG                    jailSessionId;
+    PLIST_ENTRY              entry;
+    PSESSION_BLACKLIST_ENTRY sbe;
 
     WdfWaitLockAcquire(s_criticalSectionLock, NULL);
     pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
+
+    // Check persistent blacklist
     for (ULONG index1 = 0, size1 = WdfCollectionGetCount(pControlDeviceContext->blacklistedDeviceInstancePaths); (index1 < size1); index1++)
     {
         WdfStringGetUnicodeString(WdfCollectionGetItem(pControlDeviceContext->blacklistedDeviceInstancePaths, index1), &inputFilter); // PASSIVE_LEVEL
@@ -637,6 +817,23 @@ BOOLEAN Blacklisted(PUNICODE_STRING deviceInstancePath, ULONG sessionId)
             return (sessionId != 0 && jailSessionId != 0 && sessionId == jailSessionId ? FALSE : TRUE);
         }
     }
+
+    // Check session (process-lifetime) blacklist
+    entry = pControlDeviceContext->sessionBlacklistHead.Flink;
+    while (entry != &pControlDeviceContext->sessionBlacklistHead)
+    {
+        sbe = CONTAINING_RECORD(entry, SESSION_BLACKLIST_ENTRY, listEntry);
+        WdfStringGetUnicodeString(sbe->deviceInstancePath, &inputFilter);
+
+        if (0 == RtlCompareUnicodeString(&inputFilter, deviceInstancePath, TRUE))
+        {
+            WdfWaitLockRelease(s_criticalSectionLock);
+            return (TRUE);
+        }
+
+        entry = entry->Flink;
+    }
+
     WdfWaitLockRelease(s_criticalSectionLock);
 
     return (FALSE);

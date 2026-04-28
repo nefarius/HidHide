@@ -24,8 +24,10 @@ ULONG PsGetProcessSessionId(PEPROCESS process);
 #define IOCTL_SET_BLACKLIST CTL_CODE(IoControlDeviceType, 2051, METHOD_BUFFERED, FILE_READ_DATA)
 #define IOCTL_GET_ACTIVE    CTL_CODE(IoControlDeviceType, 2052, METHOD_BUFFERED, FILE_READ_DATA)
 #define IOCTL_SET_ACTIVE    CTL_CODE(IoControlDeviceType, 2053, METHOD_BUFFERED, FILE_READ_DATA)
-#define IOCTL_GET_WLINVERSE CTL_CODE(IoControlDeviceType, 2054, METHOD_BUFFERED, FILE_READ_DATA)
-#define IOCTL_SET_WLINVERSE CTL_CODE(IoControlDeviceType, 2055, METHOD_BUFFERED, FILE_READ_DATA)
+#define IOCTL_GET_WLINVERSE          CTL_CODE(IoControlDeviceType, 2054, METHOD_BUFFERED, FILE_READ_DATA)
+#define IOCTL_SET_WLINVERSE          CTL_CODE(IoControlDeviceType, 2055, METHOD_BUFFERED, FILE_READ_DATA)
+#define IOCTL_ADD_SESSION_BLACKLIST  CTL_CODE(IoControlDeviceType, 2056, METHOD_BUFFERED, FILE_READ_DATA)
+#define IOCTL_CLR_SESSION_BLACKLIST  CTL_CODE(IoControlDeviceType, 2057, METHOD_BUFFERED, FILE_READ_DATA)
 
 // {0C320FF7-BD9B-42B6-BDAF-49FEB9C91649}
 DEFINE_GUID(HidHideInterfaceGuid, 0xc320ff7, 0xbd9b, 0x42b6, 0xbd, 0xaf, 0x49, 0xfe, 0xb9, 0xc9, 0x16, 0x49);
@@ -55,10 +57,22 @@ typedef struct _CONTROL_DEVICE_CONTEXT
     // The whitelisted inverse (enabled) state
     BOOLEAN whitelistedInverse;
 
+    // Collection of SESSION_BLACKLIST_ENTRY structures for process-lifetime blacklist entries
+    // Entries are automatically removed when the registering process exits
+    LIST_ENTRY sessionBlacklistHead;
+
     // During a shutdown we may only delete the control device object after the last device is removed so keep track of the number of devices and shutdown state
     BOOLEAN shutdownPending;
     INT32 numberOfDevicesCreated;
 } CONTROL_DEVICE_CONTEXT, *PCONTROL_DEVICE_CONTEXT;
+
+// An entry in the process-lifetime (session) blacklist
+typedef struct _SESSION_BLACKLIST_ENTRY
+{
+    LIST_ENTRY  listEntry;
+    HANDLE      ownerPid;
+    WDFSTRING   deviceInstancePath;
+} SESSION_BLACKLIST_ENTRY, *PSESSION_BLACKLIST_ENTRY;
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(CONTROL_DEVICE_CONTEXT, ControlDeviceGetContext)
 
@@ -153,6 +167,22 @@ NTSTATUS OnControlDeviceIoGetInverse(_In_ WDFDEVICE wdfDevice, _In_ WDFQUEUE wdf
 _IRQL_requires_same_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS OnControlDeviceIoSetInverse(_In_ WDFDEVICE wdfDevice, _In_ WDFQUEUE wdfQueue, _In_ WDFREQUEST wdfRequest, _In_ size_t outputBufferLength, _In_ size_t inputBufferLength, _In_ ULONG ioControlCode);
+
+// Handle AddSessionBlacklist I/O request — adds device instance paths to a process-lifetime blacklist
+// Entries are automatically removed when the calling process exits (clean or crash)
+_IRQL_requires_same_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS OnControlDeviceIoAddSessionBlacklist(_In_ WDFDEVICE wdfDevice, _In_ WDFQUEUE wdfQueue, _In_ WDFREQUEST wdfRequest, _In_ size_t outputBufferLength, _In_ size_t inputBufferLength, _In_ ULONG ioControlCode);
+
+// Handle ClearSessionBlacklist I/O request — removes all session blacklist entries for the calling process
+_IRQL_requires_same_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS OnControlDeviceIoClearSessionBlacklist(_In_ WDFDEVICE wdfDevice, _In_ WDFQUEUE wdfQueue, _In_ WDFREQUEST wdfRequest, _In_ size_t outputBufferLength, _In_ size_t inputBufferLength, _In_ ULONG ioControlCode);
+
+// Remove all session blacklist entries owned by the given process ID
+_IRQL_requires_same_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID SessionBlacklistCleanupForPid(_In_ HANDLE processId);
 
 // Is the process id on the whitelist?
 // On a match, the cache-hit indicates if its the first time or not
