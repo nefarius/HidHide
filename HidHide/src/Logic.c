@@ -71,9 +71,23 @@ _Use_decl_annotations_
 VOID OnControlDeviceContextCleanup(WDFOBJECT wdfControlDeviceObject)
 {
     TRACE_ALWAYS(L"");
-    UNREFERENCED_PARAMETER(wdfControlDeviceObject);
 
-    // No specific action needed for this device driver but we like the tracing for tracing purposes
+    PCONTROL_DEVICE_CONTEXT pControlDeviceContext = ControlDeviceGetContext(wdfControlDeviceObject);
+
+    // Drain any remaining session blacklist entries left over at driver unload.
+    // s_criticalSectionLock is a child of the control device and is still live during its cleanup callback.
+    WdfWaitLockAcquire(s_criticalSectionLock, NULL);
+    PLIST_ENTRY entry = pControlDeviceContext->sessionBlacklistHead.Flink;
+    while (entry != &pControlDeviceContext->sessionBlacklistHead)
+    {
+        PSESSION_BLACKLIST_ENTRY sbe = CONTAINING_RECORD(entry, SESSION_BLACKLIST_ENTRY, listEntry);
+        PLIST_ENTRY next = entry->Flink;
+        RemoveEntryList(entry);
+        WdfObjectDelete(sbe->deviceInstancePath);
+        ExFreePoolWithTag(sbe, 'lBSH');
+        entry = next;
+    }
+    WdfWaitLockRelease(s_criticalSectionLock);
 }
 
 _Use_decl_annotations_
@@ -594,30 +608,72 @@ NTSTATUS OnControlDeviceIoAddSessionBlacklist(WDFDEVICE wdfControlDevice, WDFQUE
 
     PCONTROL_DEVICE_CONTEXT pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
 
-    // Walk the multi-string input and create a session entry per device instance path
+    // Build all entries into a local list before touching the global list.
+    // This makes the operation atomic: either all entries are committed or none are.
+    LIST_ENTRY localHead;
+    InitializeListHead(&localHead);
+    ntstatus = STATUS_SUCCESS;
+
+    size_t totalChars = inputBufferLength / sizeof(WCHAR);
     LPWSTR current = buffer;
-    while (*current != L'\0')
+
+    while ((size_t)(current - buffer) < totalChars && *current != L'\0')
     {
+        size_t remaining = totalChars - (size_t)(current - buffer);
+        size_t len = wcsnlen(current, remaining);
+        if (len >= remaining)
+        {
+            // Malformed multi-string: no null terminator within buffer bounds
+            ntstatus = STATUS_INVALID_PARAMETER;
+            break;
+        }
+
         UNICODE_STRING path;
-        RtlInitUnicodeString(&path, current);
+        path.Buffer = current;
+        path.Length = (USHORT)(len * sizeof(WCHAR));
+        path.MaximumLength = path.Length + sizeof(WCHAR);
 
         PSESSION_BLACKLIST_ENTRY entry = (PSESSION_BLACKLIST_ENTRY)ExAllocatePoolWithTag(NonPagedPool, sizeof(SESSION_BLACKLIST_ENTRY), 'lBSH');
-        if (NULL == entry) LOG_AND_RETURN_NTSTATUS(L"ExAllocatePoolWithTag", STATUS_INSUFFICIENT_RESOURCES);
+        if (NULL == entry)
+        {
+            ntstatus = STATUS_INSUFFICIENT_RESOURCES;
+            break;
+        }
 
         ntstatus = WdfStringCreate(&path, WDF_NO_OBJECT_ATTRIBUTES, &entry->deviceInstancePath);
         if (!NT_SUCCESS(ntstatus))
         {
             ExFreePoolWithTag(entry, 'lBSH');
-            LOG_AND_RETURN_NTSTATUS(L"WdfStringCreate", ntstatus);
+            break;
         }
 
         entry->ownerPid = callerPid;
+        InsertTailList(&localHead, &entry->listEntry);
 
+        current += len + 1;
+    }
+
+    if (!NT_SUCCESS(ntstatus))
+    {
+        // Free all locally built entries — nothing has been committed to the global list
+        PLIST_ENTRY le = localHead.Flink;
+        while (le != &localHead)
+        {
+            PSESSION_BLACKLIST_ENTRY sbe = CONTAINING_RECORD(le, SESSION_BLACKLIST_ENTRY, listEntry);
+            le = le->Flink;
+            RemoveEntryList(&sbe->listEntry);
+            WdfObjectDelete(sbe->deviceInstancePath);
+            ExFreePoolWithTag(sbe, 'lBSH');
+        }
+        LOG_AND_RETURN_NTSTATUS(L"OnControlDeviceIoAddSessionBlacklist", ntstatus);
+    }
+
+    // Splice local list into global list under lock — O(1), no allocations inside critical section
+    if (!IsListEmpty(&localHead))
+    {
         WdfWaitLockAcquire(s_criticalSectionLock, NULL);
-        InsertTailList(&pControlDeviceContext->sessionBlacklistHead, &entry->listEntry);
+        AppendTailList(&pControlDeviceContext->sessionBlacklistHead, &localHead);
         WdfWaitLockRelease(s_criticalSectionLock);
-
-        current += wcslen(current) + 1;
     }
 
     WdfRequestCompleteWithInformation(wdfRequest, STATUS_SUCCESS, inputBufferLength);
