@@ -595,34 +595,35 @@ NTSTATUS OnControlDeviceIoAddSessionBlacklist(WDFDEVICE wdfControlDevice, WDFQUE
     UNREFERENCED_PARAMETER(wdfQueue);
     UNREFERENCED_PARAMETER(ioControlCode);
 
-    LPWSTR   buffer;
-    NTSTATUS ntstatus;
-    HANDLE   callerPid;
+    LPWSTR                  buffer;
+    NTSTATUS                ntstatus;
+    HANDLE                  callerPid;
+    size_t                  totalChars;
+    LIST_ENTRY              localHead;
+    LPWSTR                  current;
+    PCONTROL_DEVICE_CONTEXT pControlDeviceContext;
 
     if (0 != outputBufferLength) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
     // MULTI_SZ must be at least two null WCHAR terminators (4 bytes) and a whole number of WCHARs
-    if (inputBufferLength < (2 * sizeof(WCHAR)))        LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
-    if (0 != (inputBufferLength % sizeof(WCHAR)))       LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+    if (inputBufferLength < (2 * sizeof(WCHAR)))  LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+    if (0 != (inputBufferLength % sizeof(WCHAR))) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
 
     ntstatus = WdfRequestRetrieveInputBuffer(wdfRequest, inputBufferLength, &buffer, NULL);
     if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfRequestRetrieveInputBuffer", ntstatus);
 
     // Verify the buffer ends with a double-NUL as required by MULTI_SZ format
-    size_t totalChars = inputBufferLength / sizeof(WCHAR);
+    totalChars = inputBufferLength / sizeof(WCHAR);
     if ((buffer[totalChars - 1] != L'\0') || (buffer[totalChars - 2] != L'\0'))
         LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
 
-    callerPid = PsGetCurrentProcessId();
-
-    PCONTROL_DEVICE_CONTEXT pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
+    callerPid             = PsGetCurrentProcessId();
+    pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
 
     // Build all entries into a local list before touching the global list.
     // This makes the operation atomic: either all entries are committed or none are.
-    LIST_ENTRY localHead;
     InitializeListHead(&localHead);
     ntstatus = STATUS_SUCCESS;
-
-    LPWSTR current = buffer;
+    current  = buffer;
 
     while ((size_t)(current - buffer) < totalChars && *current != L'\0')
     {
@@ -704,21 +705,27 @@ NTSTATUS OnControlDeviceIoClearSessionBlacklist(WDFDEVICE wdfControlDevice, WDFQ
     return (STATUS_SUCCESS);
 }
 
+_Use_decl_annotations_
 VOID SessionBlacklistCleanupForPid(HANDLE processId)
 {
     TRACE_PERFORMANCE(L"");
 
+    PCONTROL_DEVICE_CONTEXT  pControlDeviceContext;
+    PLIST_ENTRY              entry;
+    PSESSION_BLACKLIST_ENTRY sbe;
+    PLIST_ENTRY              next;
+
     if (NULL == s_wdfControlDevice) return;
 
-    PCONTROL_DEVICE_CONTEXT pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
+    pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
 
     WdfWaitLockAcquire(s_criticalSectionLock, NULL);
 
-    PLIST_ENTRY entry = pControlDeviceContext->sessionBlacklistHead.Flink;
+    entry = pControlDeviceContext->sessionBlacklistHead.Flink;
     while (entry != &pControlDeviceContext->sessionBlacklistHead)
     {
-        PSESSION_BLACKLIST_ENTRY sbe = CONTAINING_RECORD(entry, SESSION_BLACKLIST_ENTRY, listEntry);
-        PLIST_ENTRY next = entry->Flink;
+        sbe  = CONTAINING_RECORD(entry, SESSION_BLACKLIST_ENTRY, listEntry);
+        next = entry->Flink;
 
         if (sbe->ownerPid == processId)
         {
@@ -788,10 +795,12 @@ BOOLEAN Blacklisted(PUNICODE_STRING deviceInstancePath, ULONG sessionId)
 {
     TRACE_PERFORMANCE(L"");
 
-    PCONTROL_DEVICE_CONTEXT pControlDeviceContext;
-    UNICODE_STRING          inputFilter;
-    UNICODE_STRING          blacklistedDeviceInstancePath;
-    ULONG                   jailSessionId;
+    PCONTROL_DEVICE_CONTEXT  pControlDeviceContext;
+    UNICODE_STRING           inputFilter;
+    UNICODE_STRING           blacklistedDeviceInstancePath;
+    ULONG                    jailSessionId;
+    PLIST_ENTRY              entry;
+    PSESSION_BLACKLIST_ENTRY sbe;
 
     WdfWaitLockAcquire(s_criticalSectionLock, NULL);
     pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
@@ -810,10 +819,10 @@ BOOLEAN Blacklisted(PUNICODE_STRING deviceInstancePath, ULONG sessionId)
     }
 
     // Check session (process-lifetime) blacklist
-    PLIST_ENTRY entry = pControlDeviceContext->sessionBlacklistHead.Flink;
+    entry = pControlDeviceContext->sessionBlacklistHead.Flink;
     while (entry != &pControlDeviceContext->sessionBlacklistHead)
     {
-        PSESSION_BLACKLIST_ENTRY sbe = CONTAINING_RECORD(entry, SESSION_BLACKLIST_ENTRY, listEntry);
+        sbe = CONTAINING_RECORD(entry, SESSION_BLACKLIST_ENTRY, listEntry);
         WdfStringGetUnicodeString(sbe->deviceInstancePath, &inputFilter);
 
         if (0 == RtlCompareUnicodeString(&inputFilter, deviceInstancePath, TRUE))
