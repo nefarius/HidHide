@@ -3,22 +3,20 @@
 #include <scope_guard.hpp>
 
 #include <winevt.h>
-#include <evntrace.h>
-#include <tdh.h>
 #include <strsafe.h>
 
 using namespace nefarius::utilities;
 
 
-std::expected<void, Win32Error> etw::utils::SetLogEnabled(LPCWSTR channel, bool enabled)
+std::expected<void, Win32Error> etw::utils::SetLogEnabled(LPCWSTR channel, const bool enabled)
 {
-    EVT_HANDLE config = EvtOpenChannelConfig(NULL, channel, 0);
+    EVT_HANDLE config = EvtOpenChannelConfig(nullptr, channel, 0);
     if (!config)
     {
         return std::unexpected(Win32Error("EvtOpenChannelConfig"));
     }
 
-    auto guard = sg::make_scope_guard(
+    const auto guard = sg::make_scope_guard(
         [ config ]() noexcept
         {
             if (config)
@@ -31,7 +29,7 @@ std::expected<void, Win32Error> etw::utils::SetLogEnabled(LPCWSTR channel, bool 
 
     if (!EvtSetChannelConfigProperty(config, EvtChannelConfigEnabled, 0, &logEnabled))
     {
-        return std::unexpected(Win32Error("EvtSetChannelConfigProperty"));
+        return std::unexpected(Win32Error("EvtSetChannelConfigProperty EvtChannelConfigEnabled"));
     }
 
     if (!EvtSaveChannelConfig(config, 0))
@@ -42,59 +40,62 @@ std::expected<void, Win32Error> etw::utils::SetLogEnabled(LPCWSTR channel, bool 
     return {};
 }
 
-std::expected<void, Win32Error> etw::utils::StartSession()
+std::expected<void, Win32Error> etw::utils::SetDiagnosticChannelPublishingKeywords(
+    LPCWSTR channel,
+    const bool enabled,
+    const ULONGLONG publishingKeywords)
 {
-    // TODO: example code, finish and test!
-
-    TRACEHANDLE sessionHandle = 0;
-    EVENT_TRACE_PROPERTIES* sessionProperties = NULL;
-    DWORD bufferSize = sizeof(EVENT_TRACE_PROPERTIES) + sizeof(TCHAR) * (MAX_PATH + 1);
-    sessionProperties = (EVENT_TRACE_PROPERTIES*)malloc(bufferSize);
-    ZeroMemory(sessionProperties, bufferSize);
-
-    // Set the properties for the session
-    sessionProperties->Wnode.BufferSize = bufferSize;
-    sessionProperties->Wnode.Flags = WNODE_FLAG_TRACED_GUID;
-    sessionProperties->Wnode.ClientContext = 1; // QPC clock resolution
-    sessionProperties->Wnode.Guid = SystemTraceControlGuid; // GUID for kernel tracing
-    sessionProperties->LogFileMode = EVENT_TRACE_FILE_MODE_SEQUENTIAL; // Use file for output
-    sessionProperties->MaximumFileSize = 10; // Maximum size of log file in MB
-    sessionProperties->LoggerNameOffset = sizeof(EVENT_TRACE_PROPERTIES);
-    sessionProperties->LogFileNameOffset = sizeof(EVENT_TRACE_PROPERTIES) + sizeof(TCHAR) * (MAX_PATH + 1);
-
-
-    TCHAR logFileName[MAX_PATH] = TEXT("C:\\ETWLog.etl");
-    StringCchCopy((TCHAR*)(((char*)sessionProperties) + sessionProperties->LogFileNameOffset), MAX_PATH, logFileName);
-
-    TCHAR sessionName[MAX_PATH] = TEXT("MyETWSession");
-    ULONG status = StartTrace(&sessionHandle, sessionName, sessionProperties);
-
-    if (status != ERROR_SUCCESS)
+    EVT_HANDLE h = EvtOpenChannelConfig(nullptr, channel, 0);
+    if (!h)
     {
-        printf("Error starting trace session: %lu\n", status);
-        //return 1;
+        return std::unexpected(Win32Error("EvtOpenChannelConfig"));
     }
 
-    printf("ETW session started successfully!\n");
+    const auto guard = sg::make_scope_guard(
+        [ h ]() noexcept
+        {
+            if (h)
+                EvtClose(h);
+        });
 
-    status = EnableTraceEx2(
-        sessionHandle,
-        &SystemTraceControlGuid,
-        EVENT_CONTROL_CODE_ENABLE_PROVIDER,
-        TRACE_LEVEL_VERBOSE,
-        0,
-        0,
-        0,
-        NULL
-    );
-
-    if (status != ERROR_SUCCESS)
+    EVT_VARIANT off = {};
+    off.Type = EvtVarTypeBoolean;
+    off.BooleanVal = FALSE;
+    if (!EvtSetChannelConfigProperty(h, EvtChannelConfigEnabled, 0, &off))
     {
-        printf("Error enabling provider: %lu\n", status);
-        //return 1;
+        return std::unexpected(Win32Error("EvtSetChannelConfigProperty disable"));
     }
 
-    printf("Provider enabled successfully!\n");
+    EVT_VARIANT keywords = {};
+    keywords.Type = EvtVarTypeUInt64;
+    keywords.UInt64Val = publishingKeywords;
+    if (!EvtSetChannelConfigProperty(h, EvtChannelPublishingConfigKeywords, 0, &keywords))
+    {
+        return std::unexpected(Win32Error("EvtSetChannelConfigProperty Keywords"));
+    }
+
+    EVT_VARIANT on = {};
+    on.Type = EvtVarTypeBoolean;
+    on.BooleanVal = enabled ? TRUE : FALSE;
+    if (!EvtSetChannelConfigProperty(h, EvtChannelConfigEnabled, 0, &on))
+    {
+        return std::unexpected(Win32Error("EvtSetChannelConfigProperty enable"));
+    }
+
+    if (!EvtSaveChannelConfig(h, 0))
+    {
+        return std::unexpected(Win32Error("EvtSaveChannelConfig"));
+    }
 
     return {};
+}
+
+std::expected<void, Win32Error> etw::utils::ApplyReadmeMaximumDiagnosticVisibility(LPCWSTR channel)
+{
+    return SetDiagnosticChannelPublishingKeywords(channel, true, 5ull);
+}
+
+std::expected<void, Win32Error> etw::utils::RestoreReadmeDefaultDiagnosticVisibility(LPCWSTR channel)
+{
+    return SetDiagnosticChannelPublishingKeywords(channel, true, 1ull);
 }

@@ -1,18 +1,9 @@
 #include "App.hpp"
-#include <initguid.h>
-#include <devguid.h>
-#include <winevt.h>
-#include <evntrace.h>
-#include <tdh.h>
-#include <strsafe.h>
+#include "NefLibIncludes.hpp"
 
-#include <variant>
-#include <expected>
-#include <format>
-#include <iostream>
-
-#include <nefarius/neflib/MiscWinApi.hpp>
-#include <nefarius/neflib/ClassFilter.hpp>
+#if defined(HIDHIDE_WATCHDOG_HTTP)
+#include "DiagnosticsTraceHandler.hpp"
+#endif
 
 #pragma warning(disable: 26800)
 #include <spdlog/spdlog.h>
@@ -23,22 +14,15 @@
 #include <Poco/Task.h>
 #include <Poco/TaskManager.h>
 
+#if defined(HIDHIDE_WATCHDOG_HTTP)
 #include <Poco/Net/HTTPServer.h>
-#include <Poco/Net/HTTPRequestHandler.h>
-#include <Poco/Net/HTTPRequestHandlerFactory.h>
-#include <Poco/Net/HTTPServerRequest.h>
-#include <Poco/Net/HTTPServerResponse.h>
 #include <Poco/Net/ServerSocket.h>
 #include <Poco/Net/SocketAddress.h>
 #include <Poco/Net/HTTPServerParams.h>
-#include <Poco/JSON/Object.h>
-#include <Poco/JSON/Stringifier.h>
-#include <Poco/Timestamp.h>
 
-using namespace Poco;
 using namespace Poco::Net;
-using namespace Poco::JSON;
-using namespace Poco::Util;
+
+#endif
 
 
 // XnaComposite
@@ -172,66 +156,7 @@ public:
     }
 };
 
-//
-// REST API /api/etw/session handler
-// 
-class ETWRequestHandler : public HTTPRequestHandler
-{
-public:
-    void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) override
-    {
-        if (request.getURI() != "/api/etw/session")
-        {
-            response.setStatus(HTTPResponse::HTTP_NOT_FOUND);
-            response.send();
-            return;
-        }
-
-        const auto& method = request.getMethod();
-
-        // get session details
-        if (method == HTTPRequest::HTTP_GET)
-        {
-        }
-        // start/create session
-        else if (method == HTTPRequest::HTTP_POST)
-        {
-        }
-        // stop/remove session
-        else if (method == HTTPRequest::HTTP_DELETE)
-        {
-        }
-        // unsupported
-        else
-        {
-            response.setStatus(HTTPResponse::HTTP_METHOD_NOT_ALLOWED);
-            response.send();
-            return;
-        }
-
-        response.setContentType("application/json");
-        response.setStatus(HTTPResponse::HTTP_OK);
-
-        // Create a JSON response
-        Object::Ptr jsonResponse = new Object();
-        jsonResponse->set("message", "Hello from POCO HTTP Server");
-        jsonResponse->set("timestamp", Timestamp().epochTime());
-
-        // Send the JSON response
-        std::ostream& out = response.send();
-        Stringifier::stringify(jsonResponse, out);
-    }
-};
-
-class ETWRequestHandlerFactory : public HTTPRequestHandlerFactory
-{
-public:
-    HTTPRequestHandler* createRequestHandler(const HTTPServerRequest& request) override
-    {
-        return new ETWRequestHandler;
-    }
-};
-
+#if defined(HIDHIDE_WATCHDOG_HTTP)
 class WebServerTask : public Poco::Task
 {
     bool _isInteractive;
@@ -249,7 +174,7 @@ public:
                                 ? spdlog::get("console")
                                 : spdlog::get("eventlog");
 
-        logger->info("Starting web server background thread");
+        logger->info("Starting diagnostics HTTP server on http://127.0.0.1:34501/");
 
         SocketAddress sa("127.0.0.1", 34501);
         ServerSocket serverSocket(sa);
@@ -257,7 +182,7 @@ public:
         params->setMaxQueued(100);
         params->setMaxThreads(4);
 
-        HTTPServer server(new ETWRequestHandlerFactory(), serverSocket, params);
+        HTTPServer server(new DiagnosticsHttpHandlerFactory(), serverSocket, params);
         server.start();
 
         logger->info("Started web server");
@@ -274,6 +199,7 @@ public:
         logger->info("Stopping web server background thread");
     }
 };
+#endif
 
 void App::initialize(Application& self)
 {
@@ -315,8 +241,7 @@ int App::main(const std::vector<std::string>& args)
         Poco::TaskManager tm;
         // filter driver watchdog
         tm.start(new WatchdogTask("HidHideWatchdog", this->isInteractive()));
-#if defined(EXPERIMENTAL)
-        // ETW session web server
+#if defined(HIDHIDE_WATCHDOG_HTTP)
         tm.start(new WebServerTask("HidHideWebServer", this->isInteractive()));
 #endif
         waitForTerminationRequest();

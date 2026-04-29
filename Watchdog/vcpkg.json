@@ -15,6 +15,7 @@
     },
     "spdlog",
     "winreg",
+    "wil",
     "neflib",
     "scope-guard"
   ]

@@ -135,6 +135,12 @@
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
+  <PropertyGroup Label="WatchdogHttp">
+    <!-- Opt out with msbuild /p:EnableWatchdogHttp=false to omit HIDHIDE_WATCHDOG_HTTP (see App.cpp). -->
+    <EnableWatchdogHttp Condition="'$(EnableWatchdogHttp)'==''">true</EnableWatchdogHttp>
+    <WatchdogHttpPreprocessor Condition="'$(EnableWatchdogHttp)'=='true'">HIDHIDE_WATCHDOG_HTTP;</WatchdogHttpPreprocessor>
+    <WatchdogHttpPreprocessor Condition="'$(EnableWatchdogHttp)'!='true'"></WatchdogHttpPreprocessor>
+  </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <VcpkgUseStatic>true</VcpkgUseStatic>
   </PropertyGroup>
@@ -311,12 +317,24 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
-    <ClCompile Include="ETWUtil.cpp" />
     <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(EnableWatchdogHttp)'=='true'">
+    <ClCompile Include="DiagnosticsTraceHandler.cpp" />
+    <ClCompile Include="DiagnosticsTraceService.cpp" />
+    <ClCompile Include="ETWUtil.cpp" />
+    <ClCompile Include="EtwTraceSession.cpp" />
+    <ClCompile Include="HidHideDiagnosticsJson.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp" />
+    <ClInclude Include="DiagnosticsTraceHandler.hpp" />
+    <ClInclude Include="DiagnosticsTraceService.hpp" />
     <ClInclude Include="ETWUtil.h" />
+    <ClInclude Include="EtwTraceSession.hpp" />
+    <ClInclude Include="HidHideDiagnosticsJson.hpp" />
+    <ClInclude Include="HidHideDiagnosticsTypes.hpp" />
+    <ClInclude Include="NefLibIncludes.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resource1.h" />
   </ItemGroup>
@@ -333,6 +351,11 @@
   <ItemGroup>
     <Image Include="favicon.ico" />
   </ItemGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>$(WatchdogHttpPreprocessor)%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
