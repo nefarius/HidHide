@@ -138,7 +138,8 @@ namespace
                 int status = 400;
                 if (code == "recording_in_progress")
                     status = 409;
-                else if (code == "trace_start_failed" || code == "channel_tune_failed")
+                else if (code == "trace_start_failed" || code == "channel_tune_failed" ||
+                         code == "previous_capture_delete_failed")
                     status = 500;
                 return SendError(response, status, r.error());
             }

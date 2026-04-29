@@ -198,7 +198,12 @@ std::expected<void, hidhide::diag::ApiError> DiagnosticsTraceService::Start(
             std::error_code ec;
             fs::remove(fs::path(_etlPath), ec);
             if (ec)
+            {
                 spdlog::warn("Could not remove previous .etl before new start: {}", ec.message());
+                return std::unexpected(MakeApiError(
+                    "previous_capture_delete_failed",
+                    std::string("Could not remove previous capture file: ") + ec.message()));
+            }
         }
         _stoppedAtEpoch.reset();
         _startedAtEpoch.reset();
@@ -335,6 +340,9 @@ std::expected<void, hidhide::diag::ApiError> DiagnosticsTraceService::DiscardCap
                     "Restoring diagnostics channels before discard"));
             }
         }
+        // Capture file exists on disk; transition out of Recording before delete attempt.
+        _stoppedAtEpoch = NowEpochSeconds();
+        _state = hidhide::diag::TraceSessionState::Ready;
     }
 
     if (!_etlPath.empty())
@@ -342,7 +350,12 @@ std::expected<void, hidhide::diag::ApiError> DiagnosticsTraceService::DiscardCap
         std::error_code ec;
         fs::remove(fs::path(_etlPath), ec);
         if (ec)
+        {
             spdlog::warn("DiscardCapture: delete etl failed: {}", ec.message());
+            return std::unexpected(MakeApiError(
+                "capture_delete_failed",
+                std::string("Could not delete capture file: ") + ec.message()));
+        }
     }
 
     _etlPath.clear();
