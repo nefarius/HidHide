@@ -135,6 +135,12 @@
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>true</VcpkgEnableManifest>
   </PropertyGroup>
+  <PropertyGroup Label="WatchdogHttp">
+    <!-- Opt out with msbuild /p:EnableWatchdogHttp=false to omit HIDHIDE_WATCHDOG_HTTP (see App.cpp). -->
+    <EnableWatchdogHttp Condition="'$(EnableWatchdogHttp)'==''">true</EnableWatchdogHttp>
+    <WatchdogHttpPreprocessor Condition="'$(EnableWatchdogHttp)'=='true'">HIDHIDE_WATCHDOG_HTTP;</WatchdogHttpPreprocessor>
+    <WatchdogHttpPreprocessor Condition="'$(EnableWatchdogHttp)'!='true'"></WatchdogHttpPreprocessor>
+  </PropertyGroup>
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <VcpkgUseStatic>true</VcpkgUseStatic>
   </PropertyGroup>
@@ -345,7 +351,7 @@
   </ItemGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>HIDHIDE_WATCHDOG_HTTP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>$(WatchdogHttpPreprocessor)%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

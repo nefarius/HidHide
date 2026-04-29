@@ -181,6 +181,7 @@ std::expected<void, hidhide::diag::ApiError> DiagnosticsTraceService::Start(
                 spdlog::warn("Could not remove previous .etl before new start: {}", ec.message());
         }
         _stoppedAtEpoch.reset();
+        _startedAtEpoch.reset();
         _suggestedFileName.clear();
         _state = hidhide::diag::TraceSessionState::Idle;
     }
@@ -208,6 +209,8 @@ std::expected<void, hidhide::diag::ApiError> DiagnosticsTraceService::Start(
         _didTuneChannels = false;
         _etlPath.clear();
         _suggestedFileName.clear();
+        _startedAtEpoch.reset();
+        _stoppedAtEpoch.reset();
 
         return std::unexpected(MakeApiError(
             "trace_start_failed",
@@ -279,6 +282,9 @@ std::expected<void, hidhide::diag::ApiError> DiagnosticsTraceService::DiscardCap
         if (const auto stopResult = _trace.Stop(); !stopResult)
         {
             spdlog::warn("DiscardCapture: stop failed: {}", stopResult.error().getErrorMessageA());
+            return std::unexpected(MakeApiError(
+                "trace_stop_failed",
+                std::string("Could not stop trace session: ") + stopResult.error().getErrorMessageA()));
         }
         if (_didTuneChannels && _tuneChannels)
             TuneScopeChannels(_scope, true);

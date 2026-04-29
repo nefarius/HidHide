@@ -1,5 +1,7 @@
 #include "EtwTraceSession.hpp"
 
+#include <cwchar>
+#include <cwctype>
 #include <strsafe.h>
 
 using nefarius::utilities::Win32Error;
@@ -94,6 +96,70 @@ namespace
     constexpr ULONGLONG kTracingKeywordMaskAll = 0x1u | 0x2u | 0x4u | 0x8u;
 
     constexpr UCHAR kTraceLevel = TRACE_LEVEL_VERBOSE;
+
+    bool SubstringMatchInsensitive(const wchar_t* haystack, const wchar_t* needle)
+    {
+        if (!haystack || !needle || !*needle)
+            return false;
+        for (const wchar_t* p = haystack; *p; ++p)
+        {
+            const wchar_t* a = p;
+            const wchar_t* b = needle;
+            while (*a && *b &&
+                   towlower(static_cast<wint_t>(*a)) == towlower(static_cast<wint_t>(*b)))
+            {
+                ++a;
+                ++b;
+            }
+            if (!*b)
+                return true;
+        }
+        return false;
+    }
+
+    // Query existing session; only stop if its log path is under our ProgramData ETW folder (avoids
+    // killing another logger that reused the name).
+    bool TryStopStaleOurSession()
+    {
+        ULONG kBytes = sizeof(EVENT_TRACE_PROPERTIES) + 32768;
+        std::vector<BYTE> buf(kBytes);
+        EVENT_TRACE_PROPERTIES* qp = nullptr;
+        ULONG qerr = ERROR_SUCCESS;
+        do
+        {
+            buf.resize(kBytes);
+            qp = reinterpret_cast<EVENT_TRACE_PROPERTIES*>(buf.data());
+            ZeroMemory(qp, kBytes);
+            qp->Wnode.BufferSize = kBytes;
+            qp->LoggerNameOffset = sizeof(EVENT_TRACE_PROPERTIES);
+            qp->LogFileNameOffset = sizeof(EVENT_TRACE_PROPERTIES) + 512 * sizeof(WCHAR);
+            qerr = QueryTraceW(0, EtwTraceSession::kSessionName, qp);
+            if (qerr == ERROR_MORE_DATA && kBytes < 512 * 1024)
+                kBytes *= 2;
+            else
+                break;
+        } while (qerr == ERROR_MORE_DATA);
+
+        if (qerr != ERROR_SUCCESS)
+            return false;
+
+        if (qp->LogFileNameOffset == 0 || qp->LogFileNameOffset >= buf.size())
+            return false;
+
+        const wchar_t* logPath =
+            reinterpret_cast<const wchar_t*>(buf.data() + qp->LogFileNameOffset);
+        if (!logPath || !logPath[0])
+            return false;
+
+        static const wchar_t kOurDirBackslash[] = L"Nefarius\\HidHide\\ETW";
+        static const wchar_t kOurDirSlash[] = L"Nefarius/HidHide/ETW";
+        if (!SubstringMatchInsensitive(logPath, kOurDirBackslash) &&
+            !SubstringMatchInsensitive(logPath, kOurDirSlash))
+            return false;
+
+        const ULONG serr = ControlTraceW(0, EtwTraceSession::kSessionName, qp, EVENT_TRACE_CONTROL_STOP);
+        return serr == ERROR_SUCCESS;
+    }
 }
 
 constexpr wchar_t EtwTraceSession::kSessionName[];
@@ -159,17 +225,6 @@ std::expected<void, Win32Error> EtwTraceSession::Start(const std::wstring& etlPa
         return std::unexpected(Win32Error("EtwTraceSession::Start"));
     }
 
-    // Remove stale session from a previous crash / abrupt termination.
-    {
-        constexpr ULONG kCleanupBytes = sizeof(EVENT_TRACE_PROPERTIES) + 8192;
-        std::vector<BYTE> cleanup(kCleanupBytes);
-        auto* cp = reinterpret_cast<EVENT_TRACE_PROPERTIES*>(cleanup.data());
-        ZeroMemory(cp, kCleanupBytes);
-        cp->Wnode.BufferSize = kCleanupBytes;
-        cp->LoggerNameOffset = sizeof(EVENT_TRACE_PROPERTIES);
-        ControlTraceW(0, kSessionName, cp, EVENT_TRACE_CONTROL_STOP);
-    }
-
     const std::wstring& sessionName = std::wstring(kSessionName);
     const ULONG nameChars = static_cast<ULONG>(sessionName.size() + 1);
     const ULONG pathChars = static_cast<ULONG>(etlPath.size() + 1);
@@ -177,37 +232,57 @@ std::expected<void, Win32Error> EtwTraceSession::Start(const std::wstring& etlPa
 
     std::vector<BYTE> buffer(bufferSize);
     auto* props = reinterpret_cast<EVENT_TRACE_PROPERTIES*>(buffer.data());
-    ZeroMemory(props, bufferSize);
 
-    props->Wnode.BufferSize = bufferSize;
-    props->Wnode.Flags = WNODE_FLAG_TRACED_GUID;
-    props->Wnode.ClientContext = 1;
-    props->Wnode.Guid = GUID{};
-    props->LogFileMode = EVENT_TRACE_FILE_MODE_SEQUENTIAL;
-    props->MaximumFileSize = 128;
-    props->LoggerNameOffset = sizeof(EVENT_TRACE_PROPERTIES);
-    props->LogFileNameOffset = sizeof(EVENT_TRACE_PROPERTIES) + nameChars * sizeof(WCHAR);
+    const auto fillProps = [&]() -> std::expected<void, Win32Error>
+    {
+        ZeroMemory(props, bufferSize);
+        props->Wnode.BufferSize = bufferSize;
+        props->Wnode.Flags = WNODE_FLAG_TRACED_GUID;
+        props->Wnode.ClientContext = 1;
+        props->Wnode.Guid = GUID{};
+        props->LogFileMode = EVENT_TRACE_FILE_MODE_SEQUENTIAL;
+        props->MaximumFileSize = 128;
+        props->LoggerNameOffset = sizeof(EVENT_TRACE_PROPERTIES);
+        props->LogFileNameOffset = sizeof(EVENT_TRACE_PROPERTIES) + nameChars * sizeof(WCHAR);
 
-    const HRESULT hrName = StringCbCopyW(
-        reinterpret_cast<wchar_t*>(buffer.data() + props->LoggerNameOffset),
-        nameChars * sizeof(WCHAR),
-        sessionName.c_str());
-    if (!SUCCEEDED(hrName))
-        return std::unexpected(Win32Error(static_cast<DWORD>(ERROR_INVALID_PARAMETER), std::string("StringCbCopyW logger")));
+        const HRESULT hrName = StringCbCopyW(
+            reinterpret_cast<wchar_t*>(buffer.data() + props->LoggerNameOffset),
+            nameChars * sizeof(WCHAR),
+            sessionName.c_str());
+        if (!SUCCEEDED(hrName))
+            return std::unexpected(
+                Win32Error(static_cast<DWORD>(ERROR_INVALID_PARAMETER), std::string("StringCbCopyW logger")));
 
-    const HRESULT hrPath = StringCbCopyW(
-        reinterpret_cast<wchar_t*>(buffer.data() + props->LogFileNameOffset),
-        pathChars * sizeof(WCHAR),
-        etlPath.c_str());
-    if (!SUCCEEDED(hrPath))
-        return std::unexpected(Win32Error(static_cast<DWORD>(ERROR_INVALID_PARAMETER), std::string("StringCbCopyW log path")));
+        const HRESULT hrPath = StringCbCopyW(
+            reinterpret_cast<wchar_t*>(buffer.data() + props->LogFileNameOffset),
+            pathChars * sizeof(WCHAR),
+            etlPath.c_str());
+        if (!SUCCEEDED(hrPath))
+            return std::unexpected(
+                Win32Error(static_cast<DWORD>(ERROR_INVALID_PARAMETER), std::string("StringCbCopyW log path")));
 
-    const ULONG errStart = StartTraceW(&_sessionHandle, sessionName.c_str(), props);
+        return {};
+    };
+
+    if (const auto filled = fillProps(); !filled)
+        return filled;
+
+    ULONG errStart = StartTraceW(&_sessionHandle, sessionName.c_str(), props);
     if (errStart != ERROR_SUCCESS)
     {
         _sessionHandle = 0;
-        ::SetLastError(errStart);
-        return std::unexpected(Win32Error("StartTraceW"));
+        if (errStart == ERROR_ALREADY_EXISTS && TryStopStaleOurSession())
+        {
+            if (const auto filled = fillProps(); !filled)
+                return filled;
+            errStart = StartTraceW(&_sessionHandle, sessionName.c_str(), props);
+        }
+        if (errStart != ERROR_SUCCESS)
+        {
+            _sessionHandle = 0;
+            ::SetLastError(errStart);
+            return std::unexpected(Win32Error("StartTraceW"));
+        }
     }
 
     const auto providers = ProvidersForScope(scope);
@@ -235,7 +310,6 @@ std::expected<void, Win32Error> EtwTraceSession::Stop()
     props->Wnode.BufferSize = bufSize;
 
     const TRACEHANDLE h = _sessionHandle;
-    _sessionHandle = 0;
 
     const ULONG errStop = ControlTraceW(h, nullptr, props, EVENT_TRACE_CONTROL_STOP);
 
@@ -245,5 +319,6 @@ std::expected<void, Win32Error> EtwTraceSession::Stop()
         return std::unexpected(Win32Error("ControlTrace STOP"));
     }
 
+    _sessionHandle = 0;
     return {};
 }

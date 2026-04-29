@@ -134,7 +134,12 @@ namespace
             const auto r = DiagnosticsTraceService::Instance().Start(parsed);
             if (!r)
             {
-                const int status = r.error().code == "recording_in_progress" ? 409 : 400;
+                const std::string& code = r.error().code;
+                int status = 400;
+                if (code == "recording_in_progress")
+                    status = 409;
+                else if (code == "trace_start_failed")
+                    status = 500;
                 return SendError(response, status, r.error());
             }
 
