@@ -29,10 +29,10 @@ echo Close eventvwr
 pause
 
 echo Uninstalling the old driver
-".\devcon.exe" classfilter HIDClass upper !HidHide
-".\devcon.exe" classfilter XnaComposite upper !HidHide
-".\devcon.exe" classfilter XboxComposite upper !HidHide
-".\devcon.exe" /r remove "root\HidHide"
+".\nefconw.exe" --remove-class-filter --position upper --service-name HidHide --class-guid 05f5cfe2-4733-4950-a6bb-07aad01a3a84
+".\nefconw.exe" --remove-class-filter --position upper --service-name HidHide --class-guid d61ca365-5af4-4486-998b-9db4734c6ca3
+".\nefconw.exe" --remove-class-filter --position upper --service-name HidHide --class-guid 745a17a0-74d3-11d0-b6fe-00a0c90f57da
+".\nefconw.exe" remove "root\HidHide"
 del "%windir%\INF\SetupApi.dev.log" > NUL
 
 echo Updating Nefarius HidHide filter device driver
@@ -66,10 +66,10 @@ wevtutil.exe sl "Nefarius-Drivers-HidHide/Diagnostic" /e:false /q:true > NUL
 wevtutil.exe sl "Nefarius-Drivers-HidHide/Diagnostic" /e:true /q:true > NUL
 
 echo Install device
-".\devcon.exe" /r install "C:\Program Files\Nefarius\HidHide\HidHide.inf" "root\HidHide"
-".\devcon.exe" classfilter HIDClass upper -HidHide
-".\devcon.exe" classfilter XnaComposite upper -HidHide
-".\devcon.exe" classfilter XboxComposite upper -HidHide
+".\nefconw.exe" install "C:\Program Files\Nefarius\HidHide\HidHide.inf" "root\HidHide" --no-duplicates --remove-duplicates
+".\nefconw.exe" --add-class-filter --position upper --service-name HidHide --class-guid 745a17a0-74d3-11d0-b6fe-00a0c90f57da
+".\nefconw.exe" --add-class-filter --position upper --service-name HidHide --class-guid d61ca365-5af4-4486-998b-9db4734c6ca3
+".\nefconw.exe" --add-class-filter --position upper --service-name HidHide --class-guid 05f5cfe2-4733-4950-a6bb-07aad01a3a84
 
 echo Done (inspect %windir%\INF\SetupApi.dev.log when needed)
 rem goto :L1

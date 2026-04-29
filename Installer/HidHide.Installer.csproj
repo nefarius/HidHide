@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>HidHide.Installer</RootNamespace>
+    <AssemblyName>HidHide.Installer</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <Description>Builds the HidHide MSI with WixSharp (WiX 5). Run on Windows with WiX 5.0.2 CLI + UI extension installed.</Description>
+    <!-- WixSharp_wix4.bin targets netfx; package is compatible at runtime (same as WinDbgSymbolsCachingProxy). -->
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Same stack as WinDbgSymbolsCachingProxy: WiX 5 + WixSharp_wix4; pin WiX CLI/extension to 5.0.2 (see INSTALL_LAYOUT.md). -->
+    <PackageReference Include="WixSharp_wix4" Version="2.13.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="..\LICENSE.rtf">
+      <Link>LICENSE.rtf</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
