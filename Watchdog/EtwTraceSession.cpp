@@ -120,6 +120,19 @@ namespace
         return false;
     }
 
+    // OpenThread/OpenProcess failure is only treated as "target gone" when LastError matches these.
+    bool Win32ErrorIndicatesMissingThreadOrProcess(const DWORD err)
+    {
+        switch (err)
+        {
+        case ERROR_INVALID_PARAMETER:
+        case ERROR_NOT_FOUND:
+            return true;
+        default:
+            return false;
+        }
+    }
+
     // True only if the trace session appears orphaned or owned by this process (recoverable), not
     // another live HidHideWatchdog.exe instance.
     bool LoggerThreadIndicatesSafeToStop(const EVENT_TRACE_PROPERTIES* qp)
@@ -135,8 +148,10 @@ namespace
         const HANDLE ht = OpenThread(THREAD_QUERY_LIMITED_INFORMATION, FALSE, tid);
         if (!ht)
         {
-            // Logging thread is gone; session is orphaned.
-            return true;
+            const DWORD openThreadErr = ::GetLastError();
+            if (Win32ErrorIndicatesMissingThreadOrProcess(openThreadErr))
+                return true;
+            return false;
         }
 
         const DWORD pid = GetProcessIdOfThread(ht);
@@ -147,8 +162,10 @@ namespace
         const HANDLE hp = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
         if (!hp)
         {
-            // Owner process has exited.
-            return true;
+            const DWORD openProcessErr = ::GetLastError();
+            if (Win32ErrorIndicatesMissingThreadOrProcess(openProcessErr))
+                return true;
+            return false;
         }
 
         wchar_t image[1024]{};
