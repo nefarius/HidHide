@@ -8,18 +8,22 @@
 #include <Poco/JSON/Stringifier.h>
 #include <Poco/Net/HTTPServerRequest.h>
 #include <Poco/Net/HTTPServerResponse.h>
-#include <Poco/StreamCopier.h>
 #include <Poco/URI.h>
 #include <Poco/UnicodeConverter.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <istream>
+#include <vector>
 
 namespace fs = std::filesystem;
 
 namespace
 {
     constexpr const char* kApiTraceBase = "/api/v1/diagnostics/trace";
+    // POST /start JSON is tiny; cap prevents unbounded reads from Content-Length or chunked bodies.
+    constexpr std::streamsize kMaxTraceStartBodyBytes = 65536;
 
     std::string NormalizePath(std::string path)
     {
@@ -45,6 +49,52 @@ namespace
         Poco::JSON::Object root;
         hidhide::diag::WriteErrorJson(root, err);
         SendJson(response, status, root);
+    }
+
+    // Returns false if body exceeds kMaxTraceStartBodyBytes (errOut set) or extra bytes remain after limit.
+    bool ReadTraceStartBodyBounded(Poco::Net::HTTPServerRequest& request,
+                                   std::string& body,
+                                   hidhide::diag::ApiError& errOut)
+    {
+        const std::streamsize declared = request.getContentLength();
+        if (declared >= 0 && declared > kMaxTraceStartBodyBytes)
+        {
+            errOut.code = "payload_too_large";
+            errOut.message = "Request body exceeds maximum allowed size.";
+            return false;
+        }
+
+        body.clear();
+        if (declared > 0)
+            body.reserve(static_cast<size_t>(declared));
+
+        std::istream& in = request.stream();
+        std::vector<char> chunk(8192);
+        constexpr auto kMax = static_cast<size_t>(kMaxTraceStartBodyBytes);
+
+        while (body.size() < kMax)
+        {
+            const size_t want = std::min(chunk.size(), kMax - body.size());
+            in.read(chunk.data(), static_cast<std::streamsize>(want));
+            const std::streamsize got = in.gcount();
+            if (got <= 0)
+                break;
+            body.append(chunk.data(), static_cast<size_t>(got));
+        }
+
+        if (body.size() >= kMax)
+        {
+            char extra = {};
+            in.read(&extra, 1);
+            if (in.gcount() > 0)
+            {
+                errOut.code = "payload_too_large";
+                errOut.message = "Request body exceeds maximum allowed size.";
+                return false;
+            }
+        }
+
+        return true;
     }
 
     std::string WideToUtf8(const std::wstring& w)
@@ -116,7 +166,9 @@ namespace
                              Poco::Net::HTTPServerResponse& response)
         {
             std::string body;
-            Poco::StreamCopier::copyToString(request.stream(), body);
+            hidhide::diag::ApiError readErr;
+            if (!ReadTraceStartBodyBounded(request, body, readErr))
+                return SendError(response, 413, readErr);
 
             hidhide::diag::TraceStartRequest parsed;
             try

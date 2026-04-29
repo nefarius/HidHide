@@ -344,6 +344,17 @@ std::expected<void, hidhide::diag::ApiError> DiagnosticsTraceService::DiscardCap
         _stoppedAtEpoch = NowEpochSeconds();
         _state = hidhide::diag::TraceSessionState::Ready;
     }
+    else if (_state == hidhide::diag::TraceSessionState::Ready && _didTuneChannels && _tuneChannels)
+    {
+        if (const auto tr = TuneScopeChannels(_scope, true); !tr)
+        {
+            _stoppedAtEpoch = NowEpochSeconds();
+            _state = hidhide::diag::TraceSessionState::Ready;
+            return std::unexpected(ChannelTuneErrorToApi(
+                tr.error(),
+                "Restoring diagnostics channels before discard"));
+        }
+    }
 
     if (!_etlPath.empty())
     {
