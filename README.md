@@ -102,6 +102,71 @@ Third-party software deployment may benefit from the *HidHide Command Line Inter
 Please be conservative while altering a clients' configuration and only extend the configuration with new features offered.
 Don't assume exclusive ownership of the configuration settings as a recovery typically requires manual actions by the user.
 
+## Programmatic integration
+
+Applications that need to talk to the HidHide kernel driver at runtime do so through a WDM control device exposed as the
+symbolic link **`\\.\HidHide`** (DOS device name). The same device can also be opened by interface GUID
+**`{0C320FF7-BD9B-42B6-BDAF-49FEB9C91649}`** via `SetupDiGetClassDevs` / `CM_Get_Device_Interface_List`.
+
+### IOCTL reference
+
+All IOCTLs use `METHOD_BUFFERED` / `FILE_READ_DATA` and are constructed with:
+
+```c
+CTL_CODE(/*DeviceType=*/32769, /*Function=*/N, METHOD_BUFFERED, FILE_READ_DATA)
+```
+
+| Function | Name | Input | Output | Notes |
+|---|---|---|---|---|
+| 2048 | `GET_WHITELIST` | — | `MULTI_SZ` | Full image paths of whitelisted applications |
+| 2049 | `SET_WHITELIST` | `MULTI_SZ` | — | Replaces the whitelist |
+| 2050 | `GET_BLACKLIST` | — | `MULTI_SZ` | Device instance paths of hidden devices |
+| 2051 | `SET_BLACKLIST` | `MULTI_SZ` | — | Replaces the blacklist |
+| 2052 | `GET_ACTIVE` | — | `DWORD` | 1 = device hiding enabled |
+| 2053 | `SET_ACTIVE` | `DWORD` | — | Enable / disable device hiding |
+| 2054 | `GET_WLINVERSE` | — | `DWORD` | 1 = whitelist inverse mode enabled |
+| 2055 | `SET_WLINVERSE` | `DWORD` | — | Enable / disable whitelist inverse mode |
+| 2056 | `ADD_SESSION_BLACKLIST` | `MULTI_SZ` | — | Add devices to the session (process-lifetime) blacklist |
+| 2057 | `CLR_SESSION_BLACKLIST` | — | — | Remove all session blacklist entries for the calling process |
+
+### MULTI_SZ wire format
+
+List IOCTLs use the standard Windows `MULTI_SZ` format: a sequence of null-terminated wide-character strings (`WCHAR`)
+followed by an extra null terminator to mark the end of the list. The buffer size passed to `DeviceIoControl` must
+include all null terminators and be an even number of bytes.
+
+```
+L"entry_one\0entry_two\0\0"
+ ─────────── ─────────── ─
+ string 1    string 2    list terminator
+```
+
+For device instance paths use the format returned by `SetupDiGetDeviceInstanceId`, e.g.
+`HID\VID_054C&PID_09CC&MI_03\7&...`.
+
+### Session blacklist
+
+The **session blacklist** (functions 2056 / 2057) is designed for feeder applications — programs that exclusively own
+one or more physical devices and re-expose them as virtual controllers. Unlike the persistent blacklist (functions
+2050 / 2051), session blacklist entries are:
+
+- **Process-scoped** — each entry is owned by the process that issued the IOCTL.
+- **Automatically removed** — when the owning process exits for any reason (clean shutdown, crash, or kill), the
+  kernel driver removes all of its entries via `PsSetCreateProcessNotifyRoutine`. No cleanup code is required in the
+  application.
+- **Non-persistent** — entries exist only in kernel memory and are never written to the registry, leaving the user's
+  permanent HidHide configuration untouched.
+
+#### Recommended usage pattern
+
+1. On startup, call `ADD_SESSION_BLACKLIST` with the `MULTI_SZ` list of device instance paths to hide.
+2. Use the device exclusively for the lifetime of the process.
+3. On clean exit, optionally call `CLR_SESSION_BLACKLIST` to release immediately; otherwise the driver clears the
+   entries automatically when the process handle closes.
+
+This is preferable to temporarily mutating the persistent blacklist because it requires no rollback logic and is safe
+against crashes or forced termination.
+
 ## Bugs & Features
 
 ~~Found a bug and want it fixed? Feel free to open a detailed issue on the [GitHub issue tracker](../../issues)!~~
