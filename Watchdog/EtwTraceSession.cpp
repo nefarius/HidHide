@@ -2,6 +2,8 @@
 
 #include <cwchar>
 #include <cwctype>
+#include <iterator>
+#include <processthreadsapi.h>
 #include <strsafe.h>
 
 using nefarius::utilities::Win32Error;
@@ -117,8 +119,56 @@ namespace
         return false;
     }
 
-    // Query existing session; only stop if its log path is under our ProgramData ETW folder (avoids
-    // killing another logger that reused the name).
+    // True only if the trace session appears orphaned or owned by this process (recoverable), not
+    // another live HidHideWatchdog.exe instance.
+    bool LoggerThreadIndicatesSafeToStop(const EVENT_TRACE_PROPERTIES* qp)
+    {
+        static const wchar_t kWatchdogExe[] = L"HidHideWatchdog.exe";
+
+        const DWORD tid = qp->LoggerThreadId;
+        if (tid == 0)
+            return false;
+
+        const HANDLE ht = OpenThread(THREAD_QUERY_LIMITED_INFORMATION, FALSE, tid);
+        if (!ht)
+        {
+            // Logging thread is gone; session is orphaned.
+            return true;
+        }
+
+        const DWORD pid = GetProcessIdOfThread(ht);
+        CloseHandle(ht);
+        if (pid == 0)
+            return false;
+
+        const HANDLE hp = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+        if (!hp)
+        {
+            // Owner process has exited.
+            return true;
+        }
+
+        wchar_t image[1024]{};
+        DWORD sz = static_cast<DWORD>(std::size(image));
+        if (!QueryFullProcessImageNameW(hp, nullptr, image, &sz))
+        {
+            CloseHandle(hp);
+            return false;
+        }
+        CloseHandle(hp);
+
+        const wchar_t* base = wcsrchr(image, L'\\');
+        base = base ? base + 1 : image;
+        if (_wcsicmp(base, kWatchdogExe) != 0)
+            return false;
+
+        if (pid != GetCurrentProcessId())
+            return false;
+
+        return true;
+    }
+
+    // Query existing session; only stop after path + owner checks (avoid killing another live session).
     bool TryStopStaleOurSession()
     {
         ULONG kBytes = sizeof(EVENT_TRACE_PROPERTIES) + 32768;
@@ -155,6 +205,9 @@ namespace
         static const wchar_t kOurDirSlash[] = L"Nefarius/HidHide/ETW";
         if (!SubstringMatchInsensitive(logPath, kOurDirBackslash) &&
             !SubstringMatchInsensitive(logPath, kOurDirSlash))
+            return false;
+
+        if (!LoggerThreadIndicatesSafeToStop(qp))
             return false;
 
         const ULONG serr = ControlTraceW(0, EtwTraceSession::kSessionName, qp, EVENT_TRACE_CONTROL_STOP);
@@ -290,7 +343,8 @@ std::expected<void, Win32Error> EtwTraceSession::Start(const std::wstring& etlPa
     {
         if (const auto e = EnableProvider(_sessionHandle, g); !e)
         {
-            [[maybe_unused]] const auto unusedStop = Stop();
+            if (const auto stopErr = Stop(); !stopErr)
+                return stopErr;
             return e;
         }
     }

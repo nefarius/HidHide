@@ -317,12 +317,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(EnableWatchdogHttp)'=='true'">
     <ClCompile Include="DiagnosticsTraceHandler.cpp" />
     <ClCompile Include="DiagnosticsTraceService.cpp" />
     <ClCompile Include="ETWUtil.cpp" />
     <ClCompile Include="EtwTraceSession.cpp" />
     <ClCompile Include="HidHideDiagnosticsJson.cpp" />
-    <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp" />

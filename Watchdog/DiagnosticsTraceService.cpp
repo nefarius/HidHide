@@ -7,7 +7,10 @@
 #include <chrono>
 #include <filesystem>
 #include <mutex>
+#include <string>
 #include <string_view>
+
+using TuneResult = std::expected<void, nefarius::utilities::Win32Error>;
 
 namespace fs = std::filesystem;
 
@@ -59,7 +62,15 @@ namespace
         return e;
     }
 
-    void InvokeTune(const wchar_t* channel, const bool restore)
+    hidhide::diag::ApiError ChannelTuneErrorToApi(const nefarius::utilities::Win32Error& err,
+                                                  std::string_view context)
+    {
+        return MakeApiError(
+            "channel_tune_failed",
+            std::string(context).append(": ").append(err.getErrorMessageA()));
+    }
+
+    TuneResult InvokeTune(const wchar_t* channel, const bool restore)
     {
         const auto r = restore
                            ? etw::utils::RestoreReadmeDefaultDiagnosticVisibility(channel)
@@ -69,26 +80,35 @@ namespace
             spdlog::warn("Diagnostics channel {} failed: {}",
                          restore ? "restore" : "tune",
                          r.error().getErrorMessageA());
+            return r;
         }
+        return {};
     }
 
-    void TuneScopeChannels(const hidhide::diag::TraceScope scope, const bool restore)
+    TuneResult TuneScopeChannels(const hidhide::diag::TraceScope scope, const bool restore)
     {
         switch (scope)
         {
         case hidhide::diag::TraceScope::Full:
-            InvokeTune(kChannelDriver, restore);
-            InvokeTune(kChannelClient, restore);
-            InvokeTune(kChannelCli, restore);
+            if (const auto r = InvokeTune(kChannelDriver, restore); !r)
+                return r;
+            if (const auto r = InvokeTune(kChannelClient, restore); !r)
+                return r;
+            if (const auto r = InvokeTune(kChannelCli, restore); !r)
+                return r;
             break;
         case hidhide::diag::TraceScope::Driver:
-            InvokeTune(kChannelDriver, restore);
+            if (const auto r = InvokeTune(kChannelDriver, restore); !r)
+                return r;
             break;
         case hidhide::diag::TraceScope::Userspace:
-            InvokeTune(kChannelClient, restore);
-            InvokeTune(kChannelCli, restore);
+            if (const auto r = InvokeTune(kChannelClient, restore); !r)
+                return r;
+            if (const auto r = InvokeTune(kChannelCli, restore); !r)
+                return r;
             break;
         }
+        return {};
     }
 }
 
@@ -197,14 +217,24 @@ std::expected<void, hidhide::diag::ApiError> DiagnosticsTraceService::Start(
 
     if (_tuneChannels)
     {
-        TuneScopeChannels(_scope, false);
+        if (const auto tr = TuneScopeChannels(_scope, false); !tr)
+        {
+            _etlPath.clear();
+            _suggestedFileName.clear();
+            return std::unexpected(ChannelTuneErrorToApi(tr.error(), "Diagnostics channel tune"));
+        }
         _didTuneChannels = true;
     }
 
     if (const auto startResult = _trace.Start(_etlPath, _scope); !startResult)
     {
         if (_didTuneChannels)
-            TuneScopeChannels(_scope, true);
+        {
+            if (const auto tr = TuneScopeChannels(_scope, true); !tr)
+                return std::unexpected(ChannelTuneErrorToApi(
+                    tr.error(),
+                    "Restoring diagnostics channels after failed trace start"));
+        }
 
         _didTuneChannels = false;
         _etlPath.clear();
@@ -242,7 +272,15 @@ std::expected<hidhide::diag::TraceStopResponse, hidhide::diag::ApiError> Diagnos
     }
 
     if (_didTuneChannels && _tuneChannels)
-        TuneScopeChannels(_scope, true);
+    {
+        if (const auto tr = TuneScopeChannels(_scope, true); !tr)
+        {
+            _stoppedAtEpoch = NowEpochSeconds();
+            _state = hidhide::diag::TraceSessionState::Ready;
+            return std::unexpected(
+                ChannelTuneErrorToApi(tr.error(), "Restoring diagnostics channels after stop"));
+        }
+    }
 
     _stoppedAtEpoch = NowEpochSeconds();
     _state = hidhide::diag::TraceSessionState::Ready;
@@ -287,7 +325,16 @@ std::expected<void, hidhide::diag::ApiError> DiagnosticsTraceService::DiscardCap
                 std::string("Could not stop trace session: ") + stopResult.error().getErrorMessageA()));
         }
         if (_didTuneChannels && _tuneChannels)
-            TuneScopeChannels(_scope, true);
+        {
+            if (const auto tr = TuneScopeChannels(_scope, true); !tr)
+            {
+                _stoppedAtEpoch = NowEpochSeconds();
+                _state = hidhide::diag::TraceSessionState::Ready;
+                return std::unexpected(ChannelTuneErrorToApi(
+                    tr.error(),
+                    "Restoring diagnostics channels before discard"));
+            }
+        }
     }
 
     if (!_etlPath.empty())

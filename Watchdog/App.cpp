@@ -1,6 +1,9 @@
 #include "App.hpp"
 #include "NefLibIncludes.hpp"
+
+#if defined(HIDHIDE_WATCHDOG_HTTP)
 #include "DiagnosticsTraceHandler.hpp"
+#endif
 
 #pragma warning(disable: 26800)
 #include <spdlog/spdlog.h>
@@ -11,12 +14,15 @@
 #include <Poco/Task.h>
 #include <Poco/TaskManager.h>
 
+#if defined(HIDHIDE_WATCHDOG_HTTP)
 #include <Poco/Net/HTTPServer.h>
 #include <Poco/Net/ServerSocket.h>
 #include <Poco/Net/SocketAddress.h>
 #include <Poco/Net/HTTPServerParams.h>
 
 using namespace Poco::Net;
+
+#endif
 
 
 // XnaComposite
@@ -150,6 +156,7 @@ public:
     }
 };
 
+#if defined(HIDHIDE_WATCHDOG_HTTP)
 class WebServerTask : public Poco::Task
 {
     bool _isInteractive;
@@ -192,6 +199,7 @@ public:
         logger->info("Stopping web server background thread");
     }
 };
+#endif
 
 void App::initialize(Application& self)
 {
