@@ -19,6 +19,8 @@ build:
   parallel: true
   verbosity: minimal
 build_script:
+  # SDK-style projects (e.g. Installer/HidHide.Installer.csproj) need NuGet restore before MSBuild or NETSDK1004 occurs.
+- cmd: dotnet restore "%APPVEYOR_BUILD_FOLDER%\%APPVEYOR_PROJECT_NAME%.sln"
 - cmd: msbuild /p:Configuration="Release" /p:Platform="x64" "%APPVEYOR_BUILD_FOLDER%\%APPVEYOR_PROJECT_NAME%.sln"
 - cmd: msbuild /p:Configuration="Release" /p:Platform="ARM64" "%APPVEYOR_BUILD_FOLDER%\%APPVEYOR_PROJECT_NAME%.sln"
 after_build:
