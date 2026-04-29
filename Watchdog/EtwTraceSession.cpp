@@ -192,14 +192,14 @@ std::expected<void, Win32Error> EtwTraceSession::Start(const std::wstring& etlPa
     props->LogFileNameOffset = sizeof(EVENT_TRACE_PROPERTIES) + nameChars * sizeof(WCHAR);
 
     const HRESULT hrName = StringCbCopyW(
-        reinterpret_cast<WSTR>(buffer.data() + props->LoggerNameOffset),
+        reinterpret_cast<wchar_t*>(buffer.data() + props->LoggerNameOffset),
         nameChars * sizeof(WCHAR),
         sessionName.c_str());
     if (!SUCCEEDED(hrName))
         return std::unexpected(Win32Error(static_cast<DWORD>(ERROR_INVALID_PARAMETER), std::string("StringCbCopyW logger")));
 
     const HRESULT hrPath = StringCbCopyW(
-        reinterpret_cast<WSTR>(buffer.data() + props->LogFileNameOffset),
+        reinterpret_cast<wchar_t*>(buffer.data() + props->LogFileNameOffset),
         pathChars * sizeof(WCHAR),
         etlPath.c_str());
     if (!SUCCEEDED(hrPath))
@@ -218,7 +218,7 @@ std::expected<void, Win32Error> EtwTraceSession::Start(const std::wstring& etlPa
     {
         if (const auto e = EnableProvider(_sessionHandle, g); !e)
         {
-            Stop();
+            [[maybe_unused]] const auto unusedStop = Stop();
             return e;
         }
     }
