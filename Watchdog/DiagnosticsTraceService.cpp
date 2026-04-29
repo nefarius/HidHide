@@ -7,11 +7,44 @@
 #include <chrono>
 #include <filesystem>
 #include <mutex>
+#include <string_view>
 
 namespace fs = std::filesystem;
 
 namespace
 {
+    std::string WideToUtf8(const std::wstring_view w)
+    {
+        if (w.empty())
+            return {};
+
+        const int nbytes = WideCharToMultiByte(
+            CP_UTF8,
+            WC_ERR_INVALID_CHARS,
+            w.data(),
+            static_cast<int>(w.size()),
+            nullptr,
+            0,
+            nullptr,
+            nullptr);
+
+        if (nbytes <= 0)
+            return {};
+
+        std::string out(static_cast<size_t>(nbytes), '\0');
+        WideCharToMultiByte(
+            CP_UTF8,
+            WC_ERR_INVALID_CHARS,
+            w.data(),
+            static_cast<int>(w.size()),
+            out.data(),
+            nbytes,
+            nullptr,
+            nullptr);
+
+        return out;
+    }
+
     constexpr wchar_t kChannelDriver[] = L"Nefarius-Drivers-HidHide/Diagnostic";
     constexpr wchar_t kChannelClient[] = L"Nefarius-Drivers-HidHideClient/Diagnostic";
     constexpr wchar_t kChannelCli[] = L"Nefarius-Drivers-HidHideCLI/Diagnostic";
@@ -122,7 +155,7 @@ std::expected<hidhide::diag::TraceStatusResponse, hidhide::diag::ApiError> Diagn
     r.startedAtEpoch = _startedAtEpoch;
     r.stoppedAtEpoch = _stoppedAtEpoch;
     if (!_suggestedFileName.empty())
-        r.suggestedFileName = std::string(_suggestedFileName.begin(), _suggestedFileName.end());
+        r.suggestedFileName = WideToUtf8(_suggestedFileName);
 
     return r;
 }
@@ -212,7 +245,7 @@ std::expected<hidhide::diag::TraceStopResponse, hidhide::diag::ApiError> Diagnos
     _state = hidhide::diag::TraceSessionState::Ready;
 
     hidhide::diag::TraceStopResponse out;
-    out.suggestedFileName = std::string(_suggestedFileName.begin(), _suggestedFileName.end());
+    out.suggestedFileName = WideToUtf8(_suggestedFileName);
     out.message = "Trace stopped; download the .etl file when ready.";
 
     return out;

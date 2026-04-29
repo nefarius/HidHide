@@ -346,8 +346,6 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <PreprocessorDefinitions>HIDHIDE_WATCHDOG_HTTP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <!-- std::expected (neflib), std::format (Win32Error): requires ISO C++23 -->
-      <AdditionalOptions>/std:c++23 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
