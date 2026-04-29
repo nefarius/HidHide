@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 using Nuke.Common;
 using Nuke.Common.CI.AppVeyor;
-using Nuke.Common.Git;
 using Nuke.Common.IO;
-using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.MSBuild;
 
@@ -23,15 +21,14 @@ class Build : NukeBuild
     [Parameter("Platform to build: x64 | ARM64. Default is current CI platform or x64 locally.")]
     readonly string Platform = IsLocalBuild ? "x64" : (AppVeyor.Instance.Platform ?? "x64");
 
-    [GitRepository]
-    readonly GitRepository GitRepository;
-
-    [Solution]
-    readonly Solution Solution;
+    /// <summary>
+    /// Explicit repo-root solution path so CI does not depend on NUKE solution injection / .nuke parameters.
+    /// </summary>
+    static AbsolutePath SolutionFile => RootDirectory / "HidHide.sln";
 
     AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
     AbsolutePath StagingRoot => ArtifactsDirectory / "staging";
-    AbsolutePath OutputRoot => (AbsolutePath)Solution.Directory / "bin" / Configuration / Platform;
+    AbsolutePath OutputRoot => RootDirectory / "bin" / Configuration / Platform;
 
     AbsolutePath StageDir => StagingRoot / Platform;
 
@@ -51,7 +48,7 @@ class Build : NukeBuild
         .Executes(() =>
         {
             MSBuild(s => s
-                .SetTargetPath(Solution)
+                .SetTargetPath(SolutionFile)
                 .SetTargets("Restore")
                 .SetVerbosity(MSBuildVerbosity.Minimal));
         });
@@ -63,7 +60,7 @@ class Build : NukeBuild
             var platform = ParsePlatform(Platform);
 
             MSBuild(s => s
-                .SetTargetPath(Solution)
+                .SetTargetPath(SolutionFile)
                 .SetTargets("Rebuild")
                 .SetConfiguration(Configuration)
                 .SetTargetPlatform(platform)
