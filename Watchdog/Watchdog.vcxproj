@@ -311,12 +311,21 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="DiagnosticsTraceHandler.cpp" />
+    <ClCompile Include="DiagnosticsTraceService.cpp" />
     <ClCompile Include="ETWUtil.cpp" />
+    <ClCompile Include="EtwTraceSession.cpp" />
+    <ClCompile Include="HidHideDiagnosticsJson.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp" />
+    <ClInclude Include="DiagnosticsTraceHandler.hpp" />
+    <ClInclude Include="DiagnosticsTraceService.hpp" />
     <ClInclude Include="ETWUtil.h" />
+    <ClInclude Include="EtwTraceSession.hpp" />
+    <ClInclude Include="HidHideDiagnosticsJson.hpp" />
+    <ClInclude Include="HidHideDiagnosticsTypes.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resource1.h" />
   </ItemGroup>
@@ -333,6 +342,11 @@
   <ItemGroup>
     <Image Include="favicon.ico" />
   </ItemGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>HIDHIDE_WATCHDOG_HTTP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

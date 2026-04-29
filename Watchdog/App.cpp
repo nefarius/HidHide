@@ -1,15 +1,8 @@
 #include "App.hpp"
+#include "DiagnosticsTraceHandler.hpp"
+
 #include <initguid.h>
 #include <devguid.h>
-#include <winevt.h>
-#include <evntrace.h>
-#include <tdh.h>
-#include <strsafe.h>
-
-#include <variant>
-#include <expected>
-#include <format>
-#include <iostream>
 
 #include <nefarius/neflib/MiscWinApi.hpp>
 #include <nefarius/neflib/ClassFilter.hpp>
@@ -24,21 +17,11 @@
 #include <Poco/TaskManager.h>
 
 #include <Poco/Net/HTTPServer.h>
-#include <Poco/Net/HTTPRequestHandler.h>
-#include <Poco/Net/HTTPRequestHandlerFactory.h>
-#include <Poco/Net/HTTPServerRequest.h>
-#include <Poco/Net/HTTPServerResponse.h>
 #include <Poco/Net/ServerSocket.h>
 #include <Poco/Net/SocketAddress.h>
 #include <Poco/Net/HTTPServerParams.h>
-#include <Poco/JSON/Object.h>
-#include <Poco/JSON/Stringifier.h>
-#include <Poco/Timestamp.h>
 
-using namespace Poco;
 using namespace Poco::Net;
-using namespace Poco::JSON;
-using namespace Poco::Util;
 
 
 // XnaComposite
@@ -172,66 +155,6 @@ public:
     }
 };
 
-//
-// REST API /api/etw/session handler
-// 
-class ETWRequestHandler : public HTTPRequestHandler
-{
-public:
-    void handleRequest(HTTPServerRequest& request, HTTPServerResponse& response) override
-    {
-        if (request.getURI() != "/api/etw/session")
-        {
-            response.setStatus(HTTPResponse::HTTP_NOT_FOUND);
-            response.send();
-            return;
-        }
-
-        const auto& method = request.getMethod();
-
-        // get session details
-        if (method == HTTPRequest::HTTP_GET)
-        {
-        }
-        // start/create session
-        else if (method == HTTPRequest::HTTP_POST)
-        {
-        }
-        // stop/remove session
-        else if (method == HTTPRequest::HTTP_DELETE)
-        {
-        }
-        // unsupported
-        else
-        {
-            response.setStatus(HTTPResponse::HTTP_METHOD_NOT_ALLOWED);
-            response.send();
-            return;
-        }
-
-        response.setContentType("application/json");
-        response.setStatus(HTTPResponse::HTTP_OK);
-
-        // Create a JSON response
-        Object::Ptr jsonResponse = new Object();
-        jsonResponse->set("message", "Hello from POCO HTTP Server");
-        jsonResponse->set("timestamp", Timestamp().epochTime());
-
-        // Send the JSON response
-        std::ostream& out = response.send();
-        Stringifier::stringify(jsonResponse, out);
-    }
-};
-
-class ETWRequestHandlerFactory : public HTTPRequestHandlerFactory
-{
-public:
-    HTTPRequestHandler* createRequestHandler(const HTTPServerRequest& request) override
-    {
-        return new ETWRequestHandler;
-    }
-};
-
 class WebServerTask : public Poco::Task
 {
     bool _isInteractive;
@@ -249,7 +172,7 @@ public:
                                 ? spdlog::get("console")
                                 : spdlog::get("eventlog");
 
-        logger->info("Starting web server background thread");
+        logger->info("Starting diagnostics HTTP server on http://127.0.0.1:34501/");
 
         SocketAddress sa("127.0.0.1", 34501);
         ServerSocket serverSocket(sa);
@@ -257,7 +180,7 @@ public:
         params->setMaxQueued(100);
         params->setMaxThreads(4);
 
-        HTTPServer server(new ETWRequestHandlerFactory(), serverSocket, params);
+        HTTPServer server(new DiagnosticsHttpHandlerFactory(), serverSocket, params);
         server.start();
 
         logger->info("Started web server");
@@ -315,8 +238,7 @@ int App::main(const std::vector<std::string>& args)
         Poco::TaskManager tm;
         // filter driver watchdog
         tm.start(new WatchdogTask("HidHideWatchdog", this->isInteractive()));
-#if defined(EXPERIMENTAL)
-        // ETW session web server
+#if defined(HIDHIDE_WATCHDOG_HTTP)
         tm.start(new WebServerTask("HidHideWebServer", this->isInteractive()));
 #endif
         waitForTerminationRequest();
