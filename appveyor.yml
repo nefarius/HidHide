@@ -15,12 +15,21 @@ platform:
 install:
 - cmd: git submodule update --init --recursive
 - ps: Setup-VS2022
+- ps: |
+    dotnet tool install --global wix --version 5.0.2
+    $dotnetTools = Join-Path $env:USERPROFILE '.dotnet/tools'
+    $env:PATH = "$dotnetTools;$env:PATH"
+    wix extension add -g WixToolset.UI.wixext/5.0.2
 build:
   parallel: true
   verbosity: minimal
 build_script:
-- ps: powershell -ExecutionPolicy Bypass -File ".\\build.ps1" Ci --configuration Release --platform x64
-- ps: powershell -ExecutionPolicy Bypass -File ".\\build.ps1" Ci --configuration Release --platform ARM64
+- ps: |
+    $env:PATH = "$(Join-Path $env:USERPROFILE '.dotnet/tools');$env:PATH"
+    powershell -ExecutionPolicy Bypass -File ".\build.ps1" Ci --configuration Release --platform x64
+- ps: |
+    $env:PATH = "$(Join-Path $env:USERPROFILE '.dotnet/tools');$env:PATH"
+    powershell -ExecutionPolicy Bypass -File ".\build.ps1" Ci --configuration Release --platform ARM64
 after_build:
 # Cab generation moved into NUKE target `BuildCab` (part of `Ci`)
 artifacts:
