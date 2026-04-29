@@ -121,8 +121,8 @@ exclusively own one or more physical devices and re-expose them as virtual contr
 managed through functions 2050 and 2051, session blacklist entries live only in kernel memory and are never written to
 the registry, leaving the user's permanent *HidHide* configuration untouched. Each entry is owned by the process that
 issued the `ADD_SESSION_BLACKLIST` request. When that process exits for any reason — clean shutdown, crash, or forced
-termination — the driver automatically removes all of its entries via `PsSetCreateProcessNotifyRoutine`, so no cleanup
-code is required in the application. On a clean exit one may optionally issue `CLR_SESSION_BLACKLIST` to release the
+termination — the driver automatically removes all of its entries within its process-notify callback registered via
+`PsSetCreateProcessNotifyRoutine`, so no cleanup code is required in the application. On a clean exit one may optionally issue `CLR_SESSION_BLACKLIST` to release the
 devices immediately, but this is not required. This approach is preferable to temporarily mutating the persistent
 blacklist because it requires no rollback logic and is inherently safe against unexpected termination.
 
