@@ -10,5 +10,5 @@ jobs:
       - uses: vedantmgoyal2009/winget-releaser@v2
         with:
           identifier: Nefarius.HidHide
-          installers-regex: '\.exe$'
+          installers-regex: '\.msi$'
           token: ${{ secrets.WINGET_TOKEN }}
