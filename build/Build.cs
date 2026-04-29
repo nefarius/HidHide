@@ -93,8 +93,8 @@ class Build : NukeBuild
             CopyFileToDirectory(OutputRoot / "HidHideCLI.man", StageDir, FileExistsPolicy.Fail);
             CopyFileToDirectory(OutputRoot / "HidHideCLI.wprp", StageDir, FileExistsPolicy.Fail);
 
-            // Helper tool: nefcon windowless build
-            await EnsureNefconwAsync(StageDir);
+            // Helper tool: nefcon windowless build (zip layout: x64/ / ARM64/ / x86/)
+            await EnsureNefconwAsync(StageDir, Platform);
         });
 
     Target BuildMsi => _ => _
@@ -153,7 +153,7 @@ class Build : NukeBuild
             _ => MSBuildTargetPlatform.x64
         };
 
-    static async Task EnsureNefconwAsync(AbsolutePath stageDir)
+    static async Task EnsureNefconwAsync(AbsolutePath stageDir, string platform)
     {
         var nefconw = stageDir / "nefconw.exe";
         if (File.Exists(nefconw))
@@ -178,12 +178,17 @@ class Build : NukeBuild
         Directory.CreateDirectory(extractDir);
         ZipFile.ExtractToDirectory(zipPath, extractDir);
 
-        // Zip contains nefconc.exe and nefconw.exe at root.
-        var src = Path.Combine(extractDir, "nefconw.exe");
+        string archDir = NefconZipArchFolder(platform);
+        var src = Path.Combine(extractDir, archDir, "nefconw.exe");
         if (!File.Exists(src))
-            throw new FileNotFoundException($"nefconw.exe not found after extracting {zipPath}");
+            throw new FileNotFoundException(
+                $"nefconw.exe not found under '{archDir}' after extracting {zipPath}");
 
         CopyFileToDirectory(src, stageDir, FileExistsPolicy.Overwrite);
     }
+
+    /// <summary>Subfolder inside nefcon release zip (see nefarius/nefcon GitHub releases).</summary>
+    static string NefconZipArchFolder(string platform) =>
+        platform.Equals("ARM64", StringComparison.OrdinalIgnoreCase) ? "ARM64" : "x64";
 }
 
