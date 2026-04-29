@@ -1,5 +1,6 @@
 #include "EtwTraceSession.hpp"
 
+#include <cstdint>
 #include <cwchar>
 #include <cwctype>
 #include <iterator>
@@ -125,10 +126,12 @@ namespace
     {
         static const wchar_t kWatchdogExe[] = L"HidHideWatchdog.exe";
 
-        const DWORD tid = qp->LoggerThreadId;
-        if (tid == 0)
+        // SDK types this as HANDLE; ETW still supplies the logger thread id as an integer in this field.
+        const uintptr_t rawThreadId = reinterpret_cast<uintptr_t>(qp->LoggerThreadId);
+        if (rawThreadId == 0)
             return false;
 
+        const DWORD tid = static_cast<DWORD>(rawThreadId);
         const HANDLE ht = OpenThread(THREAD_QUERY_LIMITED_INFORMATION, FALSE, tid);
         if (!ht)
         {
@@ -150,7 +153,7 @@ namespace
 
         wchar_t image[1024]{};
         DWORD sz = static_cast<DWORD>(std::size(image));
-        if (!QueryFullProcessImageNameW(hp, nullptr, image, &sz))
+        if (!QueryFullProcessImageNameW(hp, 0, image, &sz))
         {
             CloseHandle(hp);
             return false;
