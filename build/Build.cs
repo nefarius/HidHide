@@ -78,7 +78,7 @@ class Build : NukeBuild
             // Driver artifacts
             CopyFileToDirectory(OutputRoot / "HidHide" / "HidHide.sys", StageDir, FileExistsPolicy.Fail);
             CopyFileToDirectory(OutputRoot / "HidHide" / "HidHide.inf", StageDir, FileExistsPolicy.Fail);
-            CopyFileToDirectory(OutputRoot / "HidHide.cat", StageDir, FileExistsPolicy.Fail);
+            CopyFileToDirectory(OutputRoot / "HidHide" / "HidHide.cat", StageDir, FileExistsPolicy.Fail);
 
             // Kernel ETW
             CopyFileToDirectory(OutputRoot / "HidHide.man", StageDir, FileExistsPolicy.Fail);
