@@ -11,7 +11,7 @@ namespace HidHide.Installer;
 /// Managed hooks install/remove the driver via <c>nefconw.exe</c> (<see href="https://github.com/nefarius/nefcon">nefcon</see>,
 /// windowless), ETW via wevtutil. Class GUIDs match Watchdog/App.cpp.
 /// </summary>
-static class Program
+public static class Program
 {
     const string Manufacturer = "Nefarius Software Solutions";
 
@@ -98,7 +98,7 @@ static class Program
         }
     }
 
-    static void OnBeforeInstall(SetupEventArgs e)
+    public static void OnBeforeInstall(SetupEventArgs e)
     {
         if (!e.IsUninstalling)
             return;
@@ -117,7 +117,7 @@ static class Program
         TryRun(wevt, $@"um ""{Path.Combine(root, "HidHide.man")}""");
     }
 
-    static void OnAfterInstall(SetupEventArgs e)
+    public static void OnAfterInstall(SetupEventArgs e)
     {
         if (e.IsUninstalling)
             return;
