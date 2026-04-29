@@ -1,11 +1,6 @@
 #include "App.hpp"
+#include "NefLibIncludes.hpp"
 #include "DiagnosticsTraceHandler.hpp"
-
-#include <initguid.h>
-#include <devguid.h>
-
-#include <nefarius/neflib/MiscWinApi.hpp>
-#include <nefarius/neflib/ClassFilter.hpp>
 
 #pragma warning(disable: 26800)
 #include <spdlog/spdlog.h>

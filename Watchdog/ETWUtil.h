@@ -1,13 +1,6 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-
-#include <expected>
-#include <string>
-#include <format>
-
-#include <nefarius/neflib/Win32Error.hpp>
+#include "NefLibIncludes.hpp"
 
 namespace etw::utils
 {

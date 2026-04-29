@@ -1,8 +1,5 @@
 #include "EtwTraceSession.hpp"
 
-#include <initguid.h>
-
-#include <evntrace.h>
 #include <strsafe.h>
 
 using nefarius::utilities::Win32Error;

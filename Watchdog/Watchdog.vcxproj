@@ -326,6 +326,7 @@
     <ClInclude Include="EtwTraceSession.hpp" />
     <ClInclude Include="HidHideDiagnosticsJson.hpp" />
     <ClInclude Include="HidHideDiagnosticsTypes.hpp" />
+    <ClInclude Include="NefLibIncludes.hpp" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="resource1.h" />
   </ItemGroup>

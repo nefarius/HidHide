@@ -1,14 +1,7 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
+#include "NefLibIncludes.hpp"
 #include <evntrace.h>
-
-#include <expected>
-#include <string>
-#include <vector>
-
-#include <nefarius/neflib/Win32Error.hpp>
 
 #include "HidHideDiagnosticsTypes.hpp"
 
