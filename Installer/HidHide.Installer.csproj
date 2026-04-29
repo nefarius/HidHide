@@ -16,7 +16,8 @@
     <PackageReference Include="WixSharp_wix4" Version="2.13.0" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="..\LICENSE.rtf">
+    <!-- Include (not Update): ..\LICENSE.rtf is outside the project folder and is not matched by default globs. -->
+    <None Include="..\LICENSE.rtf">
       <Link>LICENSE.rtf</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
