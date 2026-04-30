@@ -44,8 +44,10 @@ public static class Program
                 throw new FileNotFoundException($"License file not found: {licensePath}");
 
             string installRel = @"%ProgramFiles64Folder%\Nefarius Software Solutions\HidHide";
+            // Must be a root-level Dir sibling of the install tree (WiX 5 / WIX0094); see WixSharp #1727, #1855.
+            const string startMenuRel = @"%ProgramMenu%\Nefarius Software Solutions\HidHide";
             string sd = options.StagingDir;
-            var dir = new Dir(
+            var installDir = new Dir(
                 installRel,
                 new WixSharp.File(Path.Combine(sd, "HidHide.cat")),
                 new WixSharp.File(Path.Combine(sd, "nefconw.exe")),
@@ -53,18 +55,30 @@ public static class Program
                 new WixSharp.File(Path.Combine(sd, "HidHide.sys")),
                 new WixSharp.File(Path.Combine(sd, "HidHide.man")),
                 new WixSharp.File(Path.Combine(sd, "HidHide.wprp")),
-                new WixSharp.File(
-                    Path.Combine(sd, "HidHideClient.exe"),
-                    new FileShortcut("HidHide Configuration Client", @"%ProgramMenu%\Nefarius Software Solutions\HidHide")),
+                new WixSharp.File(Path.Combine(sd, "HidHideClient.exe")),
                 new WixSharp.File(Path.Combine(sd, "HidHideClient.man")),
                 new WixSharp.File(Path.Combine(sd, "HidHideClient.wprp")),
                 new WixSharp.File(Path.Combine(sd, "HidHideCLI.exe")),
                 new WixSharp.File(Path.Combine(sd, "HidHideCLI.man")),
-                new WixSharp.File(Path.Combine(sd, "HidHideCLI.wprp")));
+                new WixSharp.File(Path.Combine(sd, "HidHideCLI.wprp")))
+            {
+                IsInstallDir = true,
+            };
+
+            var startMenuDir = new Dir(
+                startMenuRel,
+                new ExeFileShortcut(
+                    "HidHide Configuration Client",
+                    @"[INSTALLDIR]HidHideClient.exe",
+                    "")
+                {
+                    WorkingDirectory = "[INSTALLDIR]",
+                });
 
             var project = new ManagedProject(
                 "HidHide",
-                dir)
+                installDir,
+                startMenuDir)
             {
                 GUID = new Guid("B7E9D4A2-6F31-4E88-9C0D-1A2B3C4D5E6F"),
                 UpgradeCode = UpgradeCode,
