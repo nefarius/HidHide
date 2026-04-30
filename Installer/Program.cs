@@ -169,9 +169,17 @@ public static class Program
         });
         if (p is null)
             throw new InvalidOperationException($"Failed to start: {path}");
+
+        // Drain stdout/stderr while the process runs to avoid deadlocks with RedirectStandardOutput/RedirectStandardError.
+        var stdoutTask = p.StandardOutput.ReadToEndAsync();
+        var stderrTask = p.StandardError.ReadToEndAsync();
+
         p.WaitForExit();
+        System.Threading.Tasks.Task.WaitAll(stdoutTask, stderrTask);
+
         if (p.ExitCode != 0 && p.ExitCode != ExitSuccessRebootRequired)
-            throw new InvalidOperationException($"{path} {args} exited with code {p.ExitCode}. stderr: {p.StandardError.ReadToEnd()}");
+            throw new InvalidOperationException(
+                $"{path} {args} exited with code {p.ExitCode}. stderr: {stderrTask.Result}");
     }
 
     /// <summary>Matches legacy MSI Return="ignore" optional class-filter actions.</summary>
@@ -265,10 +273,19 @@ public static class Program
                     throw new ArgumentException($"Unknown argument: {a}");
             }
 
+            Platform platform =
+                arch.Equals("ARM64", StringComparison.OrdinalIgnoreCase)
+                    ? Platform.arm64
+                    : arch.Equals("X64", StringComparison.OrdinalIgnoreCase) ||
+                      arch.Equals("AMD64", StringComparison.OrdinalIgnoreCase) ||
+                      arch.Equals("x64", StringComparison.OrdinalIgnoreCase)
+                        ? Platform.x64
+                        : throw new ArgumentException($"Unsupported platform: {arch}", nameof(arch));
+
             return new Options(
                 staging,
                 output,
-                arch.Equals("ARM64", StringComparison.OrdinalIgnoreCase) ? Platform.arm64 : Platform.x64);
+                platform);
         }
 
         static void ApplyEnvironmentOverrides(ref string staging, ref string output)

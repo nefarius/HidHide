@@ -149,13 +149,19 @@ class Build : NukeBuild
 
     public static int Main() => Execute<Build>(x => x.Ci);
 
-    static MSBuildTargetPlatform ParsePlatform(string platform) =>
-        platform.ToUpperInvariant() switch
+    static MSBuildTargetPlatform ParsePlatform(string platform)
+    {
+        if (string.IsNullOrWhiteSpace(platform))
+            throw new ArgumentNullException(nameof(platform));
+
+        // Maps Build.Platform parameter to Nuke.Common.Tools.MSBuild.MSBuildTargetPlatform.
+        return platform.ToUpperInvariant() switch
         {
             "ARM64" => (MSBuildTargetPlatform)"ARM64",
             "X64" => MSBuildTargetPlatform.x64,
-            _ => MSBuildTargetPlatform.x64
+            _ => throw new ArgumentException($"Unsupported platform: {platform}", nameof(platform))
         };
+    }
 
     static async Task EnsureNefconwAsync(AbsolutePath stageDir, string platform)
     {
