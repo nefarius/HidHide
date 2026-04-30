@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using IOFile = System.IO.File;
 using WixSharp;
@@ -185,15 +184,16 @@ public static class Program
             return new Version(1, 0, 0, 0);
         var info = FileVersionInfo.GetVersionInfo(clientExe);
         string? raw = info.ProductVersion ?? info.FileVersion;
-        return TryParseVersion(raw, out Version? v) ? v : new Version(1, 0, 0, 0);
+        return TryParseVersion(raw, out Version? v) && v is not null ? v : new Version(1, 0, 0, 0);
     }
 
-    static bool TryParseVersion(string? raw, [NotNullWhen(true)] out Version? version)
+    static bool TryParseVersion(string? raw, out Version? version)
     {
         version = null;
-        if (string.IsNullOrWhiteSpace(raw))
+        if (raw is null || string.IsNullOrWhiteSpace(raw))
             return false;
-        string numeric = raw.Split('+', 2)[0].Split('-', 2)[0].Trim();
+        string numeric = raw.Split(new[] { '+' }, 2, StringSplitOptions.None)[0]
+            .Split(new[] { '-' }, 2, StringSplitOptions.None)[0].Trim();
         string[] parts = numeric.Split('.');
         try
         {
@@ -216,9 +216,16 @@ public static class Program
 
     sealed class Options
     {
-        public required string StagingDir { get; init; }
-        public required string OutputDir { get; init; }
-        public required Platform Platform { get; init; }
+        public string StagingDir { get; }
+        public string OutputDir { get; }
+        public Platform Platform { get; }
+
+        Options(string stagingDir, string outputDir, Platform platform)
+        {
+            StagingDir = stagingDir;
+            OutputDir = outputDir;
+            Platform = platform;
+        }
 
         public static Options Parse(string[] args)
         {
@@ -244,12 +251,10 @@ public static class Program
                     throw new ArgumentException($"Unknown argument: {a}");
             }
 
-            return new Options
-            {
-                StagingDir = staging,
-                OutputDir = output,
-                Platform = arch.Equals("ARM64", StringComparison.OrdinalIgnoreCase) ? Platform.arm64 : Platform.x64,
-            };
+            return new Options(
+                staging,
+                output,
+                arch.Equals("ARM64", StringComparison.OrdinalIgnoreCase) ? Platform.arm64 : Platform.x64);
         }
 
         static void ApplyEnvironmentOverrides(ref string staging, ref string output)
