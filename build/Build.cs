@@ -41,7 +41,11 @@ class Build : NukeBuild
         .Before(Restore)
         .Executes(() =>
         {
-            EnsureCleanDirectory(ArtifactsDirectory);
+            // AppVeyor runs `build.ps1` once per platform; clearing all of `artifacts/` would delete the other arch's MSI.
+            if (IsLocalBuild)
+                EnsureCleanDirectory(ArtifactsDirectory);
+            else
+                EnsureCleanDirectory(StagingRoot);
         });
 
     Target Restore => _ => _

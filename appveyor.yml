@@ -33,9 +33,12 @@ build_script:
 after_build:
 # Cab generation moved into NUKE target `BuildCab` (part of `Ci`)
 artifacts:
-- path: 'artifacts\\msi\\**\\*.msi'
-- path: 'disk1\\*.cab'
-- path: 'bin**\\*.pdb'
+  # Forward slashes: AppVeyor resolves these reliably from repo root.
+- path: artifacts/msi/**/*.msi
+  # makecab often drops cabinets in cwd; keep disk1 for layouts that use it.
+- path: HidHide_*.cab
+- path: disk1/*.cab
+- path: bin/**/*.pdb
 deploy:
 - provider: Environment
   name: BUILDBOT
