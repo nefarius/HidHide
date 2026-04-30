@@ -17,6 +17,7 @@ install:
 - ps: Setup-VS2022
 - ps: |
     dotnet tool install --global wix --version 5.0.2
+    dotnet tool install --global Nefarius.Tools.WDKWhere
     $dotnetTools = Join-Path $env:USERPROFILE '.dotnet/tools'
     $env:PATH = "$dotnetTools;$env:PATH"
     wix extension add -g WixToolset.UI.wixext/5.0.2
@@ -24,12 +25,19 @@ build:
   parallel: true
   verbosity: minimal
 build_script:
+# MSI staging driver test-sign: optional HIDHIDE_TEST_SIGN_PFX + HIDHIDE_TEST_SIGN_PFX_PASSWORD (encrypted). If unset, CI generates a throwaway code-signing PFX via PowerShell.
 - ps: |
     $env:PATH = "$(Join-Path $env:USERPROFILE '.dotnet/tools');$env:PATH"
-    powershell -ExecutionPolicy Bypass -File ".\build.ps1" Ci --configuration Release --platform x64
+    $args = @('Ci', '--configuration', 'Release', '--platform', 'x64')
+    if ($env:HIDHIDE_TEST_SIGN_PFX) { $args += '--hid-hide-test-sign-pfx'; $args += $env:HIDHIDE_TEST_SIGN_PFX }
+    if ($env:HIDHIDE_TEST_SIGN_PFX_PASSWORD) { $args += '--hid-hide-test-sign-pfx-password'; $args += $env:HIDHIDE_TEST_SIGN_PFX_PASSWORD }
+    powershell -ExecutionPolicy Bypass -File ".\build.ps1" @args
 - ps: |
     $env:PATH = "$(Join-Path $env:USERPROFILE '.dotnet/tools');$env:PATH"
-    powershell -ExecutionPolicy Bypass -File ".\build.ps1" Ci --configuration Release --platform ARM64
+    $args = @('Ci', '--configuration', 'Release', '--platform', 'ARM64')
+    if ($env:HIDHIDE_TEST_SIGN_PFX) { $args += '--hid-hide-test-sign-pfx'; $args += $env:HIDHIDE_TEST_SIGN_PFX }
+    if ($env:HIDHIDE_TEST_SIGN_PFX_PASSWORD) { $args += '--hid-hide-test-sign-pfx-password'; $args += $env:HIDHIDE_TEST_SIGN_PFX_PASSWORD }
+    powershell -ExecutionPolicy Bypass -File ".\build.ps1" @args
 after_build:
 # Cab generation moved into NUKE target `BuildCab` (part of `Ci`)
 artifacts:
