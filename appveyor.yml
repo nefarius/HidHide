@@ -17,7 +17,6 @@ install:
 - ps: Setup-VS2022
 - ps: |
     dotnet tool install --global wix --version 5.0.2
-    dotnet tool install --global Nefarius.Tools.WDKWhere
     $dotnetTools = Join-Path $env:USERPROFILE '.dotnet/tools'
     $env:PATH = "$dotnetTools;$env:PATH"
     wix extension add -g WixToolset.UI.wixext/5.0.2
