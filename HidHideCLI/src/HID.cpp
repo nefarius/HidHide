@@ -292,7 +292,12 @@ namespace
 
         // Prepare for device interactions
         PHIDP_PREPARSED_DATA preParsedData;
-        if (FALSE == ::HidD_GetPreparsedData(deviceObject.get(), &preParsedData)) THROW_WIN32_LAST_ERROR;
+        if (FALSE == ::HidD_GetPreparsedData(deviceObject.get(), &preParsedData))
+        {
+            if (ERROR_DEVICE_NOT_CONNECTED != ::GetLastError()) THROW_WIN32_LAST_ERROR;
+            return (result);
+        }
+
         auto const freePreparsedDataPtr{ HidD_FreePreparsedDataPtr(preParsedData, &::HidD_FreePreparsedData) };
 
         // Get the usage page
