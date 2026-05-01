@@ -179,11 +179,11 @@ class Build : NukeBuild
 
                 SignWithPfx(pfxPath, pfxPassword, sys, pageHash: true, timestamp: useTimestamp);
 
-                // Inf2Cat /driver must not end with `\` inside quoted paths — `...\x64\"` breaks argv parsing ("Parameter format not correct").
+                // Inf2Cat /driver: no trailing `\` before the closing `"` — `...\x64\"` breaks argv parsing ("Parameter format not correct").
                 var driverDir = StageDir.ToString().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 ProcessTasks.StartProcess(
                         "Inf2Cat.exe",
-                        $"/driver:{EscapeForCmdToken(driverDir)} /os:{inf2CatOs} /verbose",
+                        $"/driver:\"{driverDir}\" /os:{inf2CatOs} /verbose",
                         logInvocation: false,
                         logger: (_, s) => Logger.Normal(s))
                     .AssertZeroExitCode();
@@ -356,7 +356,7 @@ class Build : NukeBuild
 
         var joined = string.Join(" ", signtoolArguments.Select(EscapeForCmdToken));
         var cmd = "run signtool " + joined;
-        WdkWhere.Invoke($"{cmd:nq}");
+        WdkWhere($"{cmd:nq}", logInvocation: false);
     }
 
     static string EscapeForCmdToken(string value)

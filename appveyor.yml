@@ -28,14 +28,20 @@ build_script:
 - ps: |
     $env:PATH = "$(Join-Path $env:USERPROFILE '.dotnet/tools');$env:PATH"
     $args = @('Ci', '--configuration', 'Release', '--platform', 'x64')
-    if ($env:HIDHIDE_TEST_SIGN_PFX) { $args += '--hid-hide-test-sign-pfx'; $args += $env:HIDHIDE_TEST_SIGN_PFX }
-    if ($env:HIDHIDE_TEST_SIGN_PFX_PASSWORD) { $args += '--hid-hide-test-sign-pfx-password'; $args += $env:HIDHIDE_TEST_SIGN_PFX_PASSWORD }
+    if ($env:HIDHIDE_TEST_SIGN_PFX) {
+      $args += '--hid-hide-test-sign-pfx'; $args += $env:HIDHIDE_TEST_SIGN_PFX
+      if ($env:HIDHIDE_TEST_SIGN_PFX_PASSWORD) { $args += '--hid-hide-test-sign-pfx-password'; $args += $env:HIDHIDE_TEST_SIGN_PFX_PASSWORD }
+    }
+    elseif ($env:HIDHIDE_TEST_SIGN_PFX_PASSWORD) { throw 'HIDHIDE_TEST_SIGN_PFX_PASSWORD is set but HIDHIDE_TEST_SIGN_PFX is not.' }
     powershell -ExecutionPolicy Bypass -File ".\build.ps1" @args
 - ps: |
     $env:PATH = "$(Join-Path $env:USERPROFILE '.dotnet/tools');$env:PATH"
     $args = @('Ci', '--configuration', 'Release', '--platform', 'ARM64')
-    if ($env:HIDHIDE_TEST_SIGN_PFX) { $args += '--hid-hide-test-sign-pfx'; $args += $env:HIDHIDE_TEST_SIGN_PFX }
-    if ($env:HIDHIDE_TEST_SIGN_PFX_PASSWORD) { $args += '--hid-hide-test-sign-pfx-password'; $args += $env:HIDHIDE_TEST_SIGN_PFX_PASSWORD }
+    if ($env:HIDHIDE_TEST_SIGN_PFX) {
+      $args += '--hid-hide-test-sign-pfx'; $args += $env:HIDHIDE_TEST_SIGN_PFX
+      if ($env:HIDHIDE_TEST_SIGN_PFX_PASSWORD) { $args += '--hid-hide-test-sign-pfx-password'; $args += $env:HIDHIDE_TEST_SIGN_PFX_PASSWORD }
+    }
+    elseif ($env:HIDHIDE_TEST_SIGN_PFX_PASSWORD) { throw 'HIDHIDE_TEST_SIGN_PFX_PASSWORD is set but HIDHIDE_TEST_SIGN_PFX is not.' }
     powershell -ExecutionPolicy Bypass -File ".\build.ps1" @args
 after_build:
 # Cab generation moved into NUKE target `BuildCab` (part of `Ci`)
