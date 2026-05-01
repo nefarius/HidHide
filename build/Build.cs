@@ -179,11 +179,11 @@ class Build : NukeBuild
 
                 SignWithPfx(pfxPath, pfxPassword, sys, pageHash: true, timestamp: useTimestamp);
 
-                var driverDir = StageDir.ToString().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) +
-                                Path.DirectorySeparatorChar;
+                // Inf2Cat /driver must not end with `\` inside quoted paths — `...\x64\"` breaks argv parsing ("Parameter format not correct").
+                var driverDir = StageDir.ToString().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 ProcessTasks.StartProcess(
                         "Inf2Cat.exe",
-                        $"/driver:\"{driverDir}\" /os:{inf2CatOs} /verbose",
+                        $"/driver:{EscapeForCmdToken(driverDir)} /os:{inf2CatOs} /verbose",
                         logInvocation: false,
                         logger: (_, s) => Logger.Normal(s))
                     .AssertZeroExitCode();
