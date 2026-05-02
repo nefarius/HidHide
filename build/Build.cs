@@ -181,9 +181,10 @@ class Build : NukeBuild
 
                 // Inf2Cat /driver: no trailing `\` before the closing `"` — `...\x64\"` breaks argv parsing ("Parameter format not correct").
                 var driverDir = StageDir.ToString().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                // /uselocaltime: align with HidHide.vcxproj Inf2CatUseLocalTime — avoids 22.9.7 postdated DriverVer on CI in non-UTC zones.
                 ProcessTasks.StartProcess(
                         "Inf2Cat.exe",
-                        $"/driver:\"{driverDir}\" /os:{inf2CatOs} /verbose",
+                        $"/driver:\"{driverDir}\" /os:{inf2CatOs} /uselocaltime /verbose",
                         logInvocation: false,
                         logger: (_, s) => Logger.Normal(s))
                     .AssertZeroExitCode();
