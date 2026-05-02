@@ -50,6 +50,7 @@ artifacts:
 - path: artifacts/msi/**/*.msi
 - path: disk1/*.cab
 - path: bin/**/*.pdb
+- path: bin/**/HidHide*.exe
 deploy:
 - provider: Environment
   name: BUILDBOT
