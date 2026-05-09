@@ -207,8 +207,9 @@ namespace
 
         if (auto const result{ ::CM_Locate_DevNodeW(&devInst, const_cast<DEVINSTID_W>(deviceInstancePath.c_str()), CM_LOCATE_DEVNODE_PHANTOM) }; (CR_SUCCESS != result)) return {};
 
-        if (auto const result{ ::CM_Get_Parent(&devInstParent, devInst, 0) }; (CR_NO_SUCH_DEVNODE == result)) return {};
-        if (CR_SUCCESS != result) return {};
+        auto const parentResult{ ::CM_Get_Parent(&devInstParent, devInst, 0) };
+        if (CR_NO_SUCH_DEVNODE == parentResult) return {};
+        if (CR_SUCCESS != parentResult) return {};
 
         needed = static_cast<ULONG>(buffer.size());
         if (auto const result{ ::CM_Get_DevNode_PropertyW(devInstParent, &DEVPKEY_Device_InstanceId, &devPropType, reinterpret_cast<PBYTE>(buffer.data()), &needed, 0) }; (CR_SUCCESS != result)) return {};
