@@ -177,13 +177,15 @@ LRESULT CBlacklistDlg::OnUserMessageRefresh(WPARAM wParam, LPARAM lParam)
     {
         // Get the device instance path of its base container id (if present)
         auto const baseContainerDeviceInstancePath{ (topLevelEntry.second.empty() ? L"" : topLevelEntry.second.at(0).baseContainerDeviceInstancePath) };
-        auto const xusbDeviceInstancePath{ (topLevelEntry.second.empty() ? L"" : topLevelEntry.second.at(0).xusbDeviceInstancePath) };
 
         // Is the top-level entry on the black-list ?
         auto const topLevelEntryBlacklisted
         {
             (std::end(deviceInstancePathsBlacklisted) != std::find(std::begin(deviceInstancePathsBlacklisted), std::end(deviceInstancePathsBlacklisted), baseContainerDeviceInstancePath))
-            || ((!xusbDeviceInstancePath.empty()) && (std::end(deviceInstancePathsBlacklisted) != std::find(std::begin(deviceInstancePathsBlacklisted), std::end(deviceInstancePathsBlacklisted), xusbDeviceInstancePath)))
+            || std::any_of(std::begin(topLevelEntry.second), std::end(topLevelEntry.second), [&deviceInstancePathsBlacklisted](HidHide::HidDeviceInformation const& value)
+            {
+                return ((!value.xusbDeviceInstancePath.empty()) && (std::end(deviceInstancePathsBlacklisted) != std::find(std::begin(deviceInstancePathsBlacklisted), std::end(deviceInstancePathsBlacklisted), value.xusbDeviceInstancePath)));
+            })
         };
 
         // Is any of the child entries on the black-list ?
