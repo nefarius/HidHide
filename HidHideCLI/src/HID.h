@@ -18,6 +18,7 @@ namespace HidHide
         std::wstring          usage;
         std::wstring          description;
         DeviceInstancePath    deviceInstancePath;
+        DeviceInstancePath    xusbDeviceInstancePath;
         DeviceInstancePath    baseContainerDeviceInstancePath;
         GUID                  baseContainerClassGuid;
         size_t                baseContainerDeviceCount;
