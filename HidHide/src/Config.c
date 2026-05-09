@@ -753,7 +753,7 @@ NTSTATUS HidHideCollectionToMultiString(WDFCOLLECTION wdfCollection, LPWSTR buff
     for (ULONG index = 0, size = WdfCollectionGetCount(wdfCollection); (index < size); index++)
     {
         WdfStringGetUnicodeString(WdfCollectionGetItem(wdfCollection, index), &string); // PASSIVE_LEVEL
-        (*neededSizeInCharacters) += string.Length;
+        (*neededSizeInCharacters) += (string.Length / sizeof(WCHAR));
         (*neededSizeInCharacters)++;
     }
     // Don't overlook the multi-string terminator

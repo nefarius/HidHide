@@ -67,7 +67,7 @@ namespace
         TRACE_ALWAYS(L"");
         DWORD needed{};
         if (FALSE == ::DeviceIoControl(device, IOCTL_GET_BLACKLIST, nullptr, 0, nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
-        auto buffer{ std::vector<WCHAR>(needed) };
+        auto buffer{ std::vector<WCHAR>(needed / sizeof(WCHAR)) };
         if (FALSE == ::DeviceIoControl(device, IOCTL_GET_BLACKLIST, nullptr, 0, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(WCHAR)), &needed, nullptr)) THROW_WIN32_LAST_ERROR;
         return (HidHide::StringListToStringSet(HidHide::MultiStringToStringList(buffer)));
     }
@@ -87,7 +87,7 @@ namespace
         TRACE_ALWAYS(L"");
         DWORD needed{};
         if (FALSE == ::DeviceIoControl(device, IOCTL_GET_WHITELIST, nullptr, 0, nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
-        auto buffer{ std::vector<WCHAR>(needed) };
+        auto buffer{ std::vector<WCHAR>(needed / sizeof(WCHAR)) };
         if (FALSE == ::DeviceIoControl(device, IOCTL_GET_WHITELIST, nullptr, 0, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(WCHAR)), &needed, nullptr)) THROW_WIN32_LAST_ERROR;
         return (HidHide::StringListToPathSet(HidHide::MultiStringToStringList(buffer)));
     }
