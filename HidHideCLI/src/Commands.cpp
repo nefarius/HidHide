@@ -50,6 +50,7 @@ namespace
             << L"\"usage\" : \"" << escape_json(hidDeviceInformation.usage) << L"\" ," << std::endl \
             << L"\"description\" : \"" << escape_json(hidDeviceInformation.description) << L"\" ," << std::endl \
             << L"\"deviceInstancePath\" : \"" << escape_json(hidDeviceInformation.deviceInstancePath) << L"\" ," << std::endl \
+            << L"\"xusbDeviceInstancePath\" : \"" << escape_json(hidDeviceInformation.xusbDeviceInstancePath) << L"\" ," << std::endl \
             << L"\"baseContainerDeviceInstancePath\" : \"" << escape_json(hidDeviceInformation.baseContainerDeviceInstancePath) << L"\" ," << std::endl \
             << L"\"baseContainerClassGuid\" : \"" << escape_json(HidHide::GuidToString(hidDeviceInformation.baseContainerClassGuid)) << L"\" ," << std::endl \
             << L"\"baseContainerDeviceCount\" : " << hidDeviceInformation.baseContainerDeviceCount << L" }";

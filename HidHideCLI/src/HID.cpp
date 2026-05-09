@@ -194,6 +194,57 @@ namespace
         return (buffer.data());
     }
 
+    // Parent device instance path, or empty when there is no parent or on lookup failure (non-throwing; for walking to the root)
+    DeviceInstancePath DeviceInstancePathParentOptional(_In_ DeviceInstancePath const& deviceInstancePath)
+    {
+        if (deviceInstancePath.empty()) return {};
+
+        DEVINST            devInst{};
+        DEVINST            devInstParent{};
+        DEVPROPTYPE        devPropType{};
+        std::vector<WCHAR> buffer(UNICODE_STRING_MAX_CHARS);
+        ULONG              needed{ static_cast<ULONG>(buffer.size()) };
+
+        if (auto const result{ ::CM_Locate_DevNodeW(&devInst, const_cast<DEVINSTID_W>(deviceInstancePath.c_str()), CM_LOCATE_DEVNODE_PHANTOM) }; (CR_SUCCESS != result)) return {};
+
+        if (auto const result{ ::CM_Get_Parent(&devInstParent, devInst, 0) }; (CR_NO_SUCH_DEVNODE == result)) return {};
+        if (CR_SUCCESS != result) return {};
+
+        needed = static_cast<ULONG>(buffer.size());
+        if (auto const result{ ::CM_Get_DevNode_PropertyW(devInstParent, &DEVPKEY_Device_InstanceId, &devPropType, reinterpret_cast<PBYTE>(buffer.data()), &needed, 0) }; (CR_SUCCESS != result)) return {};
+        if (DEVPROP_TYPE_EMPTY == devPropType) return {};
+        if (DEVPROP_TYPE_STRING != devPropType) return {};
+        return (buffer.data());
+    }
+
+    // True when SetupAPI reports at least one registered device interface on this devnode (non-throwing)
+    bool DeviceInstancePathHasDeviceInterface(_In_ GUID const& deviceInterfaceGuid, _In_ DeviceInstancePath const& deviceInstancePath)
+    {
+        auto const rawHandle{ ::SetupDiGetClassDevsW(&deviceInterfaceGuid, deviceInstancePath.c_str(), nullptr, DIGCF_DEVICEINTERFACE) };
+        if (INVALID_HANDLE_VALUE == rawHandle) return (false);
+        auto const handle{ SetupDiDestroyDeviceInfoListPtr(rawHandle, &::SetupDiDestroyDeviceInfoList) };
+
+        SP_DEVICE_INTERFACE_DATA deviceInterfaceData{};
+        deviceInterfaceData.cbSize = sizeof(deviceInterfaceData);
+        if (FALSE == ::SetupDiEnumDeviceInterfaces(handle.get(), nullptr, &deviceInterfaceGuid, 0, &deviceInterfaceData))
+        {
+            if (ERROR_NO_MORE_ITEMS != ::GetLastError()) return (false);
+            return (false);
+        }
+        return (true);
+    }
+
+    // Nearest ancestor (including leaf) whose devnode exposes the given device interface (e.g. GUID_DEVINTERFACE_XUSB for XInput)
+    DeviceInstancePath FindAncestorWithDeviceInterface(_In_ DeviceInstancePath const& leaf, _In_ GUID const& deviceInterfaceGuid)
+    {
+        TRACE_ALWAYS(L"");
+        for (auto current{ leaf }; !current.empty(); current = DeviceInstancePathParentOptional(current))
+        {
+            if (DeviceInstancePathHasDeviceInterface(deviceInterfaceGuid, current)) return (current);
+        }
+        return {};
+    }
+
     // When a device has a base container id then get the device instance path of the base container id
     // Returns an empty string when the device doesn't have a base container id
     DeviceInstancePath BaseContainerDeviceInstancePath(_In_ DeviceInstancePath const& deviceInstancePath)
@@ -258,6 +309,7 @@ namespace
         result.symbolicLink                    = symbolicLink;
         result.description                     = DeviceDescription(deviceInstancePath);
         result.deviceInstancePath              = deviceInstancePath;
+        result.xusbDeviceInstancePath          = FindAncestorWithDeviceInterface(deviceInstancePath, GUID_DEVINTERFACE_XUSB);
         result.baseContainerDeviceInstancePath = BaseContainerDeviceInstancePath(deviceInstancePath);
         result.baseContainerClassGuid          = DeviceClassGuid(result.baseContainerDeviceInstancePath);
         result.baseContainerDeviceCount        = BaseContainerDeviceCount(result.baseContainerDeviceInstancePath);

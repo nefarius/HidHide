@@ -177,9 +177,14 @@ LRESULT CBlacklistDlg::OnUserMessageRefresh(WPARAM wParam, LPARAM lParam)
     {
         // Get the device instance path of its base container id (if present)
         auto const baseContainerDeviceInstancePath{ (topLevelEntry.second.empty() ? L"" : topLevelEntry.second.at(0).baseContainerDeviceInstancePath) };
+        auto const xusbDeviceInstancePath{ (topLevelEntry.second.empty() ? L"" : topLevelEntry.second.at(0).xusbDeviceInstancePath) };
 
         // Is the top-level entry on the black-list ?
-        auto const topLevelEntryBlacklisted{ std::end(deviceInstancePathsBlacklisted) != std::find(std::begin(deviceInstancePathsBlacklisted), std::end(deviceInstancePathsBlacklisted), baseContainerDeviceInstancePath) };
+        auto const topLevelEntryBlacklisted
+        {
+            (std::end(deviceInstancePathsBlacklisted) != std::find(std::begin(deviceInstancePathsBlacklisted), std::end(deviceInstancePathsBlacklisted), baseContainerDeviceInstancePath))
+            || ((!xusbDeviceInstancePath.empty()) && (std::end(deviceInstancePathsBlacklisted) != std::find(std::begin(deviceInstancePathsBlacklisted), std::end(deviceInstancePathsBlacklisted), xusbDeviceInstancePath)))
+        };
 
         // Is any of the child entries on the black-list ?
         auto const anyChildEntryBlacklisted{ std::end(topLevelEntry.second) != std::find_if(std::begin(topLevelEntry.second), std::end(topLevelEntry.second), [&deviceInstancePathsBlacklisted](HidHide::HidDeviceInformation const& value)
@@ -300,12 +305,13 @@ void CBlacklistDlg::OnTvnItemChangedTreeBlacklist(NMHDR* pNMHDR, LRESULT* pResul
         {
             // Get the base container device details (just take it from any of the child devices)
             // Note that the class guid will be GUID_NULL when this is a stand-alone device
-            std::wstring baseContainerDeviceInstancePath;
-            GUID         baseContainerClassGuid{};
-            size_t       baseContainerDeviceCount{};
+            std::wstring                         baseContainerDeviceInstancePath;
+            GUID                                 baseContainerClassGuid{};
+            size_t                               baseContainerDeviceCount{};
+            HidHide::HidDeviceInformation const* firstChilditemData{};
             if (auto const hFirstChild{ m_Blacklist.GetChildItem(hItem) }; (nullptr != hFirstChild))
             {
-                auto const firstChilditemData{ reinterpret_cast<HidHide::HidDeviceInformation*>(m_Blacklist.GetItemData(hFirstChild)) };
+                firstChilditemData = reinterpret_cast<HidHide::HidDeviceInformation*>(m_Blacklist.GetItemData(hFirstChild));
                 if (nullptr == firstChilditemData) THROW_WIN32(ERROR_INVALID_PARAMETER);
                 baseContainerDeviceInstancePath = firstChilditemData->baseContainerDeviceInstancePath;
                 baseContainerClassGuid          = firstChilditemData->baseContainerClassGuid;
@@ -327,6 +333,12 @@ void CBlacklistDlg::OnTvnItemChangedTreeBlacklist(NMHDR* pNMHDR, LRESULT* pResul
             {
                 deviceInstancePaths.emplace(baseContainerDeviceInstancePath);
             }
+
+            // XInput opens GUID_DEVINTERFACE_XUSB; hide that devnode whenever the whole group is selected from the parent row
+            if ((nullptr != firstChilditemData) && (!firstChilditemData->xusbDeviceInstancePath.empty()))
+            {
+                deviceInstancePaths.emplace(firstChilditemData->xusbDeviceInstancePath);
+            }
         }
 
         // Block the individual child devices
@@ -337,6 +349,10 @@ void CBlacklistDlg::OnTvnItemChangedTreeBlacklist(NMHDR* pNMHDR, LRESULT* pResul
                 auto const childItemData{ reinterpret_cast<HidHide::HidDeviceInformation*>(m_Blacklist.GetItemData(hChild)) };
                 if (nullptr == childItemData) THROW_WIN32(ERROR_INVALID_PARAMETER);
                 deviceInstancePaths.emplace(childItemData->deviceInstancePath);
+                if (!childItemData->xusbDeviceInstancePath.empty())
+                {
+                    deviceInstancePaths.emplace(childItemData->xusbDeviceInstancePath);
+                }
             }
         }
     }
