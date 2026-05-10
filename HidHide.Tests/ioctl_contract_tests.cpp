@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-#include <gtest/gtest.h>
+#include <windows.h>
 
-#include <winioctl.h>
+#include <gtest/gtest.h>
 
 #include "HidHideIoctlContract.h"
 

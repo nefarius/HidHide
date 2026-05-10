@@ -7,6 +7,7 @@
 #ifdef _KERNEL_MODE
 #include <wdm.h>
 #else
+#include <windows.h>
 #include <winioctl.h>
 #endif
 #endif
