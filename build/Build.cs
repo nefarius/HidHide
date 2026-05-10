@@ -94,7 +94,9 @@ class Build : NukeBuild
 
     Target UnitTest => _ => _
         .DependsOn(Compile)
-        .OnlyWhenStatic(() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        // CI (AppVeyor) builds ARM64 on an x64 host; ARM64 test binaries cannot be executed here.
+        .OnlyWhenStatic(() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            && Platform.Equals("x64", StringComparison.OrdinalIgnoreCase))
         .Executes(() =>
         {
             var testExe = OutputRoot / "HidHide.Tests.exe";
