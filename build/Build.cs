@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Nuke.Common;
@@ -289,8 +290,28 @@ class Build : NukeBuild
         var url =
             $"https://api.nuget.org/v3-flatcontainer/microsoft.googletest.v140.windesktop.msvcstl.static.rt-static/{packageVersion}/microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.{packageVersion}.nupkg";
 
-        using var http = new HttpClient();
-        File.WriteAllBytes(tempZip, http.GetByteArrayAsync(url).GetAwaiter().GetResult());
+        const int maxAttempts = 3;
+        byte[]? payload = null;
+        for (var attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            try
+            {
+                using var http = new HttpClient();
+                payload = http.GetByteArrayAsync(url).GetAwaiter().GetResult();
+                break;
+            }
+            catch (Exception ex) when (attempt < maxAttempts - 1 && IsTransientNuGetDownloadFailure(ex))
+            {
+                var jitter = Random.Shared.Next(0, 101);
+                var delayMs = 200 * (1 << attempt) + jitter;
+                Thread.Sleep(delayMs);
+            }
+        }
+
+        if (payload == null)
+            throw new InvalidOperationException($"Failed to download Google Test NuGet package after {maxAttempts} attempts from {url}");
+
+        File.WriteAllBytes(tempZip, payload);
 
         if (Directory.Exists(packageDir))
             Directory.Delete(packageDir, true);
@@ -300,6 +321,9 @@ class Build : NukeBuild
         if (!File.Exists(marker))
             throw new InvalidOperationException($"Extracted Google Test package but marker file is missing: {marker}");
     }
+
+    static bool IsTransientNuGetDownloadFailure(Exception ex) =>
+        ex is HttpRequestException or TaskCanceledException or OperationCanceledException;
 
     static MSBuildTargetPlatform ParsePlatform(string platform)
     {

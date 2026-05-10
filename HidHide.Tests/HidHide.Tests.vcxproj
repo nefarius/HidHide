@@ -33,6 +33,9 @@
     <RootNamespace>HidHide.Tests</RootNamespace>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
+  <PropertyGroup Label="GoogleTestNuGet">
+    <HidHideGoogleTestTargetsPath>$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.1.8.1.7\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.targets</HidHideGoogleTestTargetsPath>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -219,7 +222,11 @@
     <ClCompile Include="cli_parsing_tests.cpp" />
     <ClCompile Include="ioctl_contract_tests.cpp" />
   </ItemGroup>
-  <Import Project="$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.1.8.1.7\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.targets" Condition="Exists('$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.1.8.1.7\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.targets')" />
+  <Target Name="CheckGoogleTestTargets" BeforeTargets="Build">
+    <Error Condition="!Exists('$(HidHideGoogleTestTargetsPath)')"
+           Text="Missing Google Test NuGet package (Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static): expected targets file at '$(HidHideGoogleTestTargetsPath)'. Run NUKE Restore so EnsureGoogleTestNuGetPackage downloads the package, or restore packages manually." />
+  </Target>
+  <Import Project="$(HidHideGoogleTestTargetsPath)" Condition="Exists('$(HidHideGoogleTestTargetsPath)')" />
   <!-- Google.Test targets match Platform==arm64; MSVC uses ARM64 for AArch64. -->
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug' And '$(Platform)'=='ARM64'">
     <Link>
