@@ -14,20 +14,7 @@ ULONG PsGetProcessSessionId(PEPROCESS process);
 #define DRIVER_PROPERTY_ACTIVE                            L"Active"                         // HKLM\SYSTEM\CurrentControlSet\Services\HidHide\Parameters\Active (DWORD)
 #define DRIVER_PROPERTY_WHITELISTED_INVERSE               L"WhitelistedInverse"             // HKLM\SYSTEM\CurrentControlSet\Services\HidHide\Parameters\WhitelistedInverse (DWORD)
 
-// The HidHide I/O control custom device type (range 32768 .. 65535)
-#define IoControlDeviceType 32769
-
-// The HidHide I/O control codes
-#define IOCTL_GET_WHITELIST CTL_CODE(IoControlDeviceType, 2048, METHOD_BUFFERED, FILE_READ_DATA)
-#define IOCTL_SET_WHITELIST CTL_CODE(IoControlDeviceType, 2049, METHOD_BUFFERED, FILE_READ_DATA)
-#define IOCTL_GET_BLACKLIST CTL_CODE(IoControlDeviceType, 2050, METHOD_BUFFERED, FILE_READ_DATA)
-#define IOCTL_SET_BLACKLIST CTL_CODE(IoControlDeviceType, 2051, METHOD_BUFFERED, FILE_READ_DATA)
-#define IOCTL_GET_ACTIVE    CTL_CODE(IoControlDeviceType, 2052, METHOD_BUFFERED, FILE_READ_DATA)
-#define IOCTL_SET_ACTIVE    CTL_CODE(IoControlDeviceType, 2053, METHOD_BUFFERED, FILE_READ_DATA)
-#define IOCTL_GET_WLINVERSE          CTL_CODE(IoControlDeviceType, 2054, METHOD_BUFFERED, FILE_READ_DATA)
-#define IOCTL_SET_WLINVERSE          CTL_CODE(IoControlDeviceType, 2055, METHOD_BUFFERED, FILE_READ_DATA)
-#define IOCTL_ADD_SESSION_BLACKLIST  CTL_CODE(IoControlDeviceType, 2056, METHOD_BUFFERED, FILE_READ_DATA)
-#define IOCTL_CLR_SESSION_BLACKLIST  CTL_CODE(IoControlDeviceType, 2057, METHOD_BUFFERED, FILE_READ_DATA)
+#include "HidHideIoctlContract.h"
 
 // {0C320FF7-BD9B-42B6-BDAF-49FEB9C91649}
 DEFINE_GUID(HidHideInterfaceGuid, 0xc320ff7, 0xbd9b, 0x42b6, 0xbd, 0xaf, 0x49, 0xfe, 0xb9, 0xc9, 0x16, 0x49);

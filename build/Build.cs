@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using Nuke.Common;
@@ -68,6 +69,7 @@ class Build : NukeBuild
     Target Restore => _ => _
         .Executes(() =>
         {
+            EnsureGoogleTestNuGetPackage();
             MSBuild(s => s
                 .SetTargetPath(SolutionFile)
                 .SetTargets("Restore")
@@ -88,6 +90,19 @@ class Build : NukeBuild
                 .SetMaxCpuCount(Environment.ProcessorCount)
                 .SetNodeReuse(IsLocalBuild)
                 .SetVerbosity(MSBuildVerbosity.Minimal));
+        });
+
+    Target UnitTest => _ => _
+        .DependsOn(Compile)
+        .OnlyWhenStatic(() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        .Executes(() =>
+        {
+            var testExe = OutputRoot / "HidHide.Tests.exe";
+            if (!File.Exists(testExe))
+                throw new FileNotFoundException($"Expected unit test runner at '{testExe}'. Build HidHide.Tests for {Configuration}|{Platform}.");
+
+            ProcessTasks.StartProcess(testExe, workingDirectory: OutputRoot, logInvocation: false)
+                .AssertZeroExitCode();
         });
 
     Target StageInstallerPayload => _ => _
@@ -250,10 +265,39 @@ class Build : NukeBuild
         });
 
     Target Ci => _ => _
+        .DependsOn(UnitTest)
         .DependsOn(BuildMsi)
         .DependsOn(BuildCab);
 
     public static int Main() => Execute<Build>(x => x.Ci);
+
+    /// <summary>Downloads and extracts the Microsoft Google Test NuGet package if missing (ignored by git under /packages).</summary>
+    void EnsureGoogleTestNuGetPackage()
+    {
+        const string packageVersion = "1.8.1.7";
+        var packageDir = RootDirectory / "packages" / $"Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.{packageVersion}";
+        var marker = packageDir / "build" / "native" / "Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.targets";
+        if (File.Exists(marker))
+            return;
+
+        Logger.Normal($"Downloading Google Test NuGet package {packageVersion} …");
+        var tempZip = RootDirectory / ".nuke" / "temp" / $"googletest.{packageVersion}.nupkg";
+        EnsureExistingDirectory(tempZip.Parent);
+
+        var url =
+            $"https://api.nuget.org/v3-flatcontainer/microsoft.googletest.v140.windesktop.msvcstl.static.rt-static/{packageVersion}/microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.{packageVersion}.nupkg";
+
+        using var http = new HttpClient();
+        File.WriteAllBytes(tempZip, http.GetByteArrayAsync(url).GetAwaiter().GetResult());
+
+        if (Directory.Exists(packageDir))
+            Directory.Delete(packageDir, true);
+        EnsureExistingDirectory(packageDir);
+        ZipFile.ExtractToDirectory(tempZip, packageDir);
+
+        if (!File.Exists(marker))
+            throw new InvalidOperationException($"Extracted Google Test package but marker file is missing: {marker}");
+    }
 
     static MSBuildTargetPlatform ParsePlatform(string platform)
     {

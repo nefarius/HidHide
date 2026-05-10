@@ -3,6 +3,7 @@
 // FilterDriverProxy.cpp
 #include "stdafx.h"
 #include "FilterDriverProxy.h"
+#include "HidHideIoctlContract.h"
 #include "Utils.h"
 #include "Volume.h"
 #include "Logging.h"
@@ -10,19 +11,6 @@
 namespace
 {
     typedef std::unique_ptr<std::remove_pointer<HANDLE>::type, decltype(&::CloseHandle)> CloseHandlePtr;
-
-    // The HidHide I/O control custom device type (range 32768 .. 65535)
-    constexpr auto IoControlDeviceType{ 32769u };
-
-    // The HidHide I/O control codes
-    constexpr auto IOCTL_GET_WHITELIST { CTL_CODE(IoControlDeviceType, 2048, METHOD_BUFFERED, FILE_READ_DATA) };
-    constexpr auto IOCTL_SET_WHITELIST { CTL_CODE(IoControlDeviceType, 2049, METHOD_BUFFERED, FILE_READ_DATA) };
-    constexpr auto IOCTL_GET_BLACKLIST { CTL_CODE(IoControlDeviceType, 2050, METHOD_BUFFERED, FILE_READ_DATA) };
-    constexpr auto IOCTL_SET_BLACKLIST { CTL_CODE(IoControlDeviceType, 2051, METHOD_BUFFERED, FILE_READ_DATA) };
-    constexpr auto IOCTL_GET_ACTIVE    { CTL_CODE(IoControlDeviceType, 2052, METHOD_BUFFERED, FILE_READ_DATA) };
-    constexpr auto IOCTL_SET_ACTIVE    { CTL_CODE(IoControlDeviceType, 2053, METHOD_BUFFERED, FILE_READ_DATA) };
-    constexpr auto IOCTL_GET_WLINVERSE { CTL_CODE(IoControlDeviceType, 2054, METHOD_BUFFERED, FILE_READ_DATA) };
-    constexpr auto IOCTL_SET_WLINVERSE { CTL_CODE(IoControlDeviceType, 2055, METHOD_BUFFERED, FILE_READ_DATA) };
 
     // Get a file handle to the device driver
     // The flag allowFileNotFound is applied when the device couldn't be found and controls whether or not an exception is thrown on failure
