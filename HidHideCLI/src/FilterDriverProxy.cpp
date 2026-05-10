@@ -34,7 +34,7 @@ namespace
         TRACE_ALWAYS(L"");
         DWORD needed{};
         auto buffer{ std::vector<BOOLEAN>(1) };
-        if (FALSE == ::DeviceIoControl(device, IOCTL_GET_ACTIVE, nullptr, 0, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(BOOLEAN)), &needed, nullptr)) THROW_WIN32_LAST_ERROR;
+        if (FALSE == ::DeviceIoControl(device, static_cast<DWORD>(IOCTL_GET_ACTIVE), nullptr, 0, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(BOOLEAN)), &needed, nullptr)) THROW_WIN32_LAST_ERROR;
         if (sizeof(BOOLEAN) != needed) THROW_WIN32(ERROR_INVALID_PARAMETER);
         return (FALSE != buffer.at(0));
     }
@@ -46,7 +46,7 @@ namespace
         DWORD needed{};
         auto buffer{ std::vector<BOOLEAN>(1) };
         buffer.at(0) = (active ? TRUE : FALSE);
-        if (FALSE == ::DeviceIoControl(device, IOCTL_SET_ACTIVE, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(BOOLEAN)), nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
+        if (FALSE == ::DeviceIoControl(device, static_cast<DWORD>(IOCTL_SET_ACTIVE), buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(BOOLEAN)), nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
     }
 
     // Get the device Instance Paths of the Human Interface Devices that are on the black-list (may reference not present devices)
@@ -54,9 +54,9 @@ namespace
     {
         TRACE_ALWAYS(L"");
         DWORD needed{};
-        if (FALSE == ::DeviceIoControl(device, IOCTL_GET_BLACKLIST, nullptr, 0, nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
+        if (FALSE == ::DeviceIoControl(device, static_cast<DWORD>(IOCTL_GET_BLACKLIST), nullptr, 0, nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
         auto buffer{ std::vector<WCHAR>(needed / sizeof(WCHAR)) };
-        if (FALSE == ::DeviceIoControl(device, IOCTL_GET_BLACKLIST, nullptr, 0, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(WCHAR)), &needed, nullptr)) THROW_WIN32_LAST_ERROR;
+        if (FALSE == ::DeviceIoControl(device, static_cast<DWORD>(IOCTL_GET_BLACKLIST), nullptr, 0, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(WCHAR)), &needed, nullptr)) THROW_WIN32_LAST_ERROR;
         return (HidHide::StringListToStringSet(HidHide::MultiStringToStringList(buffer)));
     }
 
@@ -66,7 +66,7 @@ namespace
         TRACE_ALWAYS(L"");
         DWORD needed{};
         auto buffer{ HidHide::StringListToMultiString(HidHide::StringSetToStringList(deviceInstancePaths)) };
-        if (FALSE == ::DeviceIoControl(device, IOCTL_SET_BLACKLIST, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(WCHAR)), nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
+        if (FALSE == ::DeviceIoControl(device, static_cast<DWORD>(IOCTL_SET_BLACKLIST), buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(WCHAR)), nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
     }
 
     // Get the applications on the white-list
@@ -74,9 +74,9 @@ namespace
     {
         TRACE_ALWAYS(L"");
         DWORD needed{};
-        if (FALSE == ::DeviceIoControl(device, IOCTL_GET_WHITELIST, nullptr, 0, nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
+        if (FALSE == ::DeviceIoControl(device, static_cast<DWORD>(IOCTL_GET_WHITELIST), nullptr, 0, nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
         auto buffer{ std::vector<WCHAR>(needed / sizeof(WCHAR)) };
-        if (FALSE == ::DeviceIoControl(device, IOCTL_GET_WHITELIST, nullptr, 0, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(WCHAR)), &needed, nullptr)) THROW_WIN32_LAST_ERROR;
+        if (FALSE == ::DeviceIoControl(device, static_cast<DWORD>(IOCTL_GET_WHITELIST), nullptr, 0, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(WCHAR)), &needed, nullptr)) THROW_WIN32_LAST_ERROR;
         return (HidHide::StringListToPathSet(HidHide::MultiStringToStringList(buffer)));
     }
 
@@ -86,7 +86,7 @@ namespace
         TRACE_ALWAYS(L"");
         DWORD needed{};
         auto buffer{ HidHide::StringListToMultiString(HidHide::PathSetToStringList(fullImageNames)) };
-        if (FALSE == ::DeviceIoControl(device, IOCTL_SET_WHITELIST, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(WCHAR)), nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
+        if (FALSE == ::DeviceIoControl(device, static_cast<DWORD>(IOCTL_SET_WHITELIST), buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(WCHAR)), nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
     }
 
     // Get the current whitelist inverse state; returns true when the whitelist logic is the inverse (effectively an application backlist)
@@ -95,7 +95,7 @@ namespace
         TRACE_ALWAYS(L"");
         DWORD needed{};
         auto buffer{ std::vector<BOOLEAN>(1) };
-        if (FALSE == ::DeviceIoControl(device, IOCTL_GET_WLINVERSE, nullptr, 0, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(BOOLEAN)), &needed, nullptr)) THROW_WIN32_LAST_ERROR;
+        if (FALSE == ::DeviceIoControl(device, static_cast<DWORD>(IOCTL_GET_WLINVERSE), nullptr, 0, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(BOOLEAN)), &needed, nullptr)) THROW_WIN32_LAST_ERROR;
         if (sizeof(BOOLEAN) != needed) THROW_WIN32(ERROR_INVALID_PARAMETER);
         return (FALSE != buffer.at(0));
     }
@@ -107,7 +107,7 @@ namespace
         DWORD needed{};
         auto buffer{ std::vector<BOOLEAN>(1) };
         buffer.at(0) = (inverse ? TRUE : FALSE);
-        if (FALSE == ::DeviceIoControl(device, IOCTL_SET_WLINVERSE, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(BOOLEAN)), nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
+        if (FALSE == ::DeviceIoControl(device, static_cast<DWORD>(IOCTL_SET_WLINVERSE), buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(BOOLEAN)), nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
     }
 }
 
