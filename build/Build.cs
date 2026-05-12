@@ -322,6 +322,7 @@ class Build : NukeBuild
             $"nuget verify \"{tempZip}\" --verbosity quiet",
             RootDirectory,
             logInvocation: false);
+        verifyProcess.WaitForExit();
         if (verifyProcess.ExitCode != 0)
         {
             var log = string.Join(Environment.NewLine, verifyProcess.Output.Select(x => x.Text));
