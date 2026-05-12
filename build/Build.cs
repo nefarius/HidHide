@@ -317,6 +317,18 @@ class Build : NukeBuild
 
         File.WriteAllBytes(tempZip, payload);
 
+        var verifyProcess = ProcessTasks.StartProcess(
+            "dotnet",
+            $"nuget verify \"{tempZip}\" --verbosity quiet",
+            RootDirectory,
+            logInvocation: false);
+        if (verifyProcess.ExitCode != 0)
+        {
+            var log = string.Join(Environment.NewLine, verifyProcess.Output.Select(x => x.Text));
+            throw new InvalidOperationException(
+                $"Google Test NuGet package failed integrity verification (dotnet nuget verify exited with code {verifyProcess.ExitCode}).{Environment.NewLine}{log}");
+        }
+
         if (Directory.Exists(packageDir))
             Directory.Delete(packageDir, true);
         EnsureExistingDirectory(packageDir);
