@@ -292,6 +292,7 @@ class Build : NukeBuild
 
         const int maxAttempts = 3;
         byte[]? payload = null;
+        Exception? lastException = null;
         for (var attempt = 0; attempt < maxAttempts; attempt++)
         {
             try
@@ -302,6 +303,7 @@ class Build : NukeBuild
             }
             catch (Exception ex) when (attempt < maxAttempts - 1 && IsTransientNuGetDownloadFailure(ex))
             {
+                lastException = ex;
                 var jitter = Random.Shared.Next(0, 101);
                 var delayMs = 200 * (1 << attempt) + jitter;
                 Thread.Sleep(delayMs);
@@ -309,7 +311,9 @@ class Build : NukeBuild
         }
 
         if (payload == null)
-            throw new InvalidOperationException($"Failed to download Google Test NuGet package after {maxAttempts} attempts from {url}");
+            throw new InvalidOperationException(
+                $"Failed to download Google Test NuGet package after {maxAttempts} attempts from {url}",
+                lastException);
 
         File.WriteAllBytes(tempZip, payload);
 
