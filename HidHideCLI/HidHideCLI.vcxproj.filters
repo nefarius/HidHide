@@ -15,6 +15,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\CliParsing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\CommandInterpreter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -44,6 +47,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\CliParsing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\CommandInterpreter.h">
       <Filter>Header Files</Filter>
     </ClInclude>

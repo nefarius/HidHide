@@ -166,7 +166,7 @@
     <ClCompile>
       <BldParameters>TargetExt="$(TargetExt)";TargetFileName="$(TargetFileName)";TargetName="$(TargetName)";BldCompanyName="$(BldCompanyName)";BldProductName="$(BldProductName)";BldProductVersion="$(BldProductVersion)";BldProductVersionMajor="$(BldProductVersionMajor)";BldProductVersionMinor="$(BldProductVersionMinor)";BldProductVersionRevision="$(BldProductVersionRevision)";BldProductVersionBuild="$(BldProductVersionBuild)";BldProductDescription="$(BldProductDescription)";BldCopyright="$(BldCopyright)";</BldParameters>
       <ProjectDirLength>$([System.String]::Copy('$(ProjectDir)').Length)</ProjectDirLength>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(SolutionDir)Shared;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>POOL_NX_OPTIN=1;_WIN64;_AMD64_;AMD64;NDEBUG;_NO_CRT_STDIO_INLINE;%(BldParameters);ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -187,7 +187,7 @@
     <ClCompile>
       <BldParameters>TargetExt="$(TargetExt)";TargetFileName="$(TargetFileName)";TargetName="$(TargetName)";BldCompanyName="$(BldCompanyName)";BldProductName="$(BldProductName)";BldProductVersion="$(BldProductVersion)";BldProductVersionMajor="$(BldProductVersionMajor)";BldProductVersionMinor="$(BldProductVersionMinor)";BldProductVersionRevision="$(BldProductVersionRevision)";BldProductVersionBuild="$(BldProductVersionBuild)";BldProductDescription="$(BldProductDescription)";BldCopyright="$(BldCopyright)";</BldParameters>
       <ProjectDirLength>$([System.String]::Copy('$(ProjectDir)').Length)</ProjectDirLength>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(SolutionDir)Shared;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>POOL_NX_OPTIN=1;_ARM64_;ARM64;NDEBUG;_NO_CRT_STDIO_INLINE;%(BldParameters);ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -208,7 +208,7 @@
     <ClCompile>
       <BldParameters>TargetExt="$(TargetExt)";TargetFileName="$(TargetFileName)";TargetName="$(TargetName)";BldCompanyName="$(BldCompanyName)";BldProductName="$(BldProductName)";BldProductVersion="$(BldProductVersion)";BldProductVersionMajor="$(BldProductVersionMajor)";BldProductVersionMinor="$(BldProductVersionMinor)";BldProductVersionRevision="$(BldProductVersionRevision)";BldProductVersionBuild="$(BldProductVersionBuild)";BldProductDescription="$(BldProductDescription)";BldCopyright="$(BldCopyright)";</BldParameters>
       <ProjectDirLength>$([System.String]::Copy('$(ProjectDir)').Length)</ProjectDirLength>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(SolutionDir)Shared;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>POOL_NX_OPTIN=1;_WIN64;_AMD64_;AMD64;NDEBUG;_NO_CRT_STDIO_INLINE;%(BldParameters);ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -229,7 +229,7 @@
     <ClCompile>
       <BldParameters>TargetExt="$(TargetExt)";TargetFileName="$(TargetFileName)";TargetName="$(TargetName)";BldCompanyName="$(BldCompanyName)";BldProductName="$(BldProductName)";BldProductVersion="$(BldProductVersion)";BldProductVersionMajor="$(BldProductVersionMajor)";BldProductVersionMinor="$(BldProductVersionMinor)";BldProductVersionRevision="$(BldProductVersionRevision)";BldProductVersionBuild="$(BldProductVersionBuild)";BldProductDescription="$(BldProductDescription)";BldCopyright="$(BldCopyright)";</BldParameters>
       <ProjectDirLength>$([System.String]::Copy('$(ProjectDir)').Length)</ProjectDirLength>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(SolutionDir)Shared;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>POOL_NX_OPTIN=1;_ARM64_;ARM64;NDEBUG;_NO_CRT_STDIO_INLINE;%(BldParameters);ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -250,7 +250,7 @@
     <ClCompile>
       <BldParameters>TargetExt="$(TargetExt)";TargetFileName="$(TargetFileName)";TargetName="$(TargetName)";BldCompanyName="$(BldCompanyName)";BldProductName="$(BldProductName)";BldProductVersion="$(BldProductVersion)";BldProductVersionMajor="$(BldProductVersionMajor)";BldProductVersionMinor="$(BldProductVersionMinor)";BldProductVersionRevision="$(BldProductVersionRevision)";BldProductVersionBuild="$(BldProductVersionBuild)";BldProductDescription="$(BldProductDescription)";BldCopyright="$(BldCopyright)";</BldParameters>
       <ProjectDirLength>$([System.String]::Copy('$(ProjectDir)').Length)</ProjectDirLength>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(SolutionDir)Shared;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>POOL_NX_OPTIN=1;_WIN64;_AMD64_;AMD64;NDEBUG;_NO_CRT_STDIO_INLINE;%(BldParameters);ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -271,7 +271,7 @@
     <ClCompile>
       <BldParameters>TargetExt="$(TargetExt)";TargetFileName="$(TargetFileName)";TargetName="$(TargetName)";BldCompanyName="$(BldCompanyName)";BldProductName="$(BldProductName)";BldProductVersion="$(BldProductVersion)";BldProductVersionMajor="$(BldProductVersionMajor)";BldProductVersionMinor="$(BldProductVersionMinor)";BldProductVersionRevision="$(BldProductVersionRevision)";BldProductVersionBuild="$(BldProductVersionBuild)";BldProductDescription="$(BldProductDescription)";BldCopyright="$(BldCopyright)";</BldParameters>
       <ProjectDirLength>$([System.String]::Copy('$(ProjectDir)').Length)</ProjectDirLength>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)src;$(SolutionDir)Shared;$(IntDir);$(KMDF_INC_PATH)$(KMDF_VER_PATH)\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>POOL_NX_OPTIN=1;_ARM64_;ARM64;NDEBUG;_NO_CRT_STDIO_INLINE;%(BldParameters);ProjectDirLength=%(ProjectDirLength);%(PreprocessorDefinitions)</PreprocessorDefinitions>
