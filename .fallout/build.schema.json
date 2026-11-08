@@ -24,13 +24,18 @@
     "ExecutableTarget": {
       "type": "string",
       "enum": [
-        "BuildCab",
-        "BuildMsi",
         "Ci",
         "Clean",
         "Compile",
+        "PackageCab",
+        "PackageMsi",
+        "Release",
+        "ResolveVersion",
         "Restore",
-        "StageInstallerPayload"
+        "StageInstallerPayload",
+        "Test",
+        "TestSignStagingDriver",
+        "TestVersion"
       ]
     },
     "Verbosity": {
@@ -40,10 +45,11 @@
         "Verbose",
         "Normal",
         "Minimal",
-        "Quiet"
+        "Quiet",
+        "Information"
       ]
     },
-    "NukeBuild": {
+    "FalloutBuild": {
       "properties": {
         "Continue": {
           "type": "boolean",
@@ -59,7 +65,7 @@
         },
         "NoLogo": {
           "type": "boolean",
-          "description": "Disables displaying the NUKE logo"
+          "description": "Disables displaying the Fallout logo"
         },
         "Partition": {
           "type": "string",
@@ -97,6 +103,13 @@
         "Verbosity": {
           "description": "Logging verbosity during build execution. Default is 'Normal'",
           "$ref": "#/definitions/Verbosity"
+        },
+        "BuildProjectFile": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "description": "Path to the build project (.csproj) relative to the repository root. Defaults to 'build/_build.csproj' when unset. Read by the Fallout global tool's in-tool runner."
         }
       }
     }
@@ -104,22 +117,61 @@
   "allOf": [
     {
       "properties": {
+        "CertificateSubject": {
+          "type": "string",
+          "description": "Certificate subject used for local production signing"
+        },
         "Configuration": {
           "type": "string",
           "description": "Configuration to build - Default is 'Debug' (local) or 'Release' (server)"
         },
+        "GitHubOutput": {
+          "type": "string",
+          "description": "GITHUB_OUTPUT file that receives ResolveVersion results"
+        },
+        "GitHubToken": {
+          "type": "string",
+          "description": "GitHub token used to download Actions artifacts. Defaults to GH_TOKEN or GITHUB_TOKEN",
+          "default": "Secrets must be entered via 'fallout :secrets [profile]'"
+        },
+        "HidHideTestSignPfx": {
+          "type": "string",
+          "description": "Optional PFX used to test-sign the staged driver. CI generates an ephemeral certificate when omitted"
+        },
+        "HidHideTestSignPfxPassword": {
+          "type": "string",
+          "description": "Password for HidHideTestSignPfx",
+          "default": "Secrets must be entered via 'fallout :secrets [profile]'"
+        },
+        "NoSigning": {
+          "type": "boolean",
+          "description": "Download release artifacts without signing them"
+        },
         "Platform": {
           "type": "string",
-          "description": "Platform to build: x64 | ARM64. Default is current CI platform or x64 locally"
+          "description": "Platform to build: x64 | ARM64"
         },
-        "Solution": {
+        "ReleaseOutput": {
           "type": "string",
-          "description": "Path to a solution file that is automatically loaded"
+          "description": "Directory that receives downloaded release artifacts"
+        },
+        "ReleaseRef": {
+          "type": "string",
+          "description": "Git ref resolved by ResolveVersion, for example refs/tags/v1.8.0"
+        },
+        "ReleaseTag": {
+          "type": "string",
+          "description": "Release tag whose successful GitHub Actions artifacts are downloaded, for example v1.8.0"
+        },
+        "RunNumber": {
+          "type": "integer",
+          "format": "int32",
+          "description": "GitHub Actions run number used as the fourth binary-version component"
         }
       }
     },
     {
-      "$ref": "#/definitions/NukeBuild"
+      "$ref": "#/definitions/FalloutBuild"
     }
   ]
 }

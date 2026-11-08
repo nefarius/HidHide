@@ -48,6 +48,14 @@ Collect all payload files into one **flat folder** (same relative names as in th
 
 ### Build
 
+The normal command stages the payload, including `nefconw.exe`, and builds the MSI:
+
+```powershell
+./build.ps1 PackageMsi --configuration Release --platform x64
+```
+
+The installer project remains the WixSharp implementation. It can still be invoked directly against an existing flat staging directory:
+
 ```powershell
 cd Installer
 dotnet run -c Release -- --staging "C:\path\to\staging" --out "C:\path\to\msi-out" --platform x64

@@ -6,10 +6,13 @@
     <Nullable>enable</Nullable>
     <NoWarn>$(NoWarn);CS0649;CS0169;CS0618;CS8618;NU1901;NU1903</NoWarn>
     <RootNamespace>HidHide.Build</RootNamespace>
+    <FalloutRootDirectory>..</FalloutRootDirectory>
+    <FalloutScriptDirectory>..</FalloutScriptDirectory>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nuke.Common" Version="9.0.0" />
+    <PackageReference Include="Fallout.Common" Version="10.5.0" />
   </ItemGroup>
 
   <ItemGroup>

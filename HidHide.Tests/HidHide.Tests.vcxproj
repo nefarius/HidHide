@@ -224,7 +224,7 @@
   </ItemGroup>
   <Target Name="CheckGoogleTestTargets" BeforeTargets="Build">
     <Error Condition="!Exists('$(HidHideGoogleTestTargetsPath)')"
-           Text="Missing Google Test NuGet package (Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static): expected targets file at '$(HidHideGoogleTestTargetsPath)'. Run NUKE Restore so EnsureGoogleTestNuGetPackage downloads the package, or restore packages manually." />
+           Text="Missing Google Test NuGet package (Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static): expected targets file at '$(HidHideGoogleTestTargetsPath)'. Run ./build.ps1 Restore so the build can download the package, or restore packages manually." />
   </Target>
   <Import Project="$(HidHideGoogleTestTargetsPath)" Condition="Exists('$(HidHideGoogleTestTargetsPath)')" />
   <!-- Google.Test targets match Platform==arm64; MSVC uses ARM64 for AArch64. -->

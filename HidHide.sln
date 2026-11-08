@@ -25,12 +25,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HidHide.Tests", "HidHide.Te
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AC20134A-0765-4B24-913C-7C83A1F18517}"
 	ProjectSection(SolutionItems) = preProject
-		appveyor.yml = appveyor.yml
 		HidHide_ARM64.ddf = HidHide_ARM64.ddf
 		HidHide_x64.ddf = HidHide_x64.ddf
 		LICENSE = LICENSE
 		README.md = README.md
-		stage0.ps1 = stage0.ps1
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HidHide.Installer", "Installer\HidHide.Installer.csproj", "{CC55D59B-2570-47FF-91D5-4FEE21D84468}"
