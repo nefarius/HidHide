@@ -78,6 +78,28 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Install Spectre-mitigated MFC libraries
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $installPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+          if (-not $installPath) { throw 'Visual Studio installation was not found.' }
+          $installer = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe"
+          $components = @(
+            'Microsoft.VisualStudio.Component.VC.ATLMFC.Spectre',
+            'Microsoft.VisualStudio.Component.VC.MFC.ARM64.Spectre',
+            'Microsoft.VisualStudio.Component.VC.Runtimes.x86.x64.Spectre',
+            'Microsoft.VisualStudio.Component.VC.Runtimes.ARM64.Spectre'
+          )
+          $arguments = @('modify', '--installPath', $installPath, '--quiet', '--norestart', '--nocache')
+          foreach ($component in $components) { $arguments += @('--add', $component) }
+          Write-Output "Installing Spectre-mitigated libraries into $installPath"
+          $process = Start-Process -FilePath $installer -ArgumentList $arguments -Wait -PassThru
+          if ($process.ExitCode -notin 0, 3010) {
+            throw "Visual Studio component install failed with exit $($process.ExitCode)"
+          }
+
       - name: Cache Windows kit packages
         id: kits
         uses: actions/cache@v6

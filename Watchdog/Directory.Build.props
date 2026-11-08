@@ -1,4 +1,6 @@
 <Project>
-  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+  <!-- Only the Watchdog project needs the portable kits. vcpkg builds nested under this directory must keep the normal Windows SDK. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))"
+          Condition="'$(MSBuildProjectName)' == 'Watchdog'" />
   <Import Project="$(MSBuildThisFileDirectory)vcpkg\scripts\buildsystems\msbuild\vcpkg.props" />
 </Project>
