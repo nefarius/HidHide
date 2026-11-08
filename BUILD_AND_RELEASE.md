@@ -16,7 +16,7 @@ GitHub Actions builds x64 and ARM64. Each platform job restores the portable Win
 - `disk1/HidHide_<platform>.cab`
 - PDBs and `HidHide*.exe`
 
-The x64 job also runs `HidHide.Tests.exe`. ARM64 tests are compiled but not executed because the runner is x64. CI test-signs the driver staged into the MSI with an ephemeral certificate so the package can be validated. Those MSI files are CI artifacts, not the production release.
+The x64 job also runs `HidHide.Tests.exe`. ARM64 tests are compiled but not executed because the runner is x64. CI test-signs the driver staged into the MSI with an ephemeral certificate so the package can be validated. Those MSI files are CI artifacts, not the production release. The MSI also carries the Spectre-mitigated Visual C++ 2026 CRT and MFC DLLs next to `HidHideClient.exe` and `HidHideCLI.exe`.
 
 ## Local commands
 
@@ -42,7 +42,7 @@ wix extension add -g WixToolset.UI.wixext/5.0.2
 
 ## Local signing and publication
 
-Production signing stays on a maintainer machine. Download the successful tagged Actions artifacts, then sign the MSI and CAB files with the certificate in the local certificate store. The default subject is `Nefarius Software Solutions`.
+Production signing stays on a maintainer machine. Download the successful tagged Actions artifacts, then sign the MSI and CAB files with the certificate in the local certificate store. The default subject is `Nefarius Software Solutions`. This signs the outer packages only. The driver and catalog inside them keep the CI test signature until they are attestation-signed and the MSI is rebuilt around that catalog. That step is separate from `Release`.
 
 ```powershell
 ./build.ps1 Release --release-tag v1.8.0

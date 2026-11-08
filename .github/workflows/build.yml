@@ -197,6 +197,9 @@ jobs:
           $destination = Join-Path $env:GITHUB_WORKSPACE 'Watchdog\vcpkg\vcpkg.exe'
           # The submodule pins vcpkg-tool 2025-09-03, which predates Visual Studio 2026 toolset v145.
           Invoke-WebRequest -Uri 'https://github.com/microsoft/vcpkg-tool/releases/download/2025-10-16/vcpkg.exe' -OutFile $destination
+          $expected = '30430c3d3f58f9710c4e0671db5cf4ebe8445760fe8452ac8f9365ac990beae0'
+          $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $destination).Hash
+          if ($actual -ne $expected) { throw "vcpkg.exe hash mismatch: $actual" }
           & $destination version
 
       - name: Configure vcpkg binary cache

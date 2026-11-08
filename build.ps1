@@ -40,13 +40,14 @@ if ($null -ne (Get-Command "dotnet" -ErrorAction SilentlyContinue)) {
         $ErrorActionPreference = "SilentlyContinue"
         $InstalledVersion = "$(dotnet --version 2>$null)"
         $InstalledExitCode = $LASTEXITCODE
-        $InstalledRuntimes = "$(dotnet --list-runtimes 2>$null)"
+        $InstalledRuntimes = @(dotnet --list-runtimes 2>$null)
         $RuntimesExitCode = $LASTEXITCODE
     }
     finally {
         $ErrorActionPreference = $PreviousErrorActionPreference
     }
-    if ($InstalledExitCode -eq 0 -and $RuntimesExitCode -eq 0 -and $InstalledVersion -match '^(\d+)\.' -and [int]$Matches[1] -ge 10 -and $InstalledRuntimes -match '(?m)^Microsoft\.NETCore\.App 10\.') { $DotNetOk = $true }
+    $HasNet10Runtime = @($InstalledRuntimes | Where-Object { $_ -match '^Microsoft\.NETCore\.App 10\.' }).Count -gt 0
+    if ($InstalledExitCode -eq 0 -and $RuntimesExitCode -eq 0 -and $HasNet10Runtime -and $InstalledVersion -match '^(\d+)\.' -and [int]$Matches[1] -ge 10) { $DotNetOk = $true }
 }
 if ($DotNetOk) {
     $env:DOTNET_EXE = (Get-Command "dotnet").Path

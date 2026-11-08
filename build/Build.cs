@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
@@ -147,6 +148,7 @@ class Build : FalloutBuild
             CopyRequired(OutputRoot / "HidHideCLI.exe", StageDir);
             CopyRequired(OutputRoot / "HidHideCLI.man", StageDir);
             CopyRequired(OutputRoot / "HidHideCLI.wprp", StageDir);
+            StageVisualCppRuntime(StageDir, NormalizePlatform(Platform));
             await EnsureNefconwAsync(StageDir, NormalizePlatform(Platform));
         });
 
@@ -520,6 +522,88 @@ class Build : FalloutBuild
             throw new FileNotFoundException($"nefconw.exe was not found for {platform} after extracting {zip}", source);
 
         ((AbsolutePath)source).CopyToDirectory(stageDirectory, ExistsPolicy.FileOverwrite);
+    }
+
+    static void StageVisualCppRuntime(AbsolutePath stageDir, string platform)
+    {
+        var arch = platform.Equals("ARM64", StringComparison.OrdinalIgnoreCase) ? "arm64" : "x64";
+        var redist = FindLatestVc145Redist();
+        var crt = Path.Combine(redist, "spectre", arch, "Microsoft.VC145.CRT");
+        var mfc = Path.Combine(redist, "spectre", arch, "Microsoft.VC145.MFC");
+        if (!Directory.Exists(crt) || !Directory.Exists(mfc))
+            throw new DirectoryNotFoundException($"Spectre-mitigated Visual C++ 2026 redistributable for {arch} was not found under '{redist}'.");
+
+        CopyRuntimeDll(Path.Combine(mfc, "mfc140u.dll"), stageDir);
+        foreach (var name in new[]
+        {
+            "vcruntime140.dll",
+            "msvcp140.dll",
+            "msvcp140_1.dll",
+            "msvcp140_2.dll",
+            "vcruntime140_1.dll",
+            "vcruntime140_threads.dll",
+            "concrt140.dll",
+            "msvcp140_atomic_wait.dll",
+            "msvcp140_codecvt_ids.dll",
+        })
+        {
+            var source = Path.Combine(crt, name);
+            var required = name is "vcruntime140.dll" or "msvcp140.dll" or "msvcp140_1.dll" or "msvcp140_2.dll";
+            if (!File.Exists(source))
+            {
+                if (required)
+                    throw new FileNotFoundException($"Missing Visual C++ runtime '{source}'.", source);
+                continue;
+            }
+
+            CopyRuntimeDll(source, stageDir);
+        }
+    }
+
+    static void CopyRuntimeDll(string source, AbsolutePath destinationDirectory)
+    {
+        if (!File.Exists(source))
+            throw new FileNotFoundException($"Missing Visual C++ runtime '{source}'.", source);
+
+        File.Copy(source, Path.Combine(destinationDirectory.ToString(), Path.GetFileName(source)), overwrite: false);
+    }
+
+    static string FindLatestVc145Redist()
+    {
+        var vswhere = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+            "Microsoft Visual Studio",
+            "Installer",
+            "vswhere.exe");
+        if (!File.Exists(vswhere))
+            throw new FileNotFoundException("vswhere.exe was not found.", vswhere);
+
+        var start = new ProcessStartInfo(vswhere, "-latest -products * -requires Microsoft.Component.MSBuild -property installationPath")
+        {
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+        };
+        using var process = System.Diagnostics.Process.Start(start) ?? throw new InvalidOperationException("Failed to start vswhere.exe.");
+        var output = process.StandardOutput.ReadToEnd();
+        process.WaitForExit();
+        var installPath = output.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()?.Trim();
+        if (process.ExitCode != 0 || string.IsNullOrWhiteSpace(installPath))
+            throw new InvalidOperationException("Visual Studio installation was not found.");
+
+        var redistRoot = Path.Combine(installPath, "VC", "Redist", "MSVC");
+        var selected = Directory.Exists(redistRoot)
+            ? Directory.GetDirectories(redistRoot)
+                .Select(Path.GetFileName)
+                .Where(name => name != null && name.StartsWith("14.5", StringComparison.Ordinal))
+                .OrderByDescending(name => name, StringComparer.Ordinal)
+                .FirstOrDefault()
+            : null;
+        if (selected == null)
+            throw new DirectoryNotFoundException($"No v145 redistributable was found under '{redistRoot}'.");
+
+        return Path.Combine(redistRoot, selected);
     }
 
     static void CopyRequired(AbsolutePath source, AbsolutePath destinationDirectory)
