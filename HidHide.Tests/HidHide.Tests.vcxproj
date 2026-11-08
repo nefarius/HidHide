@@ -35,6 +35,8 @@
   </PropertyGroup>
   <PropertyGroup Label="GoogleTestNuGet">
     <HidHideGoogleTestTargetsPath>$(SolutionDir)packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.1.8.1.7\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-static.targets</HidHideGoogleTestTargetsPath>
+    <!-- The package disables itself for toolsets newer than v143. v145 still links these static libraries. -->
+    <Force-Enable-Microsoft-googletest-v140-windesktop-msvcstl-static-rt-static>true</Force-Enable-Microsoft-googletest-v140-windesktop-msvcstl-static-rt-static>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">

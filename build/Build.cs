@@ -1,6 +1,8 @@
 using System.IO.Compression;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
 using Fallout.Common;
@@ -170,7 +172,6 @@ class Build : FalloutBuild
             string pfxPassword;
             var timestamp = false;
             string? ephemeralPfx = null;
-            string? scriptPath = null;
 
             if (userPfxExists)
             {
@@ -183,18 +184,7 @@ class Build : FalloutBuild
                 var signDirectory = ArtifactsDirectory / ".ci-testsign";
                 signDirectory.CreateDirectory();
                 ephemeralPfx = Path.Combine(signDirectory.ToString(), $"hidhide-{NormalizePlatform(Platform)}-{Guid.NewGuid():N}.pfx");
-                scriptPath = Path.Combine(signDirectory.ToString(), $"gen-{Guid.NewGuid():N}.ps1");
-                WriteGenerateTestPfxScript(scriptPath);
-                ProcessTasks.StartProcess(
-                        "powershell.exe",
-                        $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"{scriptPath}\" -OutPath \"{ephemeralPfx}\" -PlainPassword \"{EphemeralTestPfxPassword}\"",
-                        logInvocation: false,
-                        logger: (_, text) => Log.Information("{Text}", text))
-                    .AssertZeroExitCode();
-
-                if (!File.Exists(ephemeralPfx))
-                    throw new InvalidOperationException("Ephemeral test PFX was not created.");
-
+                CreateEphemeralTestPfx(ephemeralPfx, EphemeralTestPfxPassword);
                 pfxPath = ephemeralPfx;
                 pfxPassword = EphemeralTestPfxPassword;
             }
@@ -217,7 +207,6 @@ class Build : FalloutBuild
             finally
             {
                 DeleteIfExists(ephemeralPfx);
-                DeleteIfExists(scriptPath);
             }
         });
 
@@ -613,28 +602,19 @@ class Build : FalloutBuild
             : value;
     }
 
-    static void WriteGenerateTestPfxScript(string scriptPath)
+    static void CreateEphemeralTestPfx(string path, string password)
     {
-        const string body = """
-            param(
-                [Parameter(Mandatory = $true)][string]$OutPath,
-                [Parameter(Mandatory = $true)][string]$PlainPassword
-            )
-            $ErrorActionPreference = 'Stop'
-            $sec = ConvertTo-SecureString -String $PlainPassword -AsPlainText -Force
-            $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject 'CN=HidHide CI test signing' `
-                -CertStoreLocation 'Cert:\CurrentUser\My' -NotAfter (Get-Date).AddDays(42)
-            try {
-                Export-PfxCertificate -Cert $cert -FilePath $OutPath -Password $sec -Force | Out-Null
-            }
-            finally {
-                $thumbPath = Join-Path 'Cert:\CurrentUser\My' $cert.Thumbprint
-                if (Test-Path -LiteralPath $thumbPath) {
-                    Remove-Item -LiteralPath $thumbPath -Force
-                }
-            }
-            """;
-        File.WriteAllText(scriptPath, body.Trim(), new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        using var rsa = RSA.Create(2048);
+        var request = new CertificateRequest("CN=HidHide CI test signing", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature, critical: true));
+        request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(
+            new OidCollection { new Oid("1.3.6.1.5.5.7.3.3") },
+            critical: true));
+        request.CertificateExtensions.Add(new X509BasicConstraintsExtension(certificateAuthority: false, hasPathLengthConstraint: false, pathLengthConstraint: 0, critical: true));
+
+        var now = DateTimeOffset.UtcNow;
+        using var certificate = request.CreateSelfSigned(now.AddDays(-1), now.AddDays(42));
+        File.WriteAllBytes(path, certificate.Export(X509ContentType.Pfx, password));
     }
 
     static void DeleteIfExists(string? path)
