@@ -103,7 +103,7 @@ class Build : FalloutBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            MSBuild(s => ApplyBuildVersion(s
+            MSBuild(s => ApplyCiProperties(s
                 .SetTargetPath(SolutionFile)
                 .SetTargets("Rebuild")
                 .SetConfiguration(Configuration)
@@ -446,10 +446,17 @@ class Build : FalloutBuild
         await source.CopyToAsync(target);
     }
 
-    static MSBuildSettings ApplyBuildVersion(MSBuildSettings settings)
+    static MSBuildSettings ApplyCiProperties(MSBuildSettings settings)
     {
         var version = Environment.GetEnvironmentVariable("BUILD_VERSION");
-        return string.IsNullOrWhiteSpace(version) ? settings : settings.SetProperty("BUILD_VERSION", version);
+        if (!string.IsNullOrWhiteSpace(version))
+            settings = settings.SetProperty("BUILD_VERSION", version);
+
+        var toolsVersion = Environment.GetEnvironmentVariable("VCToolsVersion");
+        if (!string.IsNullOrWhiteSpace(toolsVersion))
+            settings = settings.SetProperty("VCToolsVersion", toolsVersion);
+
+        return settings;
     }
 
     void EnsureGoogleTestNuGetPackage()

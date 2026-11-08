@@ -90,14 +90,31 @@ jobs:
           Write-Output "Installing Spectre-mitigated libraries into $installPath"
           & $setup modify `
             --installPath $installPath `
+            --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 `
             --add Microsoft.VisualStudio.Component.VC.ATLMFC.Spectre `
             --add Microsoft.VisualStudio.Component.VC.MFC.ARM64.Spectre `
             --add Microsoft.VisualStudio.Component.VC.Runtimes.x86.x64.Spectre `
             --add Microsoft.VisualStudio.Component.VC.Runtimes.ARM64.Spectre `
-            --quiet --norestart --nocache --wait
+            --quiet --norestart --nocache
           if ($LASTEXITCODE -notin 0, 3010) {
             throw "Visual Studio component install failed with exit $LASTEXITCODE"
           }
+
+          $selected = Get-ChildItem "$installPath\VC\Tools\MSVC" -Directory |
+            Where-Object {
+              (Test-Path "$($_.FullName)\atlmfc\lib\spectre\x64\mfcs140.lib") -and
+              (Test-Path "$($_.FullName)\atlmfc\lib\spectre\arm64\mfcs140.lib") -and
+              (Test-Path "$($_.FullName)\bin\Hostx64\arm64\cl.exe")
+            } |
+            Sort-Object Name -Descending |
+            Select-Object -First 1
+          if (-not $selected) {
+            Write-Output 'Installed MSVC toolsets:'
+            Get-ChildItem "$installPath\VC\Tools\MSVC" -Directory | ForEach-Object { Write-Output $_.Name }
+            throw 'No MSVC toolset contains Spectre-mitigated MFC and the ARM64 compiler.'
+          }
+          "VCToolsVersion=$($selected.Name)" >> $env:GITHUB_ENV
+          Write-Output "Using VCToolsVersion $($selected.Name)"
 
       - name: Cache Windows kit packages
         id: kits
