@@ -528,10 +528,17 @@ class Build : FalloutBuild
     {
         var arch = platform.Equals("ARM64", StringComparison.OrdinalIgnoreCase) ? "arm64" : "x64";
         var redist = FindLatestVc145Redist();
-        var crt = Path.Combine(redist, "spectre", arch, "Microsoft.VC145.CRT");
+        // x64 ships a desktop Spectre CRT. ARM64 ships that CRT under the OneCore desktop folder.
+        var crt = new[]
+        {
+            Path.Combine(redist, "spectre", arch, "Microsoft.VC145.CRT"),
+            Path.Combine(redist, "spectre", "onecore", arch, "Microsoft.VC145.CRT"),
+        }.FirstOrDefault(Directory.Exists);
         var mfc = Path.Combine(redist, "spectre", arch, "Microsoft.VC145.MFC");
-        if (!Directory.Exists(crt) || !Directory.Exists(mfc))
+        if (crt == null || !Directory.Exists(mfc))
             throw new DirectoryNotFoundException($"Spectre-mitigated Visual C++ 2026 redistributable for {arch} was not found under '{redist}'.");
+
+        Log.Information("Staging Visual C++ runtime from {Crt}", crt);
 
         CopyRuntimeDll(Path.Combine(mfc, "mfc140u.dll"), stageDir);
         foreach (var name in new[]
