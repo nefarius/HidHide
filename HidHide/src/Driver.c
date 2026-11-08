@@ -45,6 +45,41 @@ VOID HidHideDriverEvtUnload(WDFDRIVER wdfDriver)
     LogUnregisterProviders();
 }
 
+_IRQL_requires_max_(PASSIVE_LEVEL)
+static BOOLEAN IsXboxSyntheticGamepadBus(_In_ PWDFDEVICE_INIT wdfDeviceInit)
+{
+    DECLARE_CONST_UNICODE_STRING(busId, L"SYNTHETICGAMEPAD");
+    WDFMEMORY hardwareIds;
+    size_t bufferSize;
+    BOOLEAN matched = FALSE;
+
+    NTSTATUS ntstatus = WdfFdoInitAllocAndQueryProperty(wdfDeviceInit, DevicePropertyHardwareID,
+        NonPagedPoolNx, WDF_NO_OBJECT_ATTRIBUTES, &hardwareIds);
+    if (!NT_SUCCESS(ntstatus)) return (FALSE);
+
+    PCWSTR id = WdfMemoryGetBuffer(hardwareIds, &bufferSize);
+    size_t remaining = bufferSize / sizeof(WCHAR);
+    while (remaining != 0 && *id != L'\0')
+    {
+        size_t length;
+        ntstatus = RtlStringCchLengthW(id, remaining, &length);
+        if (!NT_SUCCESS(ntstatus)) break;
+
+        UNICODE_STRING hardwareId;
+        if (NT_SUCCESS(RtlUnicodeStringInit(&hardwareId, id)) && RtlEqualUnicodeString(&hardwareId, &busId, TRUE))
+        {
+            matched = TRUE;
+            break;
+        }
+
+        id += length + 1;
+        remaining -= length + 1;
+    }
+
+    WdfObjectDelete(hardwareIds);
+    return (matched);
+}
+
 _Use_decl_annotations_
 NTSTATUS
 HidHideDriverEvtDeviceAdd(WDFDRIVER wdfDriver, PWDFDEVICE_INIT wdfDeviceInit)
@@ -52,8 +87,13 @@ HidHideDriverEvtDeviceAdd(WDFDRIVER wdfDriver, PWDFDEVICE_INIT wdfDeviceInit)
     TRACE_ALWAYS(L"");
     UNREFERENCED_PARAMETER(wdfDriver);
 
-    NTSTATUS ntstatus;
+    // The Xbox Synthetic Gamepad Bus is a UMDF/VHF source in HIDClass.
+    // Leave its parent stack alone and continue filtering its controller children normally.
+    if (IsXboxSyntheticGamepadBus(wdfDeviceInit))
+    {
+        TRACE_ALWAYS(L"Skipping the Xbox Synthetic Gamepad Bus");
+        return (STATUS_SUCCESS);
+    }
 
-    ntstatus = HidHideCreateDevice(wdfDeviceInit);
-    return (ntstatus);
+    return (HidHideCreateDevice(wdfDeviceInit));
 }
