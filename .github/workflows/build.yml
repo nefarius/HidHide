@@ -101,20 +101,29 @@ jobs:
           }
 
           $selected = Get-ChildItem "$installPath\VC\Tools\MSVC" -Directory |
-            Where-Object {
-              (Test-Path "$($_.FullName)\atlmfc\lib\spectre\x64\mfcs140.lib") -and
-              (Test-Path "$($_.FullName)\atlmfc\lib\spectre\arm64\mfcs140.lib") -and
-              (Test-Path "$($_.FullName)\bin\Hostx64\arm64\cl.exe")
-            } |
+            Where-Object { $_.Name -like '14.5*' } |
             Sort-Object Name -Descending |
             Select-Object -First 1
-          if (-not $selected) {
+          if (-not $selected -or
+              -not (Test-Path "$($selected.FullName)\atlmfc\lib\spectre\x64\mfcs140.lib") -or
+              -not (Test-Path "$($selected.FullName)\atlmfc\lib\spectre\arm64\mfcs140.lib") -or
+              -not (Test-Path "$($selected.FullName)\bin\Hostx64\arm64\cl.exe")) {
             Write-Output 'Installed MSVC toolsets:'
             Get-ChildItem "$installPath\VC\Tools\MSVC" -Directory | ForEach-Object { Write-Output $_.Name }
-            throw 'No MSVC toolset contains Spectre-mitigated MFC and the ARM64 compiler.'
+            throw 'The newest v145 toolset does not contain Spectre-mitigated MFC and the ARM64 compiler.'
           }
-          "VCToolsVersion=$($selected.Name)" >> $env:GITHUB_ENV
-          Write-Output "Using VCToolsVersion $($selected.Name)"
+          Write-Output "v145 toolset $($selected.Name) has Spectre MFC and the ARM64 compiler."
+
+          # VS 2026 does not always install this wrapper when ARM64 tools are added later.
+          # vcpkg requires it to discover the x64-hosted ARM64 compiler.
+          $wrapper = Join-Path $installPath 'VC\Auxiliary\Build\vcvarsamd64_arm64.bat'
+          if (-not (Test-Path -LiteralPath $wrapper)) {
+            Set-Content -LiteralPath $wrapper -Encoding ascii -Value @(
+              '@echo off'
+              'call "%~dp0vcvarsall.bat" amd64_arm64 %*'
+            )
+            Write-Output "Created $wrapper"
+          }
 
       - name: Cache Windows kit packages
         id: kits
@@ -173,13 +182,22 @@ jobs:
         uses: actions/cache@v6
         with:
           path: vcpkg-archives
-          key: vcpkg-v1-${{ matrix.platform }}-${{ hashFiles('Watchdog/vcpkg.json', 'Watchdog/vcpkg-configuration.json') }}-${{ steps.cache-keys.outputs.vcpkg-sha }}-${{ steps.cache-keys.outputs.image-version }}
+          key: vcpkg-v1-${{ matrix.platform }}-tool-2025-10-16-${{ hashFiles('Watchdog/vcpkg.json', 'Watchdog/vcpkg-configuration.json') }}-${{ steps.cache-keys.outputs.vcpkg-sha }}-${{ steps.cache-keys.outputs.image-version }}
           restore-keys: |
             vcpkg-v1-${{ matrix.platform }}-
 
       - name: Bootstrap vcpkg
         shell: cmd
         run: .\Watchdog\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+
+      - name: Use a vcpkg tool that understands v145
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $destination = Join-Path $env:GITHUB_WORKSPACE 'Watchdog\vcpkg\vcpkg.exe'
+          # The submodule pins vcpkg-tool 2025-09-03, which predates Visual Studio 2026 toolset v145.
+          Invoke-WebRequest -Uri 'https://github.com/microsoft/vcpkg-tool/releases/download/2025-10-16/vcpkg.exe' -OutFile $destination
+          & $destination version
 
       - name: Configure vcpkg binary cache
         shell: pwsh

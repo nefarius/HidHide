@@ -452,10 +452,6 @@ class Build : FalloutBuild
         if (!string.IsNullOrWhiteSpace(version))
             settings = settings.SetProperty("BUILD_VERSION", version);
 
-        var toolsVersion = Environment.GetEnvironmentVariable("VCToolsVersion");
-        if (!string.IsNullOrWhiteSpace(toolsVersion))
-            settings = settings.SetProperty("VCToolsVersion", toolsVersion);
-
         return settings;
     }
 
