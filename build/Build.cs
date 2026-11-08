@@ -103,12 +103,11 @@ class Build : FalloutBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            var platform = ParsePlatform(Platform);
             MSBuild(s => ApplyBuildVersion(s
                 .SetTargetPath(SolutionFile)
                 .SetTargets("Rebuild")
                 .SetConfiguration(Configuration)
-                .SetTargetPlatform(platform)
+                .SetProperty("Platform", NormalizePlatform(Platform))
                 .SetMaxCpuCount(Environment.ProcessorCount)
                 .SetNodeReuse(IsLocalBuild)
                 .SetVerbosity(MSBuildVerbosity.Minimal)));
@@ -538,14 +537,6 @@ class Build : FalloutBuild
 
         source.CopyToDirectory(destinationDirectory, ExistsPolicy.FileFail);
     }
-
-    static MSBuildTargetPlatform ParsePlatform(string platform) =>
-        NormalizePlatform(platform) switch
-        {
-            "ARM64" => (MSBuildTargetPlatform)"ARM64",
-            "x64" => MSBuildTargetPlatform.x64,
-            _ => throw new ArgumentException($"Unsupported platform: {platform}", nameof(platform)),
-        };
 
     static string NormalizePlatform(string platform)
     {

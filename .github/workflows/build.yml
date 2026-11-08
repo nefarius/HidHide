@@ -94,7 +94,7 @@ jobs:
             --add Microsoft.VisualStudio.Component.VC.MFC.ARM64.Spectre `
             --add Microsoft.VisualStudio.Component.VC.Runtimes.x86.x64.Spectre `
             --add Microsoft.VisualStudio.Component.VC.Runtimes.ARM64.Spectre `
-            --quiet --norestart --nocache
+            --quiet --norestart --nocache --wait
           if ($LASTEXITCODE -notin 0, 3010) {
             throw "Visual Studio component install failed with exit $LASTEXITCODE"
           }
