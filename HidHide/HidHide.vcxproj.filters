@@ -68,9 +68,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="HidHide.wprp" />
-    <None Include="ReinstallDriver.cmd">
-      <Filter>Content Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="$(IntDir)HidHideETW.rc">

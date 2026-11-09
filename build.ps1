@@ -10,19 +10,18 @@ Set-StrictMode -Version 2.0; $ErrorActionPreference = "Stop"; $ConfirmPreference
 $PSScriptRoot = Split-Path $MyInvocation.MyCommand.Path -Parent
 
 ###########################################################################
-# CONFIGURATION (BthPS3-style bootstrapper)
+# CONFIGURATION
 ###########################################################################
 
 $BuildProjectFile = "$PSScriptRoot\build\_build.csproj"
-$TempDirectory = "$PSScriptRoot\.nuke\temp"
+$TempDirectory = "$PSScriptRoot\.fallout\temp"
 
 $DotNetGlobalFile = "$PSScriptRoot\global.json"
 $DotNetInstallUrl = "https://dot.net/v1/dotnet-install.ps1"
-$DotNetChannel = "Current"
+$DotNetChannel = "10.0"
 
-$env:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = 1
 $env:DOTNET_CLI_TELEMETRY_OPTOUT = 1
-$env:DOTNET_MULTILEVEL_LOOKUP = 0
+$env:DOTNET_NOLOGO = 1
 
 ###########################################################################
 # EXECUTION
@@ -33,10 +32,27 @@ function ExecSafe([scriptblock] $cmd) {
     if ($LASTEXITCODE) { exit $LASTEXITCODE }
 }
 
-if ($null -ne (Get-Command "dotnet" -ErrorAction SilentlyContinue) -and `
-    $(dotnet --version) -and $LASTEXITCODE -eq 0) {
+# The build project targets net10.0, so a .NET 10 runtime must exist.
+$DotNetOk = $false
+if ($null -ne (Get-Command "dotnet" -ErrorAction SilentlyContinue)) {
+    $PreviousErrorActionPreference = $ErrorActionPreference
+    try {
+        $ErrorActionPreference = "SilentlyContinue"
+        $InstalledVersion = "$(dotnet --version 2>$null)"
+        $InstalledExitCode = $LASTEXITCODE
+        $InstalledRuntimes = @(dotnet --list-runtimes 2>$null)
+        $RuntimesExitCode = $LASTEXITCODE
+    }
+    finally {
+        $ErrorActionPreference = $PreviousErrorActionPreference
+    }
+    $HasNet10Runtime = @($InstalledRuntimes | Where-Object { $_ -match '^Microsoft\.NETCore\.App 10\.' }).Count -gt 0
+    if ($InstalledExitCode -eq 0 -and $RuntimesExitCode -eq 0 -and $HasNet10Runtime -and $InstalledVersion -match '^(\d+)\.' -and [int]$Matches[1] -ge 10) { $DotNetOk = $true }
+}
+if ($DotNetOk) {
     $env:DOTNET_EXE = (Get-Command "dotnet").Path
-} else {
+}
+else {
     $DotNetInstallFile = "$TempDirectory\dotnet-install.ps1"
     New-Item -ItemType Directory -Path $TempDirectory -Force | Out-Null
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -56,10 +72,10 @@ if ($null -ne (Get-Command "dotnet" -ErrorAction SilentlyContinue) -and `
         ExecSafe { & powershell $DotNetInstallFile -InstallDir $DotNetDirectory -Version $DotNetVersion -NoPath }
     }
     $env:DOTNET_EXE = "$DotNetDirectory\dotnet.exe"
+    $env:PATH = "$DotNetDirectory;$env:PATH"
 }
 
 Write-Output "Microsoft (R) .NET SDK version $(& $env:DOTNET_EXE --version)"
 
 ExecSafe { & $env:DOTNET_EXE build $BuildProjectFile /nodeReuse:false /p:UseSharedCompilation=false -nologo -clp:NoSummary --verbosity quiet }
 ExecSafe { & $env:DOTNET_EXE run --project $BuildProjectFile --no-build -- $BuildArguments }
-

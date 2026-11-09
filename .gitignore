@@ -367,3 +367,5 @@ HidHideClient/RC*
 *.aps
 /Setup
 vcpkg_installed
+.fallout/temp/
+vcpkg-archives/
