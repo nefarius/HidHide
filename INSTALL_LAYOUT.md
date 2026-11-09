@@ -17,6 +17,7 @@ HidHide installers must deploy user-visible binaries and ETW manifests under a *
 | `HidHide.man`, `HidHide.wprp` | Kernel ETW |
 | `HidHideClient.exe`, `HidHideClient.man`, `HidHideClient.wprp` | Configuration client |
 | `HidHideCLI.exe`, `HidHideCLI.man`, `HidHideCLI.wprp` | CLI |
+| `mfc140u.dll`, `vcruntime140.dll`, `msvcp140.dll`, `msvcp140_1.dll`, `msvcp140_2.dll` | Spectre-mitigated Visual C++ 2026 runtime used by the client and CLI. `PackageMsi` copies these beside the executables. |
 
 The kernel driver continues to load from `%WinDir%\System32\drivers\` after installation (see driver setup actions); ETW manifests for the driver still reference `HidHide.sys` there.
 
@@ -47,6 +48,14 @@ wix extension add -g WixToolset.UI.wixext/5.0.2
 Collect all payload files into one **flat folder** (same relative names as in the table above). Paths can come from a Release build, e.g. copy driver artifacts, **`nefconw.exe`** from a [nefcon release](https://github.com/nefarius/nefcon/releases), and built `.exe` / `.man` / `.wprp` files into `.\staging`.
 
 ### Build
+
+The normal command stages the payload, including `nefconw.exe`, and builds the MSI:
+
+```powershell
+./build.ps1 PackageMsi --configuration Release --platform x64
+```
+
+The installer project remains the WixSharp implementation. It can still be invoked directly against an existing flat staging directory:
 
 ```powershell
 cd Installer

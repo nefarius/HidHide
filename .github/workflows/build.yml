@@ -1,0 +1,225 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'v*'
+    paths-ignore:
+      - '**/*.md'
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - '**/*.md'
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  DOTNET_NOLOGO: 'true'
+  VCPKG_BINARY_SOURCES: 'clear'
+
+jobs:
+  version:
+    name: Resolve version
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      is-release: ${{ steps.resolve.outputs.is-release }}
+      tag: ${{ steps.resolve.outputs.tag }}
+      setup-version: ${{ steps.resolve.outputs.setup-version }}
+      driver-version: ${{ steps.resolve.outputs.driver-version }}
+      revision: ${{ steps.resolve.outputs.revision }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Test version resolution
+        run: ./build.sh TestVersion
+
+      - name: Resolve binary version
+        id: resolve
+        run: ./build.sh ResolveVersion --release-ref "${{ github.ref }}" --run-number ${{ github.run_number }} --github-output "$GITHUB_OUTPUT"
+
+  build:
+    name: Platform ${{ matrix.platform }}
+    needs: version
+    runs-on: windows-2025-vs2026
+    permissions:
+      contents: read
+    env:
+      BUILD_VERSION: ${{ needs.version.outputs.driver-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [x64, ARM64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install Spectre-mitigated MFC libraries
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $installPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+          if (-not $installPath) { throw 'Visual Studio installation was not found.' }
+          $setup = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe"
+          if (-not (Test-Path -LiteralPath $setup)) { throw "Visual Studio setup.exe was not found at $setup" }
+          Write-Output "Installing Spectre-mitigated libraries into $installPath"
+          & $setup modify `
+            --installPath $installPath `
+            --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 `
+            --add Microsoft.VisualStudio.Component.VC.ATLMFC.Spectre `
+            --add Microsoft.VisualStudio.Component.VC.MFC.ARM64.Spectre `
+            --add Microsoft.VisualStudio.Component.VC.Runtimes.x86.x64.Spectre `
+            --add Microsoft.VisualStudio.Component.VC.Runtimes.ARM64.Spectre `
+            --quiet --norestart --nocache
+          if ($LASTEXITCODE -notin 0, 3010) {
+            throw "Visual Studio component install failed with exit $LASTEXITCODE"
+          }
+
+          $selected = Get-ChildItem "$installPath\VC\Tools\MSVC" -Directory |
+            Where-Object { $_.Name -like '14.5*' } |
+            Sort-Object Name -Descending |
+            Select-Object -First 1
+          if (-not $selected -or
+              -not (Test-Path "$($selected.FullName)\atlmfc\lib\spectre\x64\mfcs140.lib") -or
+              -not (Test-Path "$($selected.FullName)\atlmfc\lib\spectre\arm64\mfcs140.lib") -or
+              -not (Test-Path "$($selected.FullName)\bin\Hostx64\arm64\cl.exe")) {
+            Write-Output 'Installed MSVC toolsets:'
+            Get-ChildItem "$installPath\VC\Tools\MSVC" -Directory | ForEach-Object { Write-Output $_.Name }
+            throw 'The newest v145 toolset does not contain Spectre-mitigated MFC and the ARM64 compiler.'
+          }
+          Write-Output "v145 toolset $($selected.Name) has Spectre MFC and the ARM64 compiler."
+
+          # VS 2026 does not always install this wrapper when ARM64 tools are added later.
+          # vcpkg requires it to discover the x64-hosted ARM64 compiler.
+          $wrapper = Join-Path $installPath 'VC\Auxiliary\Build\vcvarsamd64_arm64.bat'
+          if (-not (Test-Path -LiteralPath $wrapper)) {
+            Set-Content -LiteralPath $wrapper -Encoding ascii -Value @(
+              '@echo off'
+              'call "%~dp0vcvarsall.bat" amd64_arm64 %*'
+            )
+            Write-Output "Created $wrapper"
+          }
+
+      - name: Cache Windows kit packages
+        id: kits
+        uses: actions/cache@v6
+        with:
+          path: packages
+          key: windows-kits-nuget-28000.2526-v1-${{ hashFiles('packages.config') }}
+
+      - name: Restore Windows kit packages
+        if: steps.kits.outputs.cache-hit != 'true'
+        shell: cmd
+        run: nuget restore .\packages.config -PackagesDirectory .\packages
+
+      - name: Validate Windows kit packages
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $required = @(
+            'packages\Microsoft.Windows.SDK.CPP.10.0.28000.2526\build\native\Microsoft.Windows.SDK.cpp.props'
+            'packages\Microsoft.Windows.SDK.CPP.x64.10.0.28000.2526\build\native\Microsoft.Windows.SDK.cpp.x64.props'
+            'packages\Microsoft.Windows.SDK.CPP.arm64.10.0.28000.2526\build\native\Microsoft.Windows.SDK.cpp.arm64.props'
+            'packages\Microsoft.Windows.WDK.x64.10.0.28000.2526\build\native\Microsoft.Windows.WDK.x64.props'
+            'packages\Microsoft.Windows.WDK.arm64.10.0.28000.2526\build\native\Microsoft.Windows.WDK.arm64.props'
+          )
+          foreach ($path in $required) {
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Missing kit package file: $path"
+            }
+          }
+
+      - name: Install WiX
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 5.0.2
+          $tools = Join-Path $env:USERPROFILE '.dotnet/tools'
+          "$tools" >> $env:GITHUB_PATH
+          & (Join-Path $tools 'wix.exe') extension add -g WixToolset.UI.wixext/5.0.2
+
+      - name: Resolve cache keys
+        id: cache-keys
+        shell: pwsh
+        run: |
+          $vcpkgSha = git rev-parse HEAD:Watchdog/vcpkg
+          "vcpkg-sha=$vcpkgSha" >> $env:GITHUB_OUTPUT
+          "image-version=$env:ImageVersion" >> $env:GITHUB_OUTPUT
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('build/_build.csproj', 'Installer/HidHide.Installer.csproj', 'global.json') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Cache vcpkg binary archives
+        uses: actions/cache@v6
+        with:
+          path: vcpkg-archives
+          key: vcpkg-v1-${{ matrix.platform }}-tool-2025-10-16-${{ hashFiles('Watchdog/vcpkg.json', 'Watchdog/vcpkg-configuration.json') }}-${{ steps.cache-keys.outputs.vcpkg-sha }}-${{ steps.cache-keys.outputs.image-version }}
+          restore-keys: |
+            vcpkg-v1-${{ matrix.platform }}-
+
+      - name: Bootstrap vcpkg
+        shell: cmd
+        run: .\Watchdog\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+
+      - name: Use a vcpkg tool that understands v145
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $destination = Join-Path $env:GITHUB_WORKSPACE 'Watchdog\vcpkg\vcpkg.exe'
+          # The submodule pins vcpkg-tool 2025-09-03, which predates Visual Studio 2026 toolset v145.
+          Invoke-WebRequest -Uri 'https://github.com/microsoft/vcpkg-tool/releases/download/2025-10-16/vcpkg.exe' -OutFile $destination
+          $expected = '30430c3d3f58f9710c4e0671db5cf4ebe8445760fe8452ac8f9365ac990beae0'
+          $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $destination).Hash
+          if ($actual -ne $expected) { throw "vcpkg.exe hash mismatch: $actual" }
+          & $destination version
+
+      - name: Configure vcpkg binary cache
+        shell: pwsh
+        run: |
+          $archives = (Join-Path $env:GITHUB_WORKSPACE 'vcpkg-archives').Replace('\', '/')
+          New-Item -ItemType Directory -Force -Path $archives | Out-Null
+          "VCPKG_BINARY_SOURCES=clear;files,$archives,readwrite" >> $env:GITHUB_ENV
+
+      - name: Build, test, and package
+        shell: pwsh
+        run: ./build.ps1 Ci --configuration Release --platform ${{ matrix.platform }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: hidhide-${{ matrix.platform }}
+          if-no-files-found: error
+          path: |
+            artifacts/msi/${{ matrix.platform }}/HidHide_${{ matrix.platform }}.msi
+            disk1/HidHide_${{ matrix.platform }}.cab
+            bin/Release/${{ matrix.platform }}/**/*.pdb
+            bin/Release/${{ matrix.platform }}/**/HidHide*.exe

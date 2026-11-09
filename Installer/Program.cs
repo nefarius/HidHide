@@ -47,20 +47,17 @@ public static class Program
             // Must be a root-level Dir sibling of the install tree (WiX 5 / WIX0094); see WixSharp #1727, #1855.
             const string startMenuRel = @"%ProgramMenu%\Nefarius Software Solutions\HidHide";
             string sd = options.StagingDir;
-            var installDir = new Dir(
-                installRel,
-                new WixSharp.File(Path.Combine(sd, "HidHide.cat")),
-                new WixSharp.File(Path.Combine(sd, "nefconw.exe")),
-                new WixSharp.File(Path.Combine(sd, "HidHide.inf")),
-                new WixSharp.File(Path.Combine(sd, "HidHide.sys")),
-                new WixSharp.File(Path.Combine(sd, "HidHide.man")),
-                new WixSharp.File(Path.Combine(sd, "HidHide.wprp")),
-                new WixSharp.File(Path.Combine(sd, "HidHideClient.exe")),
-                new WixSharp.File(Path.Combine(sd, "HidHideClient.man")),
-                new WixSharp.File(Path.Combine(sd, "HidHideClient.wprp")),
-                new WixSharp.File(Path.Combine(sd, "HidHideCLI.exe")),
-                new WixSharp.File(Path.Combine(sd, "HidHideCLI.man")),
-                new WixSharp.File(Path.Combine(sd, "HidHideCLI.wprp")))
+            var payload = Options.RequiredPayloadFiles
+                .Select(name => (WixEntity)new WixSharp.File(Path.Combine(sd, name)))
+                .ToList();
+            foreach (string dll in Directory.GetFiles(sd, "*.dll").OrderBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase))
+            {
+                if (Options.RequiredPayloadFiles.Contains(Path.GetFileName(dll), StringComparer.OrdinalIgnoreCase))
+                    continue;
+                payload.Add(new WixSharp.File(dll));
+            }
+
+            var installDir = new Dir(new Id("INSTALLDIR"), installRel, payload.ToArray())
             {
                 IsInstallDir = true,
             };
@@ -353,7 +350,7 @@ public static class Program
             Directory.CreateDirectory(OutputDir);
         }
 
-        static readonly string[] RequiredPayloadFiles =
+        internal static readonly string[] RequiredPayloadFiles =
         [
             "HidHide.cat",
             "nefconw.exe",
@@ -367,6 +364,11 @@ public static class Program
             "HidHideCLI.exe",
             "HidHideCLI.man",
             "HidHideCLI.wprp",
+            "mfc140u.dll",
+            "vcruntime140.dll",
+            "msvcp140.dll",
+            "msvcp140_1.dll",
+            "msvcp140_2.dll",
         ];
     }
 }
