@@ -332,6 +332,11 @@ NTSTATUS OnControlDeviceCreate(WDFDEVICE wdfControlDevice)
     ntstatus = HidHideDriverGetBooleanProperty(&whitelistedInverse, &pControlDeviceContext->whitelistedInverse);
     if (!NT_SUCCESS(ntstatus)) return (ntstatus);
 
+    // Query the boolean property indicating whether a device is restarted when it is hidden or shown (off when absent)
+    DECLARE_CONST_UNICODE_STRING(restartOnChange, DRIVER_PROPERTY_RESTART_ON_CHANGE);
+    ntstatus = HidHideDriverGetBooleanProperty(&restartOnChange, &pControlDeviceContext->restartOnChange);
+    if (!NT_SUCCESS(ntstatus)) return (ntstatus);
+
     return (STATUS_SUCCESS);
 }
 
@@ -386,6 +391,12 @@ NTSTATUS OnControlDeviceIoDeviceControl(WDFDEVICE wdfControlDevice, WDFQUEUE wdf
         break;
     case IOCTL_SET_WLINVERSE:
         return (OnControlDeviceIoSetInverse(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
+        break;
+    case IOCTL_GET_RESTART_ON_CHANGE:
+        return (OnControlDeviceIoGetRestartOnChange(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
+        break;
+    case IOCTL_SET_RESTART_ON_CHANGE:
+        return (OnControlDeviceIoSetRestartOnChange(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
         break;
     case IOCTL_ADD_SESSION_BLACKLIST:
         return (OnControlDeviceIoAddSessionBlacklist(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
@@ -610,6 +621,49 @@ NTSTATUS OnControlDeviceIoSetInverse(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQue
     ntstatus = WdfRequestRetrieveInputBuffer(wdfRequest, inputBufferLength, &buffer, NULL);
     if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfRequestRetrieveOutputBuffer", ntstatus);
     ntstatus = SetInverse(FALSE != *buffer);
+    if (!NT_SUCCESS(ntstatus)) return (ntstatus);
+
+    WdfRequestCompleteWithInformation(wdfRequest, STATUS_SUCCESS, outputBufferLength);
+    return (STATUS_SUCCESS);
+}
+
+_Use_decl_annotations_
+NTSTATUS OnControlDeviceIoGetRestartOnChange(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQueue, WDFREQUEST wdfRequest, size_t outputBufferLength, size_t inputBufferLength, ULONG ioControlCode)
+{
+    TRACE_ALWAYS(L"");
+    UNREFERENCED_PARAMETER(wdfControlDevice);
+    UNREFERENCED_PARAMETER(wdfQueue);
+    UNREFERENCED_PARAMETER(ioControlCode);
+
+    PBOOLEAN buffer;
+    NTSTATUS ntstatus;
+
+    // Validate buffer and, on success, report the current status
+    if ((0 != inputBufferLength) || (sizeof(BOOLEAN) != outputBufferLength)) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+    ntstatus = WdfRequestRetrieveOutputBuffer(wdfRequest, outputBufferLength, &buffer, NULL);
+    if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfRequestRetrieveOutputBuffer", ntstatus);
+    *buffer = GetRestartOnChange();
+
+    WdfRequestCompleteWithInformation(wdfRequest, STATUS_SUCCESS, outputBufferLength);
+    return (STATUS_SUCCESS);
+}
+
+_Use_decl_annotations_
+NTSTATUS OnControlDeviceIoSetRestartOnChange(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQueue, WDFREQUEST wdfRequest, size_t outputBufferLength, size_t inputBufferLength, ULONG ioControlCode)
+{
+    TRACE_ALWAYS(L"");
+    UNREFERENCED_PARAMETER(wdfControlDevice);
+    UNREFERENCED_PARAMETER(wdfQueue);
+    UNREFERENCED_PARAMETER(ioControlCode);
+
+    PBOOLEAN buffer;
+    NTSTATUS ntstatus;
+
+    // Validate buffer, retrieve its content, and set the state accordingly
+    if ((sizeof(BOOLEAN) != inputBufferLength) || (0 != outputBufferLength)) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
+    ntstatus = WdfRequestRetrieveInputBuffer(wdfRequest, inputBufferLength, &buffer, NULL);
+    if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfRequestRetrieveInputBuffer", ntstatus);
+    ntstatus = SetRestartOnChange(FALSE != *buffer);
     if (!NT_SUCCESS(ntstatus)) return (ntstatus);
 
     WdfRequestCompleteWithInformation(wdfRequest, STATUS_SUCCESS, outputBufferLength);
@@ -982,6 +1036,8 @@ VOID RestartDevicesWhoseCloakChanged()
     // open: a device cloaked while Raw Input has it open stays readable to every Raw Input client, and a device that
     // was cloaked when Raw Input tried to open it stays out of Raw Input after it is uncloaked, until it arrives again
     // Restarting the device makes it arrive again, and the new device object starts with the cloaking it then has
+    // While restart on change is off, each device keeps the cloaking it started with, so turning it on applies what changed meanwhile
+    if (!GetRestartOnChange()) return;
     active = GetActive();
     WdfWaitLockAcquire(s_devicesLock, NULL);
     for (ULONG index = 0, size = WdfCollectionGetCount(s_wdfDevices); (index < size); index++)
@@ -1084,6 +1140,48 @@ NTSTATUS SetInverse(BOOLEAN inverse)
     if ((changed) && (inverse))  LogEvent(ETW(Enabled), L"");
     if ((changed) && (!inverse)) LogEvent(ETW(Disabled), L"");
 
+    return (STATUS_SUCCESS);
+}
+
+_Use_decl_annotations_
+BOOLEAN GetRestartOnChange()
+{
+    TRACE_PERFORMANCE(L"");
+
+    PCONTROL_DEVICE_CONTEXT pControlDeviceContext;
+    BOOLEAN                 restartOnChange;
+
+    WdfWaitLockAcquire(s_criticalSectionLock, NULL);
+    pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
+    restartOnChange = pControlDeviceContext->restartOnChange;
+    WdfWaitLockRelease(s_criticalSectionLock);
+
+    return (restartOnChange);
+}
+
+_Use_decl_annotations_
+NTSTATUS SetRestartOnChange(BOOLEAN restartOnChange)
+{
+    TRACE_PERFORMANCE(L"");
+
+    PCONTROL_DEVICE_CONTEXT pControlDeviceContext;
+    BOOLEAN                 changed;
+    NTSTATUS                ntstatus;
+
+    // Persist the new setting in the registry
+    DECLARE_CONST_UNICODE_STRING(parameterName, DRIVER_PROPERTY_RESTART_ON_CHANGE);
+    ntstatus = HidHideDriverSetBooleanProperty(&parameterName, restartOnChange);
+    if (!NT_SUCCESS(ntstatus)) return (ntstatus);
+
+    // Apply the new setting
+    WdfWaitLockAcquire(s_criticalSectionLock, NULL);
+    pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
+    changed = (pControlDeviceContext->restartOnChange != restartOnChange);
+    pControlDeviceContext->restartOnChange = restartOnChange;
+    WdfWaitLockRelease(s_criticalSectionLock);
+
+    // Turned on, it applies straight away what was hidden or shown while it was off
+    if ((changed) && (restartOnChange)) RestartDevicesWhoseCloakChanged();
     return (STATUS_SUCCESS);
 }
 

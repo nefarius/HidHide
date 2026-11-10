@@ -13,6 +13,7 @@ ULONG PsGetProcessSessionId(PEPROCESS process);
 #define DRIVER_PROPERTY_BLACKLISTED_DEVICE_INSTANCE_PATHS L"BlacklistedDeviceInstancePaths" // HKLM\SYSTEM\CurrentControlSet\Services\HidHide\Parameters\BlacklistedDeviceInstancePaths (REG_MULTI_Z)
 #define DRIVER_PROPERTY_ACTIVE                            L"Active"                         // HKLM\SYSTEM\CurrentControlSet\Services\HidHide\Parameters\Active (DWORD)
 #define DRIVER_PROPERTY_WHITELISTED_INVERSE               L"WhitelistedInverse"             // HKLM\SYSTEM\CurrentControlSet\Services\HidHide\Parameters\WhitelistedInverse (DWORD)
+#define DRIVER_PROPERTY_RESTART_ON_CHANGE                 L"RestartOnChange"                // HKLM\SYSTEM\CurrentControlSet\Services\HidHide\Parameters\RestartOnChange (DWORD)
 
 #include "HidHideIoctlContract.h"
 
@@ -46,6 +47,9 @@ typedef struct _CONTROL_DEVICE_CONTEXT
 
     // The whitelisted inverse (enabled) state
     BOOLEAN whitelistedInverse;
+
+    // Whether a device is restarted when it is hidden or shown, so that programs which already have it open follow the change
+    BOOLEAN restartOnChange;
 
     // Collection of SESSION_BLACKLIST_ENTRY structures for process-lifetime blacklist entries
     // Entries are automatically removed when the registering process exits
@@ -158,6 +162,16 @@ _IRQL_requires_same_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS OnControlDeviceIoSetInverse(_In_ WDFDEVICE wdfDevice, _In_ WDFQUEUE wdfQueue, _In_ WDFREQUEST wdfRequest, _In_ size_t outputBufferLength, _In_ size_t inputBufferLength, _In_ ULONG ioControlCode);
 
+// Handle GetRestartOnChange I/O request from client
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS OnControlDeviceIoGetRestartOnChange(_In_ WDFDEVICE wdfDevice, _In_ WDFQUEUE wdfQueue, _In_ WDFREQUEST wdfRequest, _In_ size_t outputBufferLength, _In_ size_t inputBufferLength, _In_ ULONG ioControlCode);
+
+// Handle SetRestartOnChange I/O request from client
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS OnControlDeviceIoSetRestartOnChange(_In_ WDFDEVICE wdfDevice, _In_ WDFQUEUE wdfQueue, _In_ WDFREQUEST wdfRequest, _In_ size_t outputBufferLength, _In_ size_t inputBufferLength, _In_ ULONG ioControlCode);
+
 // Handle AddSessionBlacklist I/O request — adds device instance paths to a process-lifetime blacklist
 // Entries are automatically removed when the calling process exits (clean or crash)
 _IRQL_requires_same_
@@ -211,6 +225,7 @@ NTSTATUS SetBlacklist(_In_reads_(bufferSizeInCharacters) LPWSTR buffer, _In_ siz
 
 // Restart every device whose cloaking changed since its device object was created, so that a handle opened before
 // the change follows it; Raw Input, for one, keeps a hidden device open, and opens a shown one only on its arrival
+// Does nothing while restart on change is off
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 VOID RestartDevicesWhoseCloakChanged();
@@ -224,6 +239,16 @@ BOOLEAN GetActive();
 _IRQL_requires_same_
 _IRQL_requires_max_(DISPATCH_LEVEL)
 NTSTATUS SetActive(_In_ BOOLEAN active);
+
+// Get the restart on change state (restart a device when it is hidden or shown)
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+BOOLEAN GetRestartOnChange();
+
+// Set the restart on change state; turned on, it also restarts the devices hidden or shown while it was off
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS SetRestartOnChange(_In_ BOOLEAN restartOnChange);
 
 // Get the inverse state (enable/disable whitelist inverse)
 _IRQL_requires_same_

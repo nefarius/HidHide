@@ -139,6 +139,15 @@ namespace HidHide
         // Reports the current whitelist inverse
         void InvState(_In_ Args const& args) const;
 
+        // Turns restarting a device when it is hidden or unhidden on
+        void RestartOn(_In_ Args const& args);
+
+        // Turns restarting a device when it is hidden or unhidden off
+        void RestartOff(_In_ Args const& args);
+
+        // Reports the current restart on change state
+        void RestartState(_In_ Args const& args) const;
+
         bool const               m_ScriptMode;         // Active when standard input is redirected
         bool const               m_InteractiveMode;    // Active without command line arguments or input redirection
         RegisteredCommands const m_RegisteredCommands; // Self reflection on all commands supported

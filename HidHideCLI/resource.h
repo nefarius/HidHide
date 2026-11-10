@@ -40,6 +40,9 @@
 #define IDS_CLI_INFO_OFF                162
 #define IDS_CLI_INV_OFF                 162
 #define IDS_CLI_INV_STATE               163
+#define IDS_CLI_RESTART_ON              164
+#define IDS_CLI_RESTART_OFF             165
+#define IDS_CLI_RESTART_STATE           166
 #define IDS_PAGE_01                     0x1001
 #define IDS_PAGE_02                     0x1002
 #define IDS_PAGE_03                     0x1003

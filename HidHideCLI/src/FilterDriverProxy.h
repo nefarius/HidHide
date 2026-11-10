@@ -70,6 +70,12 @@ namespace HidHide
         // Set the current whitelist inverse state
         void SetInverse(_In_ bool inverse);
 
+        // Get the restart on change state; returns true when a device is restarted as it is hidden or unhidden
+        bool GetRestartOnChange() const;
+
+        // Set the restart on change state
+        void SetRestartOnChange(_In_ bool restartOnChange);
+
     private:
 
         typedef std::unique_ptr<std::remove_pointer<HANDLE>::type, decltype(&::CloseHandle)> CloseHandlePtr;
@@ -80,5 +86,6 @@ namespace HidHide
         DeviceInstancePaths  m_Blacklist;    // The device instance paths of the blacklisted HID devices
         FullImageNames       m_Whitelist;    // The full image names of the whitelisted applications
         bool                 m_Inverse;      // Indicates if the inverse whitelist is enabled
+        bool                 m_RestartOnChange; // Indicates if a device is restarted as it is hidden or unhidden
     };
 }
