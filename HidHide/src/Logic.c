@@ -19,6 +19,11 @@ WDFDEVICE s_wdfControlDevice = NULL;
 // As a rule of thumb, don't use the control device context directly but instead use the methods below
 WDFWAITLOCK s_criticalSectionLock = NULL;
 
+// The filter device objects, so that a change of cloaking can restart the devices it applies to
+// Guarded by a lock of their own, as judging a device takes the critical section lock
+WDFCOLLECTION s_wdfDevices = NULL;
+WDFWAITLOCK   s_devicesLock = NULL;
+
 _Use_decl_annotations_
 NTSTATUS OnDriverCreate(WDFDRIVER wdfDriver)
 {
@@ -39,6 +44,16 @@ NTSTATUS OnDriverCreate(WDFDRIVER wdfDriver)
     WDF_OBJECT_ATTRIBUTES_INIT(&wdfObjectAttributes);
     wdfObjectAttributes.ParentObject = s_wdfControlDevice;
     ntstatus = WdfWaitLockCreate(&wdfObjectAttributes, &s_criticalSectionLock);
+    if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfWaitLockCreate", ntstatus);
+
+    // The filter devices, kept for restarting those a change of cloaking applies to
+    WDF_OBJECT_ATTRIBUTES_INIT(&wdfObjectAttributes);
+    wdfObjectAttributes.ParentObject = s_wdfControlDevice;
+    ntstatus = WdfCollectionCreate(&wdfObjectAttributes, &s_wdfDevices);
+    if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfCollectionCreate", ntstatus);
+    WDF_OBJECT_ATTRIBUTES_INIT(&wdfObjectAttributes);
+    wdfObjectAttributes.ParentObject = s_wdfControlDevice;
+    ntstatus = WdfWaitLockCreate(&wdfObjectAttributes, &s_devicesLock);
     if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfWaitLockCreate", ntstatus);
 
     // Subscribe to the create process and load image notifications
@@ -126,12 +141,21 @@ NTSTATUS OnDeviceCreate(WDFDEVICE wdfDevice)
     TRACE_ALWAYS(L"");
 
     PDEVICE_CONTEXT pDeviceContext;
+    UNICODE_STRING  deviceInstancePath;
     NTSTATUS        ntstatus;
 
     // Get the device instance path of this device and cache it for future use
     pDeviceContext = DeviceGetContext(wdfDevice);
     ntstatus = HidHideDeviceInstancePath(wdfDevice, &pDeviceContext->deviceInstancePath); // PASSIVE_LEVEL
     if (!NT_SUCCESS(ntstatus)) return (ntstatus);
+
+    // Note the cloaking this device starts with, and keep the device so that a change of cloaking can restart it
+    WdfStringGetUnicodeString(pDeviceContext->deviceInstancePath, &deviceInstancePath);
+    pDeviceContext->cloaked = GetActive() && Blacklisted(&deviceInstancePath, 0);
+    WdfWaitLockAcquire(s_devicesLock, NULL);
+    ntstatus = WdfCollectionAdd(s_wdfDevices, wdfDevice);
+    WdfWaitLockRelease(s_devicesLock);
+    if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfCollectionAdd", ntstatus);
     UpdateDataForControlDeviceDeletionAndDeleteControlDeviceWhenNeeded(1);
 
     return (STATUS_SUCCESS);
@@ -144,6 +168,11 @@ VOID OnDeviceContextCleanup(WDFOBJECT wdfDeviceObject)
     UNREFERENCED_PARAMETER(wdfDeviceObject);
 
     PDEVICE_CONTEXT pDeviceContext;
+
+    // No longer one a change of cloaking restarts; before the count goes down, as the last device takes the control device and the collection with it
+    WdfWaitLockAcquire(s_devicesLock, NULL);
+    WdfCollectionRemove(s_wdfDevices, wdfDeviceObject);
+    WdfWaitLockRelease(s_devicesLock);
 
     // Release context resources
     pDeviceContext = DeviceGetContext(wdfDeviceObject);
@@ -682,6 +711,7 @@ NTSTATUS OnControlDeviceIoAddSessionBlacklist(WDFDEVICE wdfControlDevice, WDFQUE
         WdfWaitLockAcquire(s_criticalSectionLock, NULL);
         AppendTailList(&pControlDeviceContext->sessionBlacklistHead, &localHead);
         WdfWaitLockRelease(s_criticalSectionLock);
+        RestartDevicesWhoseCloakChanged();
     }
 
     WdfRequestCompleteWithInformation(wdfRequest, STATUS_SUCCESS, inputBufferLength);
@@ -714,6 +744,7 @@ VOID SessionBlacklistCleanupForPid(HANDLE processId)
     PLIST_ENTRY              entry;
     PSESSION_BLACKLIST_ENTRY sbe;
     PLIST_ENTRY              next;
+    BOOLEAN                  removed = FALSE;
 
     if (NULL == s_wdfControlDevice) return;
 
@@ -732,12 +763,16 @@ VOID SessionBlacklistCleanupForPid(HANDLE processId)
             RemoveEntryList(entry);
             WdfObjectDelete(sbe->deviceInstancePath);
             ExFreePoolWithTag(sbe, 'lBSH');
+            removed = TRUE;
         }
 
         entry = next;
     }
 
     WdfWaitLockRelease(s_criticalSectionLock);
+
+    // Called for every process that ends; only one that held entries changes any cloaking
+    if (removed) RestartDevicesWhoseCloakChanged();
 }
 
 _Use_decl_annotations_
@@ -927,7 +962,40 @@ NTSTATUS SetBlacklist(LPWSTR buffer, size_t bufferSizeInCharacters)
     WdfWaitLockRelease(s_criticalSectionLock);
     if (!NT_SUCCESS(ntstatus)) return (ntstatus);
 
+    RestartDevicesWhoseCloakChanged();
     return (STATUS_SUCCESS);
+}
+
+_Use_decl_annotations_
+VOID RestartDevicesWhoseCloakChanged()
+{
+    TRACE_ALWAYS(L"");
+
+    WDFDEVICE       wdfDevice;
+    PDEVICE_CONTEXT pDeviceContext;
+    UNICODE_STRING  deviceInstancePath;
+    BOOLEAN         cloaked;
+    BOOLEAN         active;
+
+    // A handle opened before a change keeps its access, so a change applies to it only when the device starts again
+    // Raw Input, for one, opens a device on its arrival, or when an application first asks for its usage, and keeps it
+    // open: a device cloaked while Raw Input has it open stays readable to every Raw Input client, and a device that
+    // was cloaked when Raw Input tried to open it stays out of Raw Input after it is uncloaked, until it arrives again
+    // Restarting the device makes it arrive again, and the new device object starts with the cloaking it then has
+    active = GetActive();
+    WdfWaitLockAcquire(s_devicesLock, NULL);
+    for (ULONG index = 0, size = WdfCollectionGetCount(s_wdfDevices); (index < size); index++)
+    {
+        wdfDevice = (WDFDEVICE)WdfCollectionGetItem(s_wdfDevices, index);
+        pDeviceContext = DeviceGetContext(wdfDevice);
+        WdfStringGetUnicodeString(pDeviceContext->deviceInstancePath, &deviceInstancePath);
+        cloaked = active && Blacklisted(&deviceInstancePath, 0);
+        if (cloaked == pDeviceContext->cloaked) continue;
+        pDeviceContext->cloaked = cloaked;
+        TRACE_ALWAYS(L"Cloaking changed hence restart the device");
+        WdfDeviceSetFailed(wdfDevice, WdfDeviceFailedAttemptRestart);
+    }
+    WdfWaitLockRelease(s_devicesLock);
 }
 
 _Use_decl_annotations_
@@ -971,6 +1039,7 @@ NTSTATUS SetActive(BOOLEAN active)
     if ((changed) && (active))  LogEvent(ETW(Enabled),  L"");
     if ((changed) && (!active)) LogEvent(ETW(Disabled), L"");
 
+    if (changed) RestartDevicesWhoseCloakChanged();
     return (STATUS_SUCCESS);
 }
 

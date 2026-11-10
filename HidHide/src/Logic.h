@@ -25,6 +25,9 @@ typedef struct _DEVICE_CONTEXT
     // The unique device instance path of this device, suitable as input for CreateFile
     WDFSTRING deviceInstancePath;
 
+    // Whether the device was cloaked when this device object was created or last restarted for a change of cloaking
+    BOOLEAN cloaked;
+
 } DEVICE_CONTEXT, *PDEVICE_CONTEXT;
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(DEVICE_CONTEXT, DeviceGetContext)
@@ -205,6 +208,12 @@ NTSTATUS GetBlacklist(_Out_writes_to_opt_(bufferSizeInCharacters, *neededSizeInC
 _IRQL_requires_same_
 _IRQL_requires_max_(PASSIVE_LEVEL)
 NTSTATUS SetBlacklist(_In_reads_(bufferSizeInCharacters) LPWSTR buffer, _In_ size_t bufferSizeInCharacters);
+
+// Restart every device whose cloaking changed since its device object was created, so that a handle opened before
+// the change follows it; Raw Input, for one, keeps a hidden device open, and opens a shown one only on its arrival
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID RestartDevicesWhoseCloakChanged();
 
 // Get the active state (enable/disable service)
 _IRQL_requires_same_
