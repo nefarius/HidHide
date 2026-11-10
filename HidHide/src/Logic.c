@@ -176,6 +176,7 @@ VOID OnDeviceFileCreate(WDFDEVICE wdfDevice, WDFREQUEST wdfRequest, WDFFILEOBJEC
     // Should access be granted to a particular client that attempts to access the device?
     // This is determined by;
     // - The process id of the caller       --> a system-level process is always granted access
+    // - The requestor mode of the request  --> a kernel-mode open, such as Windows' own Raw Input open, is always granted access
     // - The active state of service        --> is hide-hide enabled or not?
     // - The device instance path of device --> is the device mentioned on the black-list?
     // - The full load image of the client  --> is the caller on the white-list?
@@ -192,9 +193,9 @@ VOID OnDeviceFileCreate(WDFDEVICE wdfDevice, WDFREQUEST wdfRequest, WDFFILEOBJEC
     }
 
     accessDenied = FALSE;
-    if ((SYSTEM_PID != PROCESS_HANDLE_TO_PROCESS_ID(processId)) && (GetActive()) && (Blacklisted(&deviceInstancePath, sessionId)))
+    if ((SYSTEM_PID != PROCESS_HANDLE_TO_PROCESS_ID(processId)) && (UserMode == WdfRequestGetRequestorMode(wdfRequest)) && (GetActive()) && (Blacklisted(&deviceInstancePath, sessionId)))
     {
-        // When the service is active, and the process is not a system-process, and the device being accessed is on the black-list, then the final verdict comes from the white-list
+        // When the service is active, and the process is not a system-process, and the request comes from user mode, and the device being accessed is on the black-list, then the final verdict comes from the white-list
         if (Whitelisted(processId, &cacheHit))
         {
             // Log the first-time that a white-listed application is granted access to a black-listed device
