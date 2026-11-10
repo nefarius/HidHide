@@ -41,7 +41,6 @@ BEGIN_MESSAGE_MAP(CBlacklistDlg, CDialogEx)
     ON_BN_CLICKED(IDC_CHECK_BLACKLIST_FILTER,      &CBlacklistDlg::OnBnClickedCheckFilter)
     ON_BN_CLICKED(IDC_CHECK_BLACKLIST_GAMING,      &CBlacklistDlg::OnBnClickedCheckGaming)
     ON_BN_CLICKED(IDC_CHECK_BLACKLIST_ENABLE,      &CBlacklistDlg::OnBnClickedCheckEnable)
-    ON_BN_CLICKED(IDC_CHECK_BLACKLIST_RESTART,     &CBlacklistDlg::OnBnClickedCheckRestart)
     ON_MESSAGE(WM_USER_CM_NOTIFICATION_REFRESH,    &CBlacklistDlg::OnUserMessageRefresh)
     ON_WM_SHOWWINDOW()
 END_MESSAGE_MAP()
@@ -62,7 +61,6 @@ CBlacklistDlg::CBlacklistDlg(CHidHideClientDlg& hidHideClientDlg, CWnd* pParent)
     , m_Filter{}
     , m_Gaming{}
     , m_Enable{}
-    , m_Restart{}
     , m_Guidance{}
 {
     TRACE_ALWAYS(L"");
@@ -107,7 +105,6 @@ void CBlacklistDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_CHECK_BLACKLIST_FILTER,    m_Filter);
     DDX_Control(pDX, IDC_CHECK_BLACKLIST_GAMING,    m_Gaming);
     DDX_Control(pDX, IDC_CHECK_BLACKLIST_ENABLE,    m_Enable);
-    DDX_Control(pDX, IDC_CHECK_BLACKLIST_RESTART,   m_Restart);
     DDX_Control(pDX, IDC_STATIC_BLACKLIST_GUIDANCE, m_Guidance);
 }
 
@@ -120,14 +117,12 @@ BOOL CBlacklistDlg::OnInitDialog()
     m_Filter.SetWindowTextW  (HidHide::StringTable(IDS_CHECK_BLACKLIST_FILTER).c_str());
     m_Gaming.SetWindowTextW  (HidHide::StringTable(IDS_CHECK_BLACKLIST_GAMING).c_str());
     m_Enable.SetWindowTextW  (HidHide::StringTable(IDS_CHECK_BLACKLIST_ENABLE).c_str());
-    m_Restart.SetWindowTextW (HidHide::StringTable(IDS_CHECK_BLACKLIST_RESTART).c_str());
     m_Guidance.SetWindowTextW(HidHide::StringTable(IDS_STATIC_BLACKLIST_GUIDANCE).c_str());
 
     // Reflect the current Active state in the check-box
     m_Filter.SetCheck(BST_CHECKED);
     m_Gaming.SetCheck(BST_CHECKED);
     m_Enable.SetCheck(FilterDriverProxy().GetActive() ? BST_CHECKED : BST_UNCHECKED);
-    m_Restart.SetCheck(FilterDriverProxy().GetRestartOnChange() ? BST_CHECKED : BST_UNCHECKED);
 
     // Prepare list icons
     if (nullptr == (m_LockBlank = ::LoadIconW(AfxGetApp()->m_hInstance, MAKEINTRESOURCEW(IDI_ICON_BLACKLIST_LOCK_BLANK)))) THROW_WIN32_LAST_ERROR;
@@ -385,10 +380,4 @@ void CBlacklistDlg::OnBnClickedCheckEnable()
 {
     TRACE_ALWAYS(L"");
     FilterDriverProxy().SetActive(0 != (m_Enable.GetCheck() & BST_CHECKED));
-}
-
-void CBlacklistDlg::OnBnClickedCheckRestart()
-{
-    TRACE_ALWAYS(L"");
-    FilterDriverProxy().SetRestartOnChange(0 != (m_Restart.GetCheck() & BST_CHECKED));
 }

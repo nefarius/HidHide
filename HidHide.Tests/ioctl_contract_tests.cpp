@@ -32,6 +32,4 @@ TEST(IoctlContract, IoctlCodesMatchHistoricAbi)
     EXPECT_EQ(GoldenCtlCode(2055u), static_cast<ULONG>(IOCTL_SET_WLINVERSE));
     EXPECT_EQ(GoldenCtlCode(2056u), static_cast<ULONG>(IOCTL_ADD_SESSION_BLACKLIST));
     EXPECT_EQ(GoldenCtlCode(2057u), static_cast<ULONG>(IOCTL_CLR_SESSION_BLACKLIST));
-    EXPECT_EQ(GoldenCtlCode(2058u), static_cast<ULONG>(IOCTL_GET_RESTART_ON_CHANGE));
-    EXPECT_EQ(GoldenCtlCode(2059u), static_cast<ULONG>(IOCTL_SET_RESTART_ON_CHANGE));
 }

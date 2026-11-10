@@ -113,7 +113,6 @@ BEGIN
     CONTROL         "xxx",IDC_CHECK_BLACKLIST_FILTER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,122,102,8,WS_EX_TRANSPARENT
     CONTROL         "xxx",IDC_CHECK_BLACKLIST_GAMING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,131,102,8,WS_EX_TRANSPARENT
     CONTROL         "xxx",IDC_CHECK_BLACKLIST_ENABLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,140,102,8,WS_EX_TRANSPARENT
-    CONTROL         "xxx",IDC_CHECK_BLACKLIST_RESTART,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,353,122,104,8,WS_EX_TRANSPARENT
     LTEXT           "xxx",IDC_STATIC_BLACKLIST_GUIDANCE,112,121,237,22,0,WS_EX_TRANSPARENT
 END
 
@@ -217,7 +216,6 @@ BEGIN
     IDS_STATIC_MESSAGEBOX_EXCEPTION 
                             "Something unforeseen has happened which cannot be recovered from. Program execution has to be terminated. Sorry for the inconvenience."
     IDS_CHECK_WHITELIST_INVERSE "&Inverse application cloak"
-    IDS_CHECK_BLACKLIST_RESTART "&Restart device on change"
 END
 
 STRINGTABLE

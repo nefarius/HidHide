@@ -19,11 +19,6 @@ WDFDEVICE s_wdfControlDevice = NULL;
 // As a rule of thumb, don't use the control device context directly but instead use the methods below
 WDFWAITLOCK s_criticalSectionLock = NULL;
 
-// The filter device objects, so that a change of cloaking can restart the devices it applies to
-// Guarded by a lock of their own, as judging a device takes the critical section lock
-WDFCOLLECTION s_wdfDevices = NULL;
-WDFWAITLOCK   s_devicesLock = NULL;
-
 _Use_decl_annotations_
 NTSTATUS OnDriverCreate(WDFDRIVER wdfDriver)
 {
@@ -44,16 +39,6 @@ NTSTATUS OnDriverCreate(WDFDRIVER wdfDriver)
     WDF_OBJECT_ATTRIBUTES_INIT(&wdfObjectAttributes);
     wdfObjectAttributes.ParentObject = s_wdfControlDevice;
     ntstatus = WdfWaitLockCreate(&wdfObjectAttributes, &s_criticalSectionLock);
-    if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfWaitLockCreate", ntstatus);
-
-    // The filter devices, kept for restarting those a change of cloaking applies to
-    WDF_OBJECT_ATTRIBUTES_INIT(&wdfObjectAttributes);
-    wdfObjectAttributes.ParentObject = s_wdfControlDevice;
-    ntstatus = WdfCollectionCreate(&wdfObjectAttributes, &s_wdfDevices);
-    if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfCollectionCreate", ntstatus);
-    WDF_OBJECT_ATTRIBUTES_INIT(&wdfObjectAttributes);
-    wdfObjectAttributes.ParentObject = s_wdfControlDevice;
-    ntstatus = WdfWaitLockCreate(&wdfObjectAttributes, &s_devicesLock);
     if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfWaitLockCreate", ntstatus);
 
     // Subscribe to the create process and load image notifications
@@ -141,21 +126,12 @@ NTSTATUS OnDeviceCreate(WDFDEVICE wdfDevice)
     TRACE_ALWAYS(L"");
 
     PDEVICE_CONTEXT pDeviceContext;
-    UNICODE_STRING  deviceInstancePath;
     NTSTATUS        ntstatus;
 
     // Get the device instance path of this device and cache it for future use
     pDeviceContext = DeviceGetContext(wdfDevice);
     ntstatus = HidHideDeviceInstancePath(wdfDevice, &pDeviceContext->deviceInstancePath); // PASSIVE_LEVEL
     if (!NT_SUCCESS(ntstatus)) return (ntstatus);
-
-    // Note the cloaking this device starts with, and keep the device so that a change of cloaking can restart it
-    WdfStringGetUnicodeString(pDeviceContext->deviceInstancePath, &deviceInstancePath);
-    pDeviceContext->cloaked = GetActive() && Blacklisted(&deviceInstancePath, 0);
-    WdfWaitLockAcquire(s_devicesLock, NULL);
-    ntstatus = WdfCollectionAdd(s_wdfDevices, wdfDevice);
-    WdfWaitLockRelease(s_devicesLock);
-    if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfCollectionAdd", ntstatus);
     UpdateDataForControlDeviceDeletionAndDeleteControlDeviceWhenNeeded(1);
 
     return (STATUS_SUCCESS);
@@ -168,11 +144,6 @@ VOID OnDeviceContextCleanup(WDFOBJECT wdfDeviceObject)
     UNREFERENCED_PARAMETER(wdfDeviceObject);
 
     PDEVICE_CONTEXT pDeviceContext;
-
-    // No longer one a change of cloaking restarts; before the count goes down, as the last device takes the control device and the collection with it
-    WdfWaitLockAcquire(s_devicesLock, NULL);
-    WdfCollectionRemove(s_wdfDevices, wdfDeviceObject);
-    WdfWaitLockRelease(s_devicesLock);
 
     // Release context resources
     pDeviceContext = DeviceGetContext(wdfDeviceObject);
@@ -205,6 +176,7 @@ VOID OnDeviceFileCreate(WDFDEVICE wdfDevice, WDFREQUEST wdfRequest, WDFFILEOBJEC
     // Should access be granted to a particular client that attempts to access the device?
     // This is determined by;
     // - The process id of the caller       --> a system-level process is always granted access
+    // - The requestor mode of the request  --> a kernel-mode open, such as Windows' own Raw Input open, is always granted access
     // - The active state of service        --> is hide-hide enabled or not?
     // - The device instance path of device --> is the device mentioned on the black-list?
     // - The full load image of the client  --> is the caller on the white-list?
@@ -221,9 +193,9 @@ VOID OnDeviceFileCreate(WDFDEVICE wdfDevice, WDFREQUEST wdfRequest, WDFFILEOBJEC
     }
 
     accessDenied = FALSE;
-    if ((SYSTEM_PID != PROCESS_HANDLE_TO_PROCESS_ID(processId)) && (GetActive()) && (Blacklisted(&deviceInstancePath, sessionId)))
+    if ((SYSTEM_PID != PROCESS_HANDLE_TO_PROCESS_ID(processId)) && (UserMode == WdfRequestGetRequestorMode(wdfRequest)) && (GetActive()) && (Blacklisted(&deviceInstancePath, sessionId)))
     {
-        // When the service is active, and the process is not a system-process, and the device being accessed is on the black-list, then the final verdict comes from the white-list
+        // When the service is active, and the process is not a system-process, and the request comes from user mode, and the device being accessed is on the black-list, then the final verdict comes from the white-list
         if (Whitelisted(processId, &cacheHit))
         {
             // Log the first-time that a white-listed application is granted access to a black-listed device
@@ -332,11 +304,6 @@ NTSTATUS OnControlDeviceCreate(WDFDEVICE wdfControlDevice)
     ntstatus = HidHideDriverGetBooleanProperty(&whitelistedInverse, &pControlDeviceContext->whitelistedInverse);
     if (!NT_SUCCESS(ntstatus)) return (ntstatus);
 
-    // Query the boolean property indicating whether a device is restarted when it is hidden or shown (off when absent)
-    DECLARE_CONST_UNICODE_STRING(restartOnChange, DRIVER_PROPERTY_RESTART_ON_CHANGE);
-    ntstatus = HidHideDriverGetBooleanProperty(&restartOnChange, &pControlDeviceContext->restartOnChange);
-    if (!NT_SUCCESS(ntstatus)) return (ntstatus);
-
     return (STATUS_SUCCESS);
 }
 
@@ -391,12 +358,6 @@ NTSTATUS OnControlDeviceIoDeviceControl(WDFDEVICE wdfControlDevice, WDFQUEUE wdf
         break;
     case IOCTL_SET_WLINVERSE:
         return (OnControlDeviceIoSetInverse(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
-        break;
-    case IOCTL_GET_RESTART_ON_CHANGE:
-        return (OnControlDeviceIoGetRestartOnChange(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
-        break;
-    case IOCTL_SET_RESTART_ON_CHANGE:
-        return (OnControlDeviceIoSetRestartOnChange(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
         break;
     case IOCTL_ADD_SESSION_BLACKLIST:
         return (OnControlDeviceIoAddSessionBlacklist(wdfControlDevice, wdfQueue, wdfRequest, outputBufferLength, inputBufferLength, ioControlCode));
@@ -628,49 +589,6 @@ NTSTATUS OnControlDeviceIoSetInverse(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQue
 }
 
 _Use_decl_annotations_
-NTSTATUS OnControlDeviceIoGetRestartOnChange(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQueue, WDFREQUEST wdfRequest, size_t outputBufferLength, size_t inputBufferLength, ULONG ioControlCode)
-{
-    TRACE_ALWAYS(L"");
-    UNREFERENCED_PARAMETER(wdfControlDevice);
-    UNREFERENCED_PARAMETER(wdfQueue);
-    UNREFERENCED_PARAMETER(ioControlCode);
-
-    PBOOLEAN buffer;
-    NTSTATUS ntstatus;
-
-    // Validate buffer and, on success, report the current status
-    if ((0 != inputBufferLength) || (sizeof(BOOLEAN) != outputBufferLength)) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
-    ntstatus = WdfRequestRetrieveOutputBuffer(wdfRequest, outputBufferLength, &buffer, NULL);
-    if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfRequestRetrieveOutputBuffer", ntstatus);
-    *buffer = GetRestartOnChange();
-
-    WdfRequestCompleteWithInformation(wdfRequest, STATUS_SUCCESS, outputBufferLength);
-    return (STATUS_SUCCESS);
-}
-
-_Use_decl_annotations_
-NTSTATUS OnControlDeviceIoSetRestartOnChange(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQueue, WDFREQUEST wdfRequest, size_t outputBufferLength, size_t inputBufferLength, ULONG ioControlCode)
-{
-    TRACE_ALWAYS(L"");
-    UNREFERENCED_PARAMETER(wdfControlDevice);
-    UNREFERENCED_PARAMETER(wdfQueue);
-    UNREFERENCED_PARAMETER(ioControlCode);
-
-    PBOOLEAN buffer;
-    NTSTATUS ntstatus;
-
-    // Validate buffer, retrieve its content, and set the state accordingly
-    if ((sizeof(BOOLEAN) != inputBufferLength) || (0 != outputBufferLength)) LOG_AND_RETURN_NTSTATUS(L"Validation", STATUS_INVALID_PARAMETER);
-    ntstatus = WdfRequestRetrieveInputBuffer(wdfRequest, inputBufferLength, &buffer, NULL);
-    if (!NT_SUCCESS(ntstatus)) LOG_AND_RETURN_NTSTATUS(L"WdfRequestRetrieveInputBuffer", ntstatus);
-    ntstatus = SetRestartOnChange(FALSE != *buffer);
-    if (!NT_SUCCESS(ntstatus)) return (ntstatus);
-
-    WdfRequestCompleteWithInformation(wdfRequest, STATUS_SUCCESS, outputBufferLength);
-    return (STATUS_SUCCESS);
-}
-
-_Use_decl_annotations_
 NTSTATUS OnControlDeviceIoAddSessionBlacklist(WDFDEVICE wdfControlDevice, WDFQUEUE wdfQueue, WDFREQUEST wdfRequest, size_t outputBufferLength, size_t inputBufferLength, ULONG ioControlCode)
 {
     TRACE_ALWAYS(L"");
@@ -765,7 +683,6 @@ NTSTATUS OnControlDeviceIoAddSessionBlacklist(WDFDEVICE wdfControlDevice, WDFQUE
         WdfWaitLockAcquire(s_criticalSectionLock, NULL);
         AppendTailList(&pControlDeviceContext->sessionBlacklistHead, &localHead);
         WdfWaitLockRelease(s_criticalSectionLock);
-        RestartDevicesWhoseCloakChanged();
     }
 
     WdfRequestCompleteWithInformation(wdfRequest, STATUS_SUCCESS, inputBufferLength);
@@ -798,7 +715,6 @@ VOID SessionBlacklistCleanupForPid(HANDLE processId)
     PLIST_ENTRY              entry;
     PSESSION_BLACKLIST_ENTRY sbe;
     PLIST_ENTRY              next;
-    BOOLEAN                  removed = FALSE;
 
     if (NULL == s_wdfControlDevice) return;
 
@@ -817,16 +733,12 @@ VOID SessionBlacklistCleanupForPid(HANDLE processId)
             RemoveEntryList(entry);
             WdfObjectDelete(sbe->deviceInstancePath);
             ExFreePoolWithTag(sbe, 'lBSH');
-            removed = TRUE;
         }
 
         entry = next;
     }
 
     WdfWaitLockRelease(s_criticalSectionLock);
-
-    // Called for every process that ends; only one that held entries changes any cloaking
-    if (removed) RestartDevicesWhoseCloakChanged();
 }
 
 _Use_decl_annotations_
@@ -1016,42 +928,7 @@ NTSTATUS SetBlacklist(LPWSTR buffer, size_t bufferSizeInCharacters)
     WdfWaitLockRelease(s_criticalSectionLock);
     if (!NT_SUCCESS(ntstatus)) return (ntstatus);
 
-    RestartDevicesWhoseCloakChanged();
     return (STATUS_SUCCESS);
-}
-
-_Use_decl_annotations_
-VOID RestartDevicesWhoseCloakChanged()
-{
-    TRACE_ALWAYS(L"");
-
-    WDFDEVICE       wdfDevice;
-    PDEVICE_CONTEXT pDeviceContext;
-    UNICODE_STRING  deviceInstancePath;
-    BOOLEAN         cloaked;
-    BOOLEAN         active;
-
-    // A handle opened before a change keeps its access, so a change applies to it only when the device starts again
-    // Raw Input, for one, opens a device on its arrival, or when an application first asks for its usage, and keeps it
-    // open: a device cloaked while Raw Input has it open stays readable to every Raw Input client, and a device that
-    // was cloaked when Raw Input tried to open it stays out of Raw Input after it is uncloaked, until it arrives again
-    // Restarting the device makes it arrive again, and the new device object starts with the cloaking it then has
-    // While restart on change is off, each device keeps the cloaking it started with, so turning it on applies what changed meanwhile
-    if (!GetRestartOnChange()) return;
-    active = GetActive();
-    WdfWaitLockAcquire(s_devicesLock, NULL);
-    for (ULONG index = 0, size = WdfCollectionGetCount(s_wdfDevices); (index < size); index++)
-    {
-        wdfDevice = (WDFDEVICE)WdfCollectionGetItem(s_wdfDevices, index);
-        pDeviceContext = DeviceGetContext(wdfDevice);
-        WdfStringGetUnicodeString(pDeviceContext->deviceInstancePath, &deviceInstancePath);
-        cloaked = active && Blacklisted(&deviceInstancePath, 0);
-        if (cloaked == pDeviceContext->cloaked) continue;
-        pDeviceContext->cloaked = cloaked;
-        TRACE_ALWAYS(L"Cloaking changed hence restart the device");
-        WdfDeviceSetFailed(wdfDevice, WdfDeviceFailedAttemptRestart);
-    }
-    WdfWaitLockRelease(s_devicesLock);
 }
 
 _Use_decl_annotations_
@@ -1095,7 +972,6 @@ NTSTATUS SetActive(BOOLEAN active)
     if ((changed) && (active))  LogEvent(ETW(Enabled),  L"");
     if ((changed) && (!active)) LogEvent(ETW(Disabled), L"");
 
-    if (changed) RestartDevicesWhoseCloakChanged();
     return (STATUS_SUCCESS);
 }
 
@@ -1140,48 +1016,6 @@ NTSTATUS SetInverse(BOOLEAN inverse)
     if ((changed) && (inverse))  LogEvent(ETW(Enabled), L"");
     if ((changed) && (!inverse)) LogEvent(ETW(Disabled), L"");
 
-    return (STATUS_SUCCESS);
-}
-
-_Use_decl_annotations_
-BOOLEAN GetRestartOnChange()
-{
-    TRACE_PERFORMANCE(L"");
-
-    PCONTROL_DEVICE_CONTEXT pControlDeviceContext;
-    BOOLEAN                 restartOnChange;
-
-    WdfWaitLockAcquire(s_criticalSectionLock, NULL);
-    pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
-    restartOnChange = pControlDeviceContext->restartOnChange;
-    WdfWaitLockRelease(s_criticalSectionLock);
-
-    return (restartOnChange);
-}
-
-_Use_decl_annotations_
-NTSTATUS SetRestartOnChange(BOOLEAN restartOnChange)
-{
-    TRACE_PERFORMANCE(L"");
-
-    PCONTROL_DEVICE_CONTEXT pControlDeviceContext;
-    BOOLEAN                 changed;
-    NTSTATUS                ntstatus;
-
-    // Persist the new setting in the registry
-    DECLARE_CONST_UNICODE_STRING(parameterName, DRIVER_PROPERTY_RESTART_ON_CHANGE);
-    ntstatus = HidHideDriverSetBooleanProperty(&parameterName, restartOnChange);
-    if (!NT_SUCCESS(ntstatus)) return (ntstatus);
-
-    // Apply the new setting
-    WdfWaitLockAcquire(s_criticalSectionLock, NULL);
-    pControlDeviceContext = ControlDeviceGetContext(s_wdfControlDevice);
-    changed = (pControlDeviceContext->restartOnChange != restartOnChange);
-    pControlDeviceContext->restartOnChange = restartOnChange;
-    WdfWaitLockRelease(s_criticalSectionLock);
-
-    // Turned on, it applies straight away what was hidden or shown while it was off
-    if ((changed) && (restartOnChange)) RestartDevicesWhoseCloakChanged();
     return (STATUS_SUCCESS);
 }
 

@@ -109,27 +109,6 @@ namespace
         buffer.at(0) = (inverse ? TRUE : FALSE);
         if (FALSE == ::DeviceIoControl(device, static_cast<DWORD>(IOCTL_SET_WLINVERSE), buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(BOOLEAN)), nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
     }
-
-    // Get the restart on change state; returns true when a device is restarted as it is hidden or unhidden
-    bool GetRestartOnChange(_In_ HANDLE device)
-    {
-        TRACE_ALWAYS(L"");
-        DWORD needed{};
-        auto buffer{ std::vector<BOOLEAN>(1) };
-        if (FALSE == ::DeviceIoControl(device, static_cast<DWORD>(IOCTL_GET_RESTART_ON_CHANGE), nullptr, 0, buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(BOOLEAN)), &needed, nullptr)) THROW_WIN32_LAST_ERROR;
-        if (sizeof(BOOLEAN) != needed) THROW_WIN32(ERROR_INVALID_PARAMETER);
-        return (FALSE != buffer.at(0));
-    }
-
-    // Set the restart on change state
-    void SetRestartOnChange(_In_ HANDLE device, _In_ bool restartOnChange)
-    {
-        TRACE_ALWAYS(L"");
-        DWORD needed{};
-        auto buffer{ std::vector<BOOLEAN>(1) };
-        buffer.at(0) = (restartOnChange ? TRUE : FALSE);
-        if (FALSE == ::DeviceIoControl(device, static_cast<DWORD>(IOCTL_SET_RESTART_ON_CHANGE), buffer.data(), static_cast<DWORD>(buffer.size() * sizeof(BOOLEAN)), nullptr, 0, &needed, nullptr)) THROW_WIN32_LAST_ERROR;
-    }
 }
 
 namespace HidHide
@@ -142,7 +121,6 @@ namespace HidHide
         , m_Blacklist{ ::GetBlacklist(m_Device.get()) }
         , m_Whitelist{ ::GetWhitelist(m_Device.get()) }
         , m_Inverse{ ::GetInverse(m_Device.get()) }
-        , m_RestartOnChange{ ::GetRestartOnChange(m_Device.get()) }
     {
         TRACE_ALWAYS(L"");
 
@@ -171,7 +149,6 @@ namespace HidHide
         if (::GetBlacklist(m_Device.get()) != m_Blacklist) ::SetBlacklist(m_Device.get(), m_Blacklist);
         if (::GetActive(m_Device.get()) != m_Active) ::SetActive(m_Device.get(), m_Active);
         if (::GetInverse(m_Device.get()) != m_Inverse) ::SetInverse(m_Device.get(), m_Inverse);
-        if (::GetRestartOnChange(m_Device.get()) != m_RestartOnChange) ::SetRestartOnChange(m_Device.get(), m_RestartOnChange);
     }
 
     bool FilterDriverProxy::GetActive() const
@@ -281,23 +258,6 @@ namespace HidHide
         {
             m_Inverse = inverse;
             if (m_WriteThrough) ::SetInverse(m_Device.get(), m_Inverse);
-        }
-    }
-
-    bool FilterDriverProxy::GetRestartOnChange() const
-    {
-        TRACE_ALWAYS(L"");
-        return (m_RestartOnChange);
-    }
-
-    _Use_decl_annotations_
-    void FilterDriverProxy::SetRestartOnChange(bool restartOnChange)
-    {
-        TRACE_ALWAYS(L"");
-        if (m_RestartOnChange != restartOnChange)
-        {
-            m_RestartOnChange = restartOnChange;
-            if (m_WriteThrough) ::SetRestartOnChange(m_Device.get(), m_RestartOnChange);
         }
     }
 }

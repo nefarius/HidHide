@@ -101,9 +101,6 @@ namespace HidHide
             { L"inv-off",      { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_INV_OFF),      std::bind(&CommandInterpreter::InvOff,      this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
             { L"inv-on",       { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_INV_ON),       std::bind(&CommandInterpreter::InvOn,       this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
             { L"inv-state",    { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_INV_STATE),    std::bind(&CommandInterpreter::InvState,    this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
-            { L"restart-off",  { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_RESTART_OFF),  std::bind(&CommandInterpreter::RestartOff,  this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
-            { L"restart-on",   { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_RESTART_ON),   std::bind(&CommandInterpreter::RestartOn,   this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
-            { L"restart-state",{ StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_RESTART_STATE),std::bind(&CommandInterpreter::RestartState,this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
             { L"cancel",       { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_CANCEL),       std::bind(&CommandInterpreter::Cancel,      this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
             { L"cloak-off",    { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_CLOAK_OFF),    std::bind(&CommandInterpreter::CloakOff,    this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
             { L"cloak-on",     { StringTable(IDS_CLI_SYNTAX_NO_ARGUMENTS),  StringTable(IDS_CLI_CLOAK_ON),     std::bind(&CommandInterpreter::CloakOn,     this, std::placeholders::_1), std::bind(&CommandInterpreter::ValNoArguments, this, std::placeholders::_1) } },
@@ -313,26 +310,5 @@ namespace HidHide
     {
         TRACE_ALWAYS(L"");
         std::wcout << (m_FilterDriverProxy.GetInverse() ? L"--inv-on" : L"--inv-off") << std::endl;
-    }
-
-    _Use_decl_annotations_
-        void CommandInterpreter::RestartOn(Args const&)
-    {
-        TRACE_ALWAYS(L"");
-        m_FilterDriverProxy.SetRestartOnChange(true);
-    }
-
-    _Use_decl_annotations_
-        void CommandInterpreter::RestartOff(Args const&)
-    {
-        TRACE_ALWAYS(L"");
-        m_FilterDriverProxy.SetRestartOnChange(false);
-    }
-
-    _Use_decl_annotations_
-        void CommandInterpreter::RestartState(Args const&) const
-    {
-        TRACE_ALWAYS(L"");
-        std::wcout << (m_FilterDriverProxy.GetRestartOnChange() ? L"--restart-on" : L"--restart-off") << std::endl;
     }
 }
