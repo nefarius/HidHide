@@ -64,6 +64,7 @@ private:
     CButton         m_Filter;
     CButton         m_Gaming;
     CButton         m_Enable;
+    CButton         m_Restart;
     CStatic         m_Guidance;
 
     // Events
@@ -71,5 +72,6 @@ private:
     afx_msg void OnBnClickedCheckFilter();
     afx_msg void OnBnClickedCheckGaming();
     afx_msg void OnBnClickedCheckEnable();
+    afx_msg void OnBnClickedCheckRestart();
     afx_msg void OnShowWindow(_In_ BOOL bShow, _In_ UINT nStatus);
 };
